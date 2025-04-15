@@ -135,7 +135,7 @@ const Dashboard = ({ user }) => {
             {/* Accordion for Top-Up Form */}
             <Accordion defaultActiveKey={null}>
               <Accordion.Item eventKey="0">
-                <Accordion.Header>Top-Up Form</Accordion.Header>
+                <Accordion.Header>Top-Up Balance</Accordion.Header>
                 <Accordion.Body>
                   <TopUpForm
                     user={user}
