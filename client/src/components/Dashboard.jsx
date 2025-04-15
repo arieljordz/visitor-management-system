@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Button, Alert, Spinner, Row, Col, Card } from "react-bootstrap";
+import {
+  Button,
+  Alert,
+  Spinner,
+  Row,
+  Col,
+  Card,
+  Accordion,
+} from "react-bootstrap";
 import axios from "axios";
 import QRDisplay from "./QRDisplay";
 import TopUpForm from "./TopUpForm";
@@ -11,151 +19,159 @@ const Dashboard = ({ user }) => {
   const [qrCode, setQrCode] = useState(null);
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
-  const [topUpAmount, setTopUpAmount] = useState("");
+
   const [paymentMethod, setPaymentMethod] = useState("gcash");
   const [proof, setProof] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [canPay, setCanPay] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState([]);
 
-  // Fetch payment methods and balance on load
+  // Fetch payment methods and balance on mount
   useEffect(() => {
-    const fetchPaymentMethods = async () => {
-      try {
-        const res = await axios.get(`${API_URL}/api/get-payment-methods`);
-        setPaymentMethods(res.data);
-      } catch (error) {
-        setMessage("Failed to load payment methods.");
-        setShowMessage(true);
-      }
-    };
-
-    const fetchBalance = async () => {
-      setIsLoading(true);
-      try {
-        const res = await axios.get(`${API_URL}/api/check-balance/${user.userId}`);
-        setBalance(res.data.balance);
-        if (res.data.balance < 100) {
-          setMessage("Your balance is less than ₱100. Please top-up.");
-          setShowMessage(true);
-        }
-      } catch {
-        setMessage("Your balance is insufficient to generate a QR code.");
-        setShowMessage(true);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
+    if (user && user.userId) {
+      fetchUserBalance();
+    }
     fetchPaymentMethods();
-    fetchBalance();
   }, [user]);
 
-  // Helper function to handle setting messages
-  const handleMessage = (message, isError = false) => {
-    setMessage(message);
+  const showAlert = (msg, isError = false) => {
+    setMessage(msg);
     setShowMessage(true);
-    setIsLoading(false);
-    setQrCode(null); // Clear the QR code in case of error
+    if (isError) setQrCode(null);
   };
 
-  const handleTopUp = async () => {
-    if (!topUpAmount || parseFloat(topUpAmount) <= 0 || !proof) {
-      handleMessage("Please enter a valid amount and upload proof.", true);
-      return;
+  const fetchPaymentMethods = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/get-payment-methods`);
+      setPaymentMethods(res.data);
+    } catch {
+      showAlert("Failed to load payment methods.", true);
     }
+  };
 
-    const formData = new FormData();
-    formData.append("topUpAmount", parseFloat(topUpAmount));
-    formData.append("paymentMethod", paymentMethod);
-    formData.append("proof", proof);
-
+  const fetchUserBalance = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/api/top-up/${user.userId}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setBalance(res.data.balance);
-      handleMessage(`Top-up submitted. Awaiting confirmation. Balance: ₱${res.data.balance}`);
-      setTopUpAmount("");
-      setProof(null);
-    } catch {
-      handleMessage("Top-up failed. Please try again.", true);
+      const res = await axios.get(
+        `${API_URL}/api/check-balance/${user?.userId}`
+      );
+
+      if (res.status === 200 && res.data?.balance !== undefined) {
+        setBalance(res.data.balance);
+
+        if (res.data.balance < 100) {
+          showAlert("Your balance is less than ₱100. Please top-up.");
+        }
+
+        console.log("Fetched balance:", res.data.balance);
+      } else {
+        // Handle non-200 with fallback
+        showAlert("Unexpected response while fetching balance.", true);
+      }
+    } catch (error) {
+      console.error("Balance fetch error:", error?.response || error);
+      showAlert("Unable to fetch balance. Please try again later.", true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const generateQR = async () => {
-    if (balance < 100) {
-      handleMessage("Your balance is insufficient to generate a QR code.", true);
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      const qrCode = await generateQrCode();
-      setQrCode(qrCode);
-      setCanPay(true);
-      handleMessage("QR Code generated. Proceeding to payment...");
-
-      const paymentSuccess = await payBalance();
-      if (!paymentSuccess) handlePaymentFailure();
-    } catch (error) {
-      handleMessage("QR generation failed", true);
-    }
-  };
-
-  const generateQrCode = async () => {
-    const res = await axios.post(`${API_URL}/api/generate-qr/${user.userId}`);
-    return res.data.qrCode;
-  };
-
-  const payBalance = async () => {
-    try {
-      const response = await axios.post(`${API_URL}/api/payment`, { userId: user.userId });
-      if (response.status === 200) {
-        setBalance(0);
-        handleMessage("Payment successful");
-        return true;
-      } else {
-        handleMessage("Payment failed: " + response.data.message, true);
-        return false;
-      }
-    } catch (error) {
-      handleMessage("Payment failed", true);
+      const res = await axios.post(`${API_URL}/api/generate-qr/${user.userId}`);
+      setQrCode(res.data.qrCode);
+      return true;
+    } catch {
+      showAlert("QR generation failed.", true);
       return false;
     }
   };
 
-  const handlePaymentFailure = () => {
-    handleMessage("Payment failed. QR generation is canceled.", true);
-    setQrCode(null);
+  const payBalance = async () => {
+    setIsLoading(true); // Set loading state to true before starting the request
+
+    try {
+      const res = await axios.post(`${API_URL}/api/submit-payment`, {
+        userId: user.userId,
+      });
+
+      console.log("payment response:", res);
+
+      // Check if the payment was successful based on status code
+      if (res.status === 200) {
+        // Deduct 100 from the balance
+        setBalance((prev) => prev - 100);
+        showAlert(
+          "Payment successful. ₱100 has been deducted from your balance."
+        );
+        return true;
+      }
+
+      // If payment fails but status is not 200, show error message
+      showAlert(
+        "Payment failed: " + (res.data.message || "Unknown error"),
+        true
+      );
+      return false;
+    } catch (error) {
+      console.error("Payment error:", error); // Log error for debugging
+      showAlert("Payment failed. Please try again.", true);
+      return false;
+    } finally {
+      setIsLoading(false); // Reset loading state after completion
+    }
+  };
+
+  const handleGenerateAndPay = async () => {
+    if (balance < 100) {
+      return showAlert(
+        "Your balance is insufficient to generate a QR code.",
+        true
+      );
+    }
+
+    setIsLoading(true);
+    const qrGenerated = await generateQR();
+    if (qrGenerated) {
+      await payBalance();
+    }
+    setIsLoading(false);
   };
 
   return (
     <Row className="justify-content-center p-3">
       <h2 className="text-center mb-4">Welcome, {user?.email}</h2>
+
       <Col md={8} lg={6}>
         <Card className="p-4">
           <Card.Body>
             <h4 className="text-center mb-4">Current Balance: ₱{balance}</h4>
 
-            {/* Top-Up Form Component */}
-            <TopUpForm
-              topUpAmount={topUpAmount}
-              setTopUpAmount={setTopUpAmount}
-              paymentMethod={paymentMethod}
-              setPaymentMethod={setPaymentMethod}
-              paymentMethods={paymentMethods}
-              proof={proof}
-              setProof={setProof}
-              handleTopUp={handleTopUp}
-              isLoading={isLoading}
-            />
+            {/* Accordion for Top-Up Form */}
+            <Accordion defaultActiveKey={null}>
+              <Accordion.Item eventKey="0">
+                <Accordion.Header>Top-Up Form</Accordion.Header>
+                <Accordion.Body>
+                  <TopUpForm
+                    user={user}
+                    paymentMethod={paymentMethod}
+                    setPaymentMethod={setPaymentMethod}
+                    paymentMethods={paymentMethods}
+                    proof={proof}
+                    setProof={setProof}
+                    setBalance={setBalance}
+                    isLoading={isLoading}
+                  />
+                </Accordion.Body>
+              </Accordion.Item>
+            </Accordion>
 
+            {/* Alert */}
             {showMessage && (
               <Alert
                 className="mt-3"
-                variant={message.includes("failed") ? "danger" : "success"}
+                variant={
+                  message.toLowerCase().includes("fail") ? "danger" : "success"
+                }
                 onClose={() => setShowMessage(false)}
                 dismissible
               >
@@ -163,15 +179,19 @@ const Dashboard = ({ user }) => {
               </Alert>
             )}
 
-            {/* QR Code & Payment */}
+            {/* QR Section */}
             <div className="text-center mt-4">
               <Button
-                onClick={generateQR}
+                onClick={handleGenerateAndPay}
                 variant="info"
                 className="mb-2 w-100"
                 disabled={isLoading}
               >
-                {isLoading ? <Spinner animation="border" size="sm" /> : "Generate QR Code"}
+                {isLoading ? (
+                  <Spinner animation="border" size="sm" />
+                ) : (
+                  "Generate QR Code"
+                )}
               </Button>
 
               {qrCode && <QRDisplay qrCode={qrCode} />}

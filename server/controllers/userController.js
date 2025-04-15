@@ -132,19 +132,3 @@ export const googleLogin = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-export const pay = async (req, res) => {
-  const { userId } = req.body;
-  const user = await User.findById(userId);
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  user.balance = 0;
-  await user.save();
-  res.json({ message: "Payment successful" });
-};
-
-export const generateQR = async (req, res) => {
-  const qrData = `visitor-${req.params.userId}`;
-  const qrCode = `https://api.qrserver.com/v1/create-qr-code/?data=${qrData}&size=150x150`;
-  res.json({ qrCode });
-};

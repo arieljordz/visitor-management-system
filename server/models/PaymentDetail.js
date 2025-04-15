@@ -17,11 +17,6 @@ const paymentDetailsSchema = new mongoose.Schema(
       enum: ["gcash", "paymaya", "bank", "e-wallet"],
       required: true,
     },
-    transactionId: {
-      type: String,
-      required: true,
-      unique: true, // Ensure transaction IDs are unique
-    },
     status: {
       type: String,
       enum: ["pending", "completed", "failed", "cancelled"],

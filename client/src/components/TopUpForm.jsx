@@ -1,18 +1,58 @@
-// TopUpForm.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Form, Row, Col, Card, Spinner } from "react-bootstrap";
+import { toast } from "react-toastify";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_BASE_API_URL;
 
 const TopUpForm = ({
-  topUpAmount,
-  setTopUpAmount,
+  user,
   paymentMethod,
   setPaymentMethod,
   paymentMethods,
   proof,
+  setBalance,
   setProof,
-  handleTopUp,
-  isLoading,
 }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [topUpAmount, setTopUpAmount] = useState("");
+
+  const handleTopUp = async () => {
+    if (!topUpAmount || parseFloat(topUpAmount) <= 0 || !proof) {
+      toast.warning("Please enter a valid amount and upload proof.");
+      return;
+    }
+  
+    const formData = new FormData();
+    formData.append("topUpAmount", parseFloat(topUpAmount));
+    formData.append("paymentMethod", paymentMethod);
+    formData.append("proof", proof);
+  
+    setIsLoading(true);
+  
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/top-up/${user.userId}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+  
+      const { balance } = res.data;
+      setBalance(balance);
+      setTopUpAmount("");
+      setProof(null);
+  
+      toast.success(`Top-up submitted successfully. New balance: ₱${balance}`);
+    } catch (error) {
+      console.error("Top-up error:", error);
+      toast.error(
+        error.response?.data?.message || "Top-up failed. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   return (
     <Form>
       <Row className="mb-3">

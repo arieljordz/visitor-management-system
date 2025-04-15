@@ -1,67 +1,46 @@
 import mongoose from "mongoose";
 import Balance from "../models/Balance.js"; // Assuming Balance schema is located here
 import PaymentDetail from "../models/PaymentDetail.js";
-import User from "../models/User.js"; // Make sure to import the User model
 
 // Process payment handler
 export const processPayment = async (req, res) => {
-  const { userId } = req.body;
-
-  console.log("processPayment");
-  // Validate the user ID
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(400).json({ message: "Invalid User ID" });
-  }
-
   try {
-    // Fetch the user's balance document
-    const userBalance = await Balance.findOne({ userId }).exec();
-    if (!userBalance) {
-      return res.status(404).json({ message: "User balance not found" });
+    const userId = req.body.userId; // Get userId from body
+    console.log("processPayment body", req.body); // Log to verify the body content
+
+    const balanceDoc = await Balance.findOne({ userId });
+    if (!balanceDoc) {
+      return res.status(404).json({ message: "Balance record not found." });
     }
 
-    // Fetch the user details
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    if (balanceDoc.balance < 100) {
+      return res.status(400).json({ message: "Insufficient balance." });
     }
 
-    // Assume the amount to pay is 100 pesos per generation
-    const amount = 100;
+    // Deduct ₱100 from balance
+    balanceDoc.balance -= 100;
+    await balanceDoc.save();
 
-    // Check if user has sufficient balance
-    if (userBalance.balance < amount) {
-      return res
-        .status(400)
-        .json({ message: "Insufficient balance for payment" });
-    }
-
-    // Create a new PaymentDetails document
+    // Create new payment log
     const payment = new PaymentDetail({
-      userId: user._id,
-      amount: amount,
-      paymentMethod: "e-wallet", // This can be dynamic based on the request
-      transactionId: "txn" + Date.now(), // Use a more robust transaction ID in a real application
-      status: "completed", // Assuming payment is successful
+      userId,
+      amount: 100,
+      paymentMethod: req.body.paymentMethod || "e-wallet", // Default fallback
+      status: "completed",
+      paymentDate: new Date(),
+      completedDate: new Date(),
     });
 
-    // Save payment details
     await payment.save();
 
-    // Deduct the paid amount from the user's balance
-    userBalance.balance -= amount;
-    await userBalance.save();
-
-    // Return success response with payment details and updated balance
-    return res.status(200).json({
-      message: "Payment successful",
-      balance: userBalance.balance, // Include updated balance in response
-      paymentDetails: payment,
+    res.json({
+      message: "Payment recorded successfully",
+      newBalance: balanceDoc.balance,
+      paymentId: payment._id, // if needed in the frontend
     });
   } catch (error) {
-    console.error("Error processing payment:", error);
-    return res
-      .status(500)
-      .json({ message: "Server error, please try again later" });
+    console.error("Payment processing failed:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+
