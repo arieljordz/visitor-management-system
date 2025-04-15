@@ -104,7 +104,7 @@ const NavbarComponent = ({ user, onLogout }) => {
               height="120"
             />
             {/* You can include more user info here like name/email */}
-            <h5 className="mb-0">{user.name ? user.name : "John Doe"}</h5>
+            <h5 className="mb-0">{user.name}</h5>
             <small className="text-muted">{user.email}</small>
           </div>
         </Modal.Body>

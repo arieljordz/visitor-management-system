@@ -112,15 +112,23 @@ const Dashboard = ({ user }) => {
   const handleGenerateAndPay = async () => {
     if (balance < 100) {
       toast.warning("Your balance is insufficient to generate a QR code.");
+      return; // Exit early
     }
-
+  
     setIsLoading(true);
-    const qrGenerated = await generateQR();
-    console.log("QrCode Generated:",qrGenerated);
-    if (qrGenerated) {
-      await payBalance();
+    
+    try {
+      const qrGenerated = await generateQR();
+      console.log("QrCode Generated:", qrGenerated);
+  
+      if (qrGenerated) {
+        await payBalance();
+      }
+    } catch (error) {
+      console.error("Error generating QR or paying balance:", error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (

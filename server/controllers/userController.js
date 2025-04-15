@@ -4,7 +4,7 @@ import User from "../models/User.js";
 
 // User registration handler
 export const register = async (req, res) => {
-  const { email, password, name, picture } = req.body;
+  const { email, password, name, picture, role } = req.body;
 
   // Log the incoming data
   console.log("Received data:", req.body);
@@ -29,6 +29,7 @@ export const register = async (req, res) => {
       password: await bcrypt.hash(password, 10), // Hash password if it's a normal registration
       name: name || null,
       picture: picture || null,
+      role: role || null,
     };
 
     // Create the new user
@@ -44,6 +45,7 @@ export const register = async (req, res) => {
       name: newUser.name,
       picture: newUser.picture,
       userId: newUser._id,
+      role: newUser.role,
     });
   } catch (error) {
     console.error("Error during registration:", error);
@@ -85,6 +87,9 @@ export const login = async (req, res) => {
     res.json({
       token,
       email: user.email,
+      name: user.name,
+      picture: user.picture,
+      role: user.role,
       userId: user._id,
     });
   } catch (error) {
@@ -94,7 +99,7 @@ export const login = async (req, res) => {
 };
 
 export const googleLogin = async (req, res) => {
-  const { email, password, name, picture } = req.body;
+  const { email, password, name, picture, role } = req.body;
 
   console.log("googleLogin data:", req.body);
   try {
@@ -108,6 +113,7 @@ export const googleLogin = async (req, res) => {
         password,
         name,
         picture,
+        role,
       });
 
       // Save the new user to the database
@@ -126,6 +132,7 @@ export const googleLogin = async (req, res) => {
       email: user.email,
       picture: user.picture,
       userId: user._id,
+      role: user.role,
     });
   } catch (error) {
     console.error(error);

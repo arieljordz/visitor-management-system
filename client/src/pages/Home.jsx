@@ -9,9 +9,7 @@ const Home = ({ setUser, user }) => {
 
   return (
     <Container className="mt-5">
-      {/* If no user is logged in, display LoginForm centered */}
-      {!user ? (
-        <div className="d-flex justify-content-center">
+         <div className="d-flex justify-content-center">
           <LoginForm
             setUser={setUser}
             setBalance={setBalance}
@@ -19,10 +17,6 @@ const Home = ({ setUser, user }) => {
             setMessage={setMessage}
           />
         </div>
-      ) : (
-        // If user is logged in, redirect to /dashboard
-        <></>
-      )}
     </Container>
   );
 };

@@ -9,6 +9,7 @@ const API_URL = import.meta.env.VITE_BASE_API_URL;
 
 const LoginForm = ({ setUser, setBalance, message, setMessage }) => {
   const [username, setUsername] = useState("");
+  const [fullname, setFullname] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -25,12 +26,14 @@ const LoginForm = ({ setUser, setBalance, message, setMessage }) => {
 
       // Save user data in localStorage
       const userData = {
-        name: res.data.name,
-        email: res.data.email,
-        picture: res.data.picture,
         userId: res.data.userId,
+        email: res.data.email,
+        name: res.data.name,
+        picture: res.data.picture,
+        role: res.data.role,
       };
 
+      console.log("Manual login:", userData);
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
       setMessage("Login successful");
@@ -51,18 +54,22 @@ const LoginForm = ({ setUser, setBalance, message, setMessage }) => {
     try {
       const res = await axios.post(`${API_URL}/api/register`, {
         email: username,
+        name: fullname,
         password,
-        name: null,
         picture: null,
+        role: "client",
       });
 
       // Save user data in localStorage
       const userData = {
-        name: res.data.name,
-        email: res.data.email,
-        picture: res.data.picture,
         userId: res.data.userId,
+        email: res.data.email,
+        name: res.data.name,
+        picture: res.data.picture,
+        role: res.role,
       };
+
+      console.log("Register:", userData);
 
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
@@ -83,22 +90,23 @@ const LoginForm = ({ setUser, setBalance, message, setMessage }) => {
         password: decoded.name,
         email: decoded.email,
         picture: decoded.picture,
+        role: "client",
       };
-  
+
       // Check if the user exists in the database
       const res = await axios.post(`${API_URL}/api/google-login`, userData);
-  
+
+      console.log("Google login:", res.data);
       // Save user data in localStorage
       localStorage.setItem("user", JSON.stringify(res.data));
       setUser(res.data);
       setMessage("Google login successful");
-  
+
       navigate("/dashboard");
     } catch (error) {
       setMessage("Google login failed");
     }
   };
-  
 
   // Google login failure
   const handleGoogleLoginError = () => {
@@ -123,6 +131,19 @@ const LoginForm = ({ setUser, setBalance, message, setMessage }) => {
               required
             />
           </Form.Group>
+
+          {isRegistering && (
+            <Form.Group className="mb-3">
+              <Form.Label>Fullname</Form.Label>
+              <Form.Control
+                type="text"
+                value={fullname}
+                onChange={(e) => setFullname(e.target.value)}
+                placeholder="Enter your name"
+                required
+              />
+            </Form.Group>
+          )}
 
           <Form.Group className="mb-3">
             <Form.Label>Password</Form.Label>
