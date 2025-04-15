@@ -22,6 +22,10 @@ const paymentDetailsSchema = new mongoose.Schema(
       enum: ["pending", "completed", "failed", "cancelled"],
       default: "pending",
     },
+    transaction: {
+      type: String,
+      required: true, // debit or credit
+    },
     proofOfPayment: {
       type: String, // URL or path to the uploaded proof image
       required: false,

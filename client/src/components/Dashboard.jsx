@@ -8,6 +8,7 @@ import {
   Card,
   Accordion,
 } from "react-bootstrap";
+import { toast } from "react-toastify";
 import axios from "axios";
 import QRDisplay from "./QRDisplay";
 import TopUpForm from "./TopUpForm";
@@ -17,9 +18,6 @@ const API_URL = import.meta.env.VITE_BASE_API_URL;
 const Dashboard = ({ user }) => {
   const [balance, setBalance] = useState(null);
   const [qrCode, setQrCode] = useState(null);
-  const [message, setMessage] = useState("");
-  const [showMessage, setShowMessage] = useState(false);
-
   const [paymentMethod, setPaymentMethod] = useState("gcash");
   const [proof, setProof] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,18 +31,12 @@ const Dashboard = ({ user }) => {
     fetchPaymentMethods();
   }, [user]);
 
-  const showAlert = (msg, isError = false) => {
-    setMessage(msg);
-    setShowMessage(true);
-    if (isError) setQrCode(null);
-  };
-
   const fetchPaymentMethods = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/get-payment-methods`);
       setPaymentMethods(res.data);
     } catch {
-      showAlert("Failed to load payment methods.", true);
+      toast.error("Failed to load payment methods.");
     }
   };
 
@@ -59,17 +51,15 @@ const Dashboard = ({ user }) => {
         setBalance(res.data.balance);
 
         if (res.data.balance < 100) {
-          showAlert("Your balance is less than ₱100. Please top-up.");
+          toast.warning("Your balance is less than ₱100. Please top-up.");
         }
 
         console.log("Fetched balance:", res.data.balance);
       } else {
-        // Handle non-200 with fallback
-        showAlert("Unexpected response while fetching balance.", true);
+        toast.error("Unexpected response while fetching balance.");
       }
     } catch (error) {
       console.error("Balance fetch error:", error?.response || error);
-      showAlert("Unable to fetch balance. Please try again later.", true);
     } finally {
       setIsLoading(false);
     }
@@ -78,10 +68,11 @@ const Dashboard = ({ user }) => {
   const generateQR = async () => {
     try {
       const res = await axios.post(`${API_URL}/api/generate-qr/${user.userId}`);
-      setQrCode(res.data.qrCode);
+      console.log("QrCode Result:",res);
+      setQrCode(res.data.qrImageUrl);
       return true;
     } catch {
-      showAlert("QR generation failed.", true);
+      toast.error("QR generation failed.");
       return false;
     }
   };
@@ -100,21 +91,18 @@ const Dashboard = ({ user }) => {
       if (res.status === 200) {
         // Deduct 100 from the balance
         setBalance((prev) => prev - 100);
-        showAlert(
-          "Payment successful. ₱100 has been deducted from your balance."
-        );
+        toast.success("Payment successful. ₱100 has been deducted from your balance.");
         return true;
       }
 
       // If payment fails but status is not 200, show error message
-      showAlert(
-        "Payment failed: " + (res.data.message || "Unknown error"),
-        true
-      );
+      toast.error("Payment failed: "+ (res.data.message || "Unknown error"));
+      setQrCode(null);
       return false;
     } catch (error) {
       console.error("Payment error:", error); // Log error for debugging
-      showAlert("Payment failed. Please try again.", true);
+      toast.error("Payment failed. Please try again.");
+      setQrCode(null);
       return false;
     } finally {
       setIsLoading(false); // Reset loading state after completion
@@ -123,14 +111,12 @@ const Dashboard = ({ user }) => {
 
   const handleGenerateAndPay = async () => {
     if (balance < 100) {
-      return showAlert(
-        "Your balance is insufficient to generate a QR code.",
-        true
-      );
+      toast.warning("Your balance is insufficient to generate a QR code.");
     }
 
     setIsLoading(true);
     const qrGenerated = await generateQR();
+    console.log("QrCode Generated:",qrGenerated);
     if (qrGenerated) {
       await payBalance();
     }
@@ -164,20 +150,6 @@ const Dashboard = ({ user }) => {
                 </Accordion.Body>
               </Accordion.Item>
             </Accordion>
-
-            {/* Alert */}
-            {showMessage && (
-              <Alert
-                className="mt-3"
-                variant={
-                  message.toLowerCase().includes("fail") ? "danger" : "success"
-                }
-                onClose={() => setShowMessage(false)}
-                dismissible
-              >
-                {message}
-              </Alert>
-            )}
 
             {/* QR Section */}
             <div className="text-center mt-4">

@@ -1,6 +1,6 @@
 import express from "express";
 import { register, login, googleLogin } from "../controllers/userController.js";
-import { generateQRCode } from "../controllers/qrController.js";
+import { generateQRCode, scanQRCode } from "../controllers/qrController.js";
 import { getBalance, topUp } from "../controllers/balanceController.js";
 import {
   getAllPaymentMethods,
@@ -16,8 +16,9 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/google-login", googleLogin);
 
-// generate QR
+// QRCode
 router.post("/generate-qr/:userId", generateQRCode);
+router.post("/scan", scanQRCode);
 
 // balance
 router.get("/check-balance/:userId", getBalance);

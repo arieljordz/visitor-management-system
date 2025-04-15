@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Balance from "../models/Balance.js";
+import PaymentDetail from "../models/PaymentDetail.js";
+import path from "path";
 
 // Get user balance handler
 export const getBalance = async (req, res) => {
@@ -23,7 +25,7 @@ export const getBalance = async (req, res) => {
 
 export const topUp = async (req, res) => {
   const { userId } = req.params;
-  const { topUpAmount } = req.body;
+  const { topUpAmount, paymentMethod } = req.body;
 
   console.log("Top-up request received for:", userId, req.body);
 
@@ -34,8 +36,9 @@ export const topUp = async (req, res) => {
 
   try {
     const userObjectId = new mongoose.Types.ObjectId(userId);
-    let balance = await Balance.findOne({ userId: userObjectId });
 
+    // Find or create user balance
+    let balance = await Balance.findOne({ userId: userObjectId });
     if (!balance) {
       balance = new Balance({
         userId: userObjectId,
@@ -49,12 +52,33 @@ export const topUp = async (req, res) => {
       console.log("Updated balance:", balance.balance);
     }
 
+    // Handle uploaded file path if any
+    let proofOfPaymentPath = null;
+    if (req.file) {
+      proofOfPaymentPath = path.join("uploads", req.file.filename); // adjust based on your storage structure
+    }
+
+    // Log the payment transaction
+    const transaction = new PaymentDetail({
+      userId: userObjectId,
+      amount: parsedAmount,
+      paymentMethod: paymentMethod || "e-wallet",
+      transaction: "credit",
+      proofOfPayment: proofOfPaymentPath,
+      status: "completed",
+      paymentDate: new Date(),
+      completedDate: new Date(),
+    });
+
+    await transaction.save();
+    console.log("Transaction recorded:", transaction._id);
+
     return res.status(200).json({
       message: "Top-up successful.",
       balance: balance.balance,
     });
   } catch (error) {
-    console.error("Top-up processing error:", error);
+    console.error("Top-up error:", error);
     return res.status(500).json({ message: "Internal server error." });
   }
 };

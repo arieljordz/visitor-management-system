@@ -2,12 +2,34 @@ import React from "react";
 import { Button, Card } from "react-bootstrap";
 
 // Function to handle the QR code download
-const handleDownload = (qrCode) => {
-  const link = document.createElement("a");
-  link.href = qrCode;
-  link.download = "visitor_qr.png"; // Specify the download filename
-  link.click(); // Trigger the download
+const handleDownload = async (qrCodeUrl) => {
+  try {
+    const response = await fetch(qrCodeUrl);
+    const blob = await response.blob();
+
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    // Format date as MM-DD-YYYY
+    const now = new Date();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const yyyy = now.getFullYear();
+    const formattedDate = `${mm}-${dd}-${yyyy}`;
+
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = `visitor_qr_${formattedDate}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error("QR code download failed:", error);
+    alert("Failed to download QR code. Please try again.");
+  }
 };
+
 
 const QRDisplay = ({ qrCode }) => {
   if (!qrCode) return null;

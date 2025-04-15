@@ -1,12 +1,16 @@
 import mongoose from "mongoose";
-import Balance from "../models/Balance.js"; // Assuming Balance schema is located here
+import Balance from "../models/Balance.js"; 
 import PaymentDetail from "../models/PaymentDetail.js";
 
-// Process payment handler
 export const processPayment = async (req, res) => {
   try {
-    const userId = req.body.userId; // Get userId from body
-    console.log("processPayment body", req.body); // Log to verify the body content
+    const { userId, paymentMethod = "e-wallet", proofOfPayment = null } = req.body;
+
+    // console.log("processPayment body", req.body);
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid userId." });
+    }
 
     const balanceDoc = await Balance.findOne({ userId });
     if (!balanceDoc) {
@@ -17,16 +21,18 @@ export const processPayment = async (req, res) => {
       return res.status(400).json({ message: "Insufficient balance." });
     }
 
-    // Deduct ₱100 from balance
+    // Deduct ₱100 from the balance
     balanceDoc.balance -= 100;
     await balanceDoc.save();
 
-    // Create new payment log
+    // Create the payment transaction record
     const payment = new PaymentDetail({
       userId,
       amount: 100,
-      paymentMethod: req.body.paymentMethod || "e-wallet", // Default fallback
+      paymentMethod,
+      transaction: "debit", // Required by your schema
       status: "completed",
+      proofOfPayment, // Optional, pass null if not provided
       paymentDate: new Date(),
       completedDate: new Date(),
     });
@@ -36,11 +42,10 @@ export const processPayment = async (req, res) => {
     res.json({
       message: "Payment recorded successfully",
       newBalance: balanceDoc.balance,
-      paymentId: payment._id, // if needed in the frontend
+      paymentId: payment._id,
     });
   } catch (error) {
     console.error("Payment processing failed:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
-

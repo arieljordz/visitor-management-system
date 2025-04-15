@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Navbar,
   Nav,
@@ -8,48 +8,64 @@ import {
   Modal,
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa"; // user icon
+import { FaUserCircle } from "react-icons/fa";
 
 const NavbarComponent = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
+
+  useEffect(() => {
+    document.body.className = darkMode ? "bg-dark text-light" : "bg-light text-dark";
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
 
   const handleLogout = () => {
     onLogout();
-    navigate("/"); // Navigate to home page on logout
+    navigate("/");
   };
 
-  const handleProfileClick = () => {
-    setShowProfileModal(true); // Show profile modal when clicked
-  };
+  const handleProfileClick = () => setShowProfileModal(true);
+  const handleCloseProfile = () => setShowProfileModal(false);
+  const toggleTheme = () => setDarkMode((prev) => !prev);
 
-  const handleCloseProfile = () => {
-    setShowProfileModal(false); // Close profile modal
-  };
+  // Navbar style: invert background, keep white text in nav, brand/icon text follows theme
+  const navbarBg = darkMode ? "light" : "dark";
+  const navbarVariant = "light";
+
+  // Set text/icon color based on theme
+  const brandColor = darkMode ? "text-dark" : "text-light";
+  const iconColor = darkMode ? "#000" : "#fff";
 
   return (
     <>
-      <Navbar bg="dark" variant="dark" expand="lg">
-        <Navbar.Brand className="ps-3 pe-4">
-          Visitor Management System
-        </Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse className="justify-content-end">
-          {user ? (
-            <div className="ms-auto">
+      <Navbar bg={navbarBg} variant={navbarVariant} expand="lg" sticky="top">
+        <Container fluid>
+          {/* Brand Title with dynamic text color */}
+          <Navbar.Brand className={`fw-bold ${brandColor}`}>
+            Visitor Management System
+          </Navbar.Brand>
+
+          <Navbar.Toggle aria-controls="navbar-nav" />
+          <Navbar.Collapse id="navbar-nav" className="justify-content-end">
+            {user ? (
               <Dropdown align="end">
                 <Dropdown.Toggle
-                  as="span"
+                  as="div"
                   id="dropdown-user"
                   className="d-flex align-items-center"
                   style={{ cursor: "pointer" }}
                 >
-                  {/* <FaUserCircle size={20} color={darkMode ? "#000" : "#fff"} /> */}
-                  <FaUserCircle size={20} color="#fff" />
+                  {/* FaUserCircle with dynamic icon color */}
+                  <FaUserCircle size={24} color={iconColor} />
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu className="py-1">
-                  <Dropdown.Item className="small">🌗 Theme</Dropdown.Item>
+                  <Dropdown.Item className="small" onClick={toggleTheme}>
+                    🌗 Theme: {darkMode ? "Dark" : "Light"}
+                  </Dropdown.Item>
                   <Dropdown.Divider className="m-0" />
                   <Dropdown.Item className="small" onClick={handleProfileClick}>
                     👤 Profile
@@ -60,13 +76,15 @@ const NavbarComponent = ({ user, onLogout }) => {
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
-            </div>
-          ) : (
-            <Nav>
-              <Nav.Link href="/">Login</Nav.Link>
-            </Nav>
-          )}
-        </Navbar.Collapse>
+            ) : (
+              <Nav>
+                <Nav.Link href="/" className={brandColor}>
+                  Login
+                </Nav.Link>
+              </Nav>
+            )}
+          </Navbar.Collapse>
+        </Container>
       </Navbar>
 
       {/* Profile Modal */}
@@ -74,18 +92,14 @@ const NavbarComponent = ({ user, onLogout }) => {
         <Modal.Header closeButton>
           <Modal.Title>User Profile</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          {/* Profile Image */}
-          <div className="mb-3">
-            <img
-              src="https://lh3.googleusercontent.com/a/ACg8ocKxuJ_PmdxYOOQLuZeGSplZ5nTMNiCxdsAji7BclFeaLsC7jHuK=s96-c"
-              alt="Profile"
-              className={`rounded-circle border border-2 img-fluid`}
-              width="100"
-              height="100"
-            />
-          </div>
-          {/* You can add more profile details here if needed */}
+        <Modal.Body className="text-center">
+          <img
+            src="https://lh3.googleusercontent.com/a/ACg8ocKxuJ_PmdxYOOQLuZeGSplZ5nTMNiCxdsAji7BclFeaLsC7jHuK=s96-c"
+            alt="Profile"
+            className="rounded-circle border border-2 mb-3"
+            width="100"
+            height="100"
+          />
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseProfile}>
