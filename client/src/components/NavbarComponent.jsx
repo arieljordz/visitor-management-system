@@ -18,7 +18,9 @@ const NavbarComponent = ({ user, onLogout }) => {
   });
 
   useEffect(() => {
-    document.body.className = darkMode ? "bg-dark text-light" : "bg-light text-dark";
+    document.body.className = darkMode
+      ? "bg-dark text-light"
+      : "bg-light text-dark";
     localStorage.setItem("theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
@@ -89,22 +91,27 @@ const NavbarComponent = ({ user, onLogout }) => {
 
       {/* Profile Modal */}
       <Modal show={showProfileModal} onHide={handleCloseProfile} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>User Profile</Modal.Title>
+        <Modal.Header closeButton className="border-0">
+          <Modal.Title className="w-100 text-center">User Profile</Modal.Title>
         </Modal.Header>
         <Modal.Body className="text-center">
-          <img
-            src="https://lh3.googleusercontent.com/a/ACg8ocKxuJ_PmdxYOOQLuZeGSplZ5nTMNiCxdsAji7BclFeaLsC7jHuK=s96-c"
-            alt="Profile"
-            className="rounded-circle border border-2 mb-3"
-            width="100"
-            height="100"
-          />
+          <div className="d-flex flex-column align-items-center">
+            <img
+              src="/images/palos.png"
+              alt="Profile"
+              className="rounded-circle border border-3 shadow mb-3"
+              width="120"
+              height="120"
+            />
+            {/* You can include more user info here like name/email */}
+            <h5 className="mb-0">{user.name ? user.name : "John Doe"}</h5>
+            <small className="text-muted">{user.email}</small>
+          </div>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseProfile}>
+        <Modal.Footer className="border-0 justify-content-end">
+          {/* <Button variant="secondary" onClick={handleCloseProfile}>
             Close
-          </Button>
+          </Button> */}
         </Modal.Footer>
       </Modal>
     </>
