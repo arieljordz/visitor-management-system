@@ -1,104 +1,96 @@
-import React, { useEffect, useState } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useState } from "react";
+import { Container, Row, Col, Card } from "react-bootstrap";
+import Header from "./Header";
+import TXNPaymentDetails from "./TXNPaymentDetails";
+import TXNGeneratedQRCodes from "./TXNGeneratedQRCodes"; // Add this if it's not yet created
+import { useTheme } from "../context/ThemeContext";
+import FMProofs from "./FMProofs";
 
-const sampleTransactions = [
-  {
-    id: 'TXN001',
-    date: '2025-04-14T10:00:00Z',
-    description: 'Top-up via GCash',
-    amount: 500,
-    status: 'Success',
-  },
-  {
-    id: 'TXN002',
-    date: '2025-04-15T13:30:00Z',
-    description: 'Top-up via Bank Transfer',
-    amount: 1000,
-    status: 'Pending',
-  },
-  {
-    id: 'TXN003',
-    date: '2025-04-16T08:45:00Z',
-    description: 'Top-up via PayMaya',
-    amount: 700,
-    status: 'Failed',
-  },
-];
+const FileMaintenance = ({ user }) => {
+  const { darkMode } = useTheme();
+  const [activeTab, setActiveTab] = useState("proofs");
 
-const FileMaintenance = () => {
-  const [transactions, setTransactions] = useState([]);
-  const [search, setSearch] = useState('');
+  //   console.log("User Details:", user);
 
-  useEffect(() => {
-    // Simulate API call
-    setTransactions(sampleTransactions);
-  }, []);
+  const cardClass = darkMode ? "dashboard-card-dark" : "dashboard-card-light";
 
-  const getBadgeClass = (status) => {
-    switch (status) {
-      case 'Success':
-        return 'success';
-      case 'Pending':
-        return 'warning';
-      case 'Failed':
-        return 'danger';
-      default:
-        return 'secondary';
-    }
+  const tabLinkClass = (tab) => {
+    const isActive = activeTab === tab;
+    return `nav-link border ${isActive ? "active" : ""} ${
+      darkMode
+        ? isActive
+          ? "text-dark bg-white border-secondary"
+          : "text-white border-secondary"
+        : ""
+    }`;
   };
 
-  const filteredTransactions = transactions.filter((txn) =>
-    txn.description.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
-    <div className="container mt-4">
-      <h3 className="mb-3">My Transactions</h3>
+    <Container className="mt-6">
+      <Header
+        levelOne="Home"
+        levelTwo="File Maintenance"
+        levelThree={user?.email}
+      />
+      <Row className="justify-content-center">
+        <Col md={10} lg={12}>
+          <Card className={`shadow ${cardClass}`}>
+            <Card.Body className="main-card">
+              {/* Nav Tabs */}
+              <ul
+                className={`nav nav-tabs mb-3 ${
+                  darkMode ? "border-bottom border-secondary" : ""
+                }`}
+              >
+                <li className="nav-item">
+                  <button
+                    className={tabLinkClass("proofs")}
+                    onClick={() => setActiveTab("proofs")}
+                  >
+                    Proofs
+                  </button>
+                </li>
+                <li className="nav-item">
+                  <button
+                    className={tabLinkClass("payment-method")}
+                    onClick={() => setActiveTab("payment-method")}
+                  >
+                    Payment Methods
+                  </button>
+                </li>
+                <li className="nav-item">
+                  <button
+                    className={tabLinkClass("accounts")}
+                    onClick={() => setActiveTab("accounts")}
+                  >
+                    Accounts
+                  </button>
+                </li>
+              </ul>
 
-      <div className="mb-3">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Search by description..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      <div className="table-responsive">
-        <table className="table table-striped table-hover align-middle">
-          <thead className="table-dark">
-            <tr>
-              <th>Transaction ID</th>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Amount</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTransactions.map((txn) => (
-              <tr key={txn.id}>
-                <td>{txn.id}</td>
-                <td>{new Date(txn.date).toLocaleString()}</td>
-                <td>{txn.description}</td>
-                <td>₱{txn.amount.toLocaleString()}</td>
-                <td>
-                  <span className={`badge bg-${getBadgeClass(txn.status)}`}>
-                    {txn.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {filteredTransactions.length === 0 && (
-              <tr>
-                <td colSpan="5" className="text-center text-muted">No transactions found.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+              {/* Tab Content */}
+              <div className="tab-content">
+                {activeTab === "proofs" && (
+                  <div>
+                    <FMProofs user={user} darkMode={darkMode} />
+                  </div>
+                )}
+                {activeTab === "payment-method" && (
+                  <div>
+                    <TXNGeneratedQRCodes user={user} darkMode={darkMode} />
+                  </div>
+                )}
+                {activeTab === "accounts" && (
+                  <div>
+                    <TXNGeneratedQRCodes user={user} darkMode={darkMode} />
+                  </div>
+                )}
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

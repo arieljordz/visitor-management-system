@@ -37,10 +37,17 @@ const LoginForm = ({ setUser, setBalance, message, setMessage }) => {
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
       setMessage("Login successful");
-
-      navigate("/dashboard");
+      navigateByRole(userData.role);
     } catch (error) {
       setMessage("Login failed");
+    }
+  };
+
+  const navigateByRole = (role) => {
+    if (role === "admin") {
+      navigate("/admin/transactions");
+    } else {
+      navigate("/dashboard");
     }
   };
 
@@ -66,7 +73,7 @@ const LoginForm = ({ setUser, setBalance, message, setMessage }) => {
         email: res.data.email,
         name: res.data.name,
         picture: res.data.picture,
-        role: res.role,
+        role: res.data.role,
       };
 
       console.log("Register:", userData);
@@ -75,7 +82,7 @@ const LoginForm = ({ setUser, setBalance, message, setMessage }) => {
       setUser(userData);
       setMessage("Registration successful");
 
-      navigate("/dashboard");
+      navigateByRole(userData.role);
     } catch (error) {
       setMessage("Registration failed");
     }
@@ -102,7 +109,7 @@ const LoginForm = ({ setUser, setBalance, message, setMessage }) => {
       setUser(res.data);
       setMessage("Google login successful");
 
-      navigate("/dashboard");
+      navigateByRole(res.data.role);
     } catch (error) {
       setMessage("Google login failed");
     }

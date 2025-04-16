@@ -6,6 +6,8 @@ import { ToastContainer } from "react-toastify";
 import Home from "./pages/Home";
 import Dashboard from "./components/Dashboard";
 import Transactions from "./components/Transactions";
+import AdminTransactions from "./components/AdminTransactions";
+import Verifications from "./components/Verifications";
 import FileMaintenance from "./components/FileMaintenance";
 import NavbarComponent from "./components/NavbarComponent";
 import "./App.css";
@@ -50,7 +52,9 @@ function App() {
             />
             <Route path="/dashboard" element={<Dashboard user={user} />} />
             <Route path="/transactions" element={<Transactions user={user} />} />
-            <Route path="/file-maintenance" element={<FileMaintenance user={user} />} />
+            <Route path="/admin/transactions" element={<AdminTransactions user={user} />} />
+            <Route path="/admin/verifications" element={<Verifications user={user} />} />
+            <Route path="/admin/file-maintenance" element={<FileMaintenance user={user} />} />
           </Routes>
         </BrowserRouter>
       </GoogleOAuthProvider>

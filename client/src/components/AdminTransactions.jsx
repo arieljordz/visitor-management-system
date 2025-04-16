@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
 import Header from "./Header";
 import TXNPaymentDetails from "./TXNPaymentDetails";
-import TXNGeneratedQRCodes from "./TXNGeneratedQRCodes"; 
+import TXNGeneratedQRCodes from "./TXNGeneratedQRCodes"; // Add this if it's not yet created
 import { useTheme } from "../context/ThemeContext";
 
-const Transactions = ({ user }) => {
+const AdminTransactions = ({ user }) => {
   const { darkMode } = useTheme();
   const [activeTab, setActiveTab] = useState("payment");
 
@@ -73,4 +73,4 @@ const Transactions = ({ user }) => {
   );
 };
 
-export default Transactions;
+export default AdminTransactions;

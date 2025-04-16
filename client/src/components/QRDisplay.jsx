@@ -1,5 +1,6 @@
 import React from "react";
 import { Button, Card } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 // Function to handle the QR code download
 const handleDownload = async (qrCodeUrl) => {
@@ -11,8 +12,8 @@ const handleDownload = async (qrCodeUrl) => {
 
     // Format date as MM-DD-YYYY
     const now = new Date();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
     const yyyy = now.getFullYear();
     const formattedDate = `${mm}-${dd}-${yyyy}`;
 
@@ -26,10 +27,9 @@ const handleDownload = async (qrCodeUrl) => {
     window.URL.revokeObjectURL(blobUrl);
   } catch (error) {
     console.error("QR code download failed:", error);
-    alert("Failed to download QR code. Please try again.");
+    toast.error("Failed to download QR code. Please try again.");
   }
 };
-
 
 const QRDisplay = ({ qrCode }) => {
   if (!qrCode) return null;
@@ -48,7 +48,9 @@ const QRDisplay = ({ qrCode }) => {
         >
           Download QR Code
         </Button>
-        <p className="mt-3 text-muted">Click the button above to download the QR code.</p>
+        <p className="mt-3 text-muted">
+          Click the button above to download the QR code.
+        </p>
       </Card.Body>
     </Card>
   );

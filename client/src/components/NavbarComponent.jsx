@@ -25,19 +25,44 @@ const NavbarComponent = ({ user, onLogout }) => {
 
   const renderNavLinks = () => (
     <Nav className="me-auto">
-      <Nav.Link className={textColor} onClick={() => navigate("/dashboard")}>
-        Dashboard
-      </Nav.Link>
-      <Nav.Link className={textColor} onClick={() => navigate("/transactions")}>
-        Transactions
-      </Nav.Link>
+      {user.role === "client" && (
+        <>
+          <Nav.Link
+            className={textColor}
+            onClick={() => navigate("/dashboard")}
+          >
+            Dashboard
+          </Nav.Link>
+          <Nav.Link
+            className={textColor}
+            onClick={() => navigate("/transactions")}
+          >
+            Transactions
+          </Nav.Link>
+        </>
+      )}
+
       {user.role === "admin" && (
-        <Nav.Link
-          className={textColor}
-          onClick={() => navigate("/file-maintenance")}
-        >
-          File Maintenance
-        </Nav.Link>
+        <>
+          <Nav.Link
+            className={textColor}
+            onClick={() => navigate("/admin/transactions")}
+          >
+            Transactions
+          </Nav.Link>
+          <Nav.Link
+            className={textColor}
+            onClick={() => navigate("/admin/verifications")}
+          >
+            Verifications
+          </Nav.Link>
+          <Nav.Link
+            className={textColor}
+            onClick={() => navigate("/admin/file-maintenance")}
+          >
+            File Maintenance
+          </Nav.Link>
+        </>
       )}
     </Nav>
   );

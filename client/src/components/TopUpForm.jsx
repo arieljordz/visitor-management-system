@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button, Form, Row, Col, Card, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { useTheme } from "../context/ThemeContext"; // Update path as needed
+import { useTheme } from "../context/ThemeContext";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
@@ -20,13 +20,15 @@ const TopUpForm = ({
   const { darkMode } = useTheme();
 
   const handleTopUp = async () => {
-    if (!topUpAmount || parseFloat(topUpAmount) <= 0 || !proof) {
-      toast.warning("Please enter a valid amount and upload proof.");
+    const amount = parseFloat(topUpAmount);
+
+    if (!amount || amount <= 0 || !proof) {
+      toast.warning("Please enter a valid top-up amount and upload proof.");
       return;
     }
 
     const formData = new FormData();
-    formData.append("topUpAmount", parseFloat(topUpAmount));
+    formData.append("topUpAmount", amount.toFixed(2)); // ensure 2 decimal places
     formData.append("paymentMethod", paymentMethod);
     formData.append("proof", proof);
 
@@ -36,15 +38,18 @@ const TopUpForm = ({
       const res = await axios.post(
         `${API_URL}/api/top-up/${user.userId}`,
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
 
       const { balance } = res.data;
-      setBalance(balance);
+
+      setBalance(parseFloat(balance).toFixed(2));
       setTopUpAmount("");
       setProof(null);
 
-      toast.success(`Top-up submitted successfully. New balance: ₱${balance}`);
+      toast.success(`Top-up successful. New balance: ₱${parseFloat(balance).toFixed(2)}`);
     } catch (error) {
       console.error("Top-up error:", error);
       toast.error(
@@ -63,8 +68,9 @@ const TopUpForm = ({
         <Col xs={12} md={6}>
           <Form.Control
             type="number"
-            placeholder="Enter amount"
-            min="1"
+            step="0.01"
+            placeholder="0.00"
+            min="0"
             value={topUpAmount}
             onChange={(e) => setTopUpAmount(e.target.value)}
           />

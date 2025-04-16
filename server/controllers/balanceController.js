@@ -65,7 +65,8 @@ export const topUp = async (req, res) => {
       paymentMethod: paymentMethod || "e-wallet",
       transaction: "credit",
       proofOfPayment: proofOfPaymentPath,
-      status: "completed",
+      isVerified: false,
+      status: "pending",
       paymentDate: new Date(),
       completedDate: new Date(),
     });

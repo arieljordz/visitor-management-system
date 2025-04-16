@@ -34,7 +34,6 @@ export const generateQRCode = async (req, res) => {
   }
 };
 
-
 export const scanQRCode = async (req, res) => {
   try {
     const { qrData } = req.body;
@@ -73,3 +72,31 @@ export const scanQRCode = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getGeneratedQRCodes = async (req, res) => {
+  try {
+    const { userId } = req.params; // Get userId from the URL parameter
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required." });
+    }
+
+    // Fetch QR codes for the user
+    const generatedQRCodes = await QRCode.find({ userId })
+      .sort({ generatedAt: -1 }); // Sort by generation date, descending
+
+    if (generatedQRCodes.length === 0) {
+      return res.status(404).json({ message: "No QR codes found for this user." });
+    }
+
+    // Respond with the fetched QR codes
+    return res.status(200).json({
+      message: "Successfully fetched generated QR codes.",
+      data: generatedQRCodes,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error while fetching QR codes." });
+  }
+};
+

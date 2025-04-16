@@ -14,12 +14,12 @@ import axios from "axios";
 import QRDisplay from "./QRDisplay";
 import TopUpForm from "./TopUpForm";
 import Header from "./Header";
-import { useTheme } from "../context/ThemeContext"; // Make sure path is correct
+import { useTheme } from "../context/ThemeContext";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
 const Dashboard = ({ user }) => {
-  const [balance, setBalance] = useState(null);
+  const [balance, setBalance] = useState(0.0);
   const [qrCode, setQrCode] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("gcash");
   const [proof, setProof] = useState(null);
@@ -29,7 +29,7 @@ const Dashboard = ({ user }) => {
   const { darkMode } = useTheme();
 
   useEffect(() => {
-    if (user && user.userId) {
+    if (user?.userId) {
       fetchUserBalance();
     }
     fetchPaymentMethods();
@@ -47,22 +47,18 @@ const Dashboard = ({ user }) => {
   const fetchUserBalance = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.get(
-        `${API_URL}/api/check-balance/${user?.userId}`
-      );
+      const res = await axios.get(`${API_URL}/api/check-balance/${user?.userId}`);
       if (res.status === 200 && res.data?.balance !== undefined) {
-        setBalance(res.data.balance);
-
-        if (res.data.balance < 100) {
-          toast.warning("Your balance is less than ₱100. Please top-up.");
-        }
-
-        console.log("Fetched balance:", res.data.balance);
+        const parsedBalance = parseFloat(res.data.balance);
+        setBalance(isNaN(parsedBalance) ? 0.0 : parsedBalance);
+        console.log("Fetched balance:", parsedBalance);
       } else {
         toast.error("Unexpected response while fetching balance.");
+        setBalance(0.0);
       }
     } catch (error) {
       console.error("Balance fetch error:", error?.response || error);
+      setBalance(0.0);
     } finally {
       setIsLoading(false);
     }
@@ -86,10 +82,9 @@ const Dashboard = ({ user }) => {
       });
 
       if (res.status === 200) {
-        setBalance((prev) => prev - 100);
-        toast.success(
-          "Payment successful. ₱100 has been deducted from your balance."
-        );
+        const newBalance = balance - 100;
+        setBalance(parseFloat(newBalance));
+        toast.success("Payment successful. ₱100.00 has been deducted from your balance.");
         return true;
       }
 
@@ -112,7 +107,7 @@ const Dashboard = ({ user }) => {
 
     const result = await Swal.fire({
       title: "Proceed with QR Generation?",
-      text: "₱100 will be deducted from your balance upon payment.",
+      text: "₱100.00 will be deducted from your balance upon payment.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -145,7 +140,9 @@ const Dashboard = ({ user }) => {
         <Col md={8} lg={12}>
           <Card className={`shadow ${cardClass}`}>
             <Card.Body className="main-card">
-              <h4 className="text-center mb-4">Current Balance: ₱{balance}</h4>
+              <h4 className="text-center mb-4">
+                Current Balance: ₱{parseFloat(balance).toFixed(2)}
+              </h4>
 
               <Accordion defaultActiveKey={null}>
                 <Accordion.Item eventKey="0" className="accordion-success">
