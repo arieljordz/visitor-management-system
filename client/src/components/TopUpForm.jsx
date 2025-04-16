@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button, Form, Row, Col, Card, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { useTheme } from "../context/ThemeContext"; // Update path as needed
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
@@ -16,32 +17,33 @@ const TopUpForm = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState("");
+  const { darkMode } = useTheme();
 
   const handleTopUp = async () => {
     if (!topUpAmount || parseFloat(topUpAmount) <= 0 || !proof) {
       toast.warning("Please enter a valid amount and upload proof.");
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("topUpAmount", parseFloat(topUpAmount));
     formData.append("paymentMethod", paymentMethod);
     formData.append("proof", proof);
-  
+
     setIsLoading(true);
-  
+
     try {
       const res = await axios.post(
         `${API_URL}/api/top-up/${user.userId}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-  
+
       const { balance } = res.data;
       setBalance(balance);
       setTopUpAmount("");
       setProof(null);
-  
+
       toast.success(`Top-up submitted successfully. New balance: ₱${balance}`);
     } catch (error) {
       console.error("Top-up error:", error);
@@ -52,7 +54,9 @@ const TopUpForm = ({
       setIsLoading(false);
     }
   };
-  
+
+  const themeCard = darkMode ? "dashboard-card-dark" : "dashboard-card-light";
+
   return (
     <Form>
       <Row className="mb-3">
@@ -69,6 +73,7 @@ const TopUpForm = ({
           <Form.Select
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value)}
+            className={darkMode ? "select-white-border" : ""}
           >
             <option value="gcash">GCash</option>
             <option value="paymaya">PayMaya</option>
@@ -77,14 +82,14 @@ const TopUpForm = ({
         </Col>
       </Row>
 
-      <Card className="mb-3">
+      <Card className={`mb-3 ${themeCard}`}>
         <Card.Header>Selected Payment Method</Card.Header>
         <Card.Body>
           {paymentMethods
             .filter(
               (method) =>
                 method.method.toLowerCase() === paymentMethod.toLowerCase()
-            ) // Filter based on selected method
+            )
             .map((method, index) => (
               <div key={index} className="mb-3">
                 <strong>{method.method}</strong>
