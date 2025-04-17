@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button, Form, Row, Col, Card, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../../context/ThemeContext";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 

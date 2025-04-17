@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
-import Header from "./Header";
-import TXNPaymentDetails from "./TXNPaymentDetails";
-import TXNGeneratedQRCodes from "./TXNGeneratedQRCodes"; // Add this if it's not yet created
-import { useTheme } from "../context/ThemeContext";
+import Header from "../Common/Header";
+import TXNPaymentDetails from "../Transactions/TXNPaymentDetails";
+import TXNGeneratedQRCodes from "../Transactions/TXNGeneratedQRCodes"; 
+import { useTheme } from "../../context/ThemeContext";
 
 const AdminTransactions = ({ user }) => {
   const { darkMode } = useTheme();
@@ -15,11 +15,14 @@ const AdminTransactions = ({ user }) => {
 
   const tabLinkClass = (tab) => {
     const isActive = activeTab === tab;
-    return `nav-link border ${
-      isActive ? "active" : ""
-    } ${darkMode ? (isActive ? "text-dark bg-white border-secondary" : "text-white border-secondary") : ""}`;
+    return `nav-link border ${isActive ? "active" : ""} ${
+      darkMode
+        ? isActive
+          ? "text-dark bg-white border-secondary"
+          : "text-white border-secondary"
+        : ""
+    }`;
   };
-  
 
   return (
     <Container className="mt-6">
@@ -33,7 +36,11 @@ const AdminTransactions = ({ user }) => {
           <Card className={`shadow ${cardClass}`}>
             <Card.Body className="main-card">
               {/* Nav Tabs */}
-              <ul className={`nav nav-tabs mb-3 ${darkMode ? "border-bottom border-secondary" : ""}`}>
+              <ul
+                className={`nav nav-tabs mb-3 ${
+                  darkMode ? "border-bottom border-secondary" : ""
+                }`}
+              >
                 <li className="nav-item">
                   <button
                     className={tabLinkClass("payment")}

@@ -12,7 +12,7 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import { toast } from "react-toastify";
-import ProofModal from "../modals/ProofModal";
+import ProofModal from "../../modals/ProofModal";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 

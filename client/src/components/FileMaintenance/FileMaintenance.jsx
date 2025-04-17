@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
-import Header from "./Header";
-import TXNPaymentDetails from "./TXNPaymentDetails";
-import TXNGeneratedQRCodes from "./TXNGeneratedQRCodes"; // Add this if it's not yet created
-import { useTheme } from "../context/ThemeContext";
+import Header from "../Common/Header";
+import TXNPaymentDetails from "../Transactions/TXNPaymentDetails";
+import TXNGeneratedQRCodes from "../Transactions/TXNGeneratedQRCodes"; 
+import { useTheme } from "../../context/ThemeContext";
 import FMProofs from "./FMProofs";
 
 const FileMaintenance = ({ user }) => {

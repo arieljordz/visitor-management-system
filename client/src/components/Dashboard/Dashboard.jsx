@@ -12,9 +12,9 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import axios from "axios";
 import QRDisplay from "./QRDisplay";
-import TopUpForm from "./TopUpForm";
-import Header from "./Header";
-import { useTheme } from "../context/ThemeContext";
+import TopUpForm from "../Dashboard/TopUpForm";
+import Header from "../Common/Header";
+import { useTheme } from "../../context/ThemeContext";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 

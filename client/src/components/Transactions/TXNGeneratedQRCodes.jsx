@@ -12,7 +12,7 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import { toast } from "react-toastify";
-import QRCodeModal from "../modals/QRCodeModal";
+import QRCodeModal from "../../modals/QRCodeModal";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 

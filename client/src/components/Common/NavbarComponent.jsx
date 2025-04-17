@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Navbar, Nav, Dropdown, Container, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
-import { useTheme } from "../context/ThemeContext";
-import ProfileModal from "../modals/ProfileModal";
+import { useTheme } from "../../context/ThemeContext";
+import ProfileModal from "../../modals/ProfileModal";
 
 const NavbarComponent = ({ user, onLogout }) => {
   const navigate = useNavigate();
