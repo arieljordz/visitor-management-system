@@ -8,12 +8,14 @@ import Transactions from "./components/Transactions/Transactions";
 import AdminTransactions from "./components/Transactions/AdminTransactions";
 import Verifications from "./components/Verifications/Verifications";
 import FileMaintenance from "./components/FileMaintenance/FileMaintenance";
-import NavbarComponent from "./components/Common/NavbarComponent";
-import LoginForm from "./components/Login/LoginForm"; // ✅
+import FormNavigation from "./commons/FormNavigation";
+import LoginForm from "./components/Login/LoginForm";
 import "./App.css";
 import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import FullScreenSpinner from "./components/Common/FullScreenSpinner";
+import FullScreenSpinner from "./commons/FullScreenSpinner";
+import AdminDashboard from "./components/Dashboard/AdminDashboard";
+import MyWallet from "./components/MyWallet/MyWallet";
 
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
@@ -38,12 +40,10 @@ function App() {
       <GoogleOAuthProvider clientId={API_KEY}>
         <BrowserRouter>
           {user && !loading && (
-            <NavbarComponent user={user} onLogout={handleLogout} />
+            <FormNavigation user={user} onLogout={handleLogout} />
           )}
           {loading && <FullScreenSpinner />} {/* ✅ Show spinner */}
-  
           <ToastContainer position="top-right" autoClose={2000} />
-  
           <Routes>
             <Route
               path="/"
@@ -56,7 +56,15 @@ function App() {
               }
             />
             <Route path="/dashboard" element={<Dashboard user={user} />} />
-            <Route path="/transactions" element={<Transactions user={user} />} />
+            <Route
+              path="/transactions"
+              element={<Transactions user={user} />}
+            />
+            <Route path="/my-wallet" element={<MyWallet user={user} />} />
+            <Route
+              path="/admin/dashboard"
+              element={<AdminDashboard user={user} />}
+            />
             <Route
               path="/admin/transactions"
               element={<AdminTransactions user={user} />}
@@ -74,7 +82,6 @@ function App() {
       </GoogleOAuthProvider>
     </ThemeProvider>
   );
-  
 }
 
 export default App;

@@ -1,7 +1,7 @@
 import React from "react";
-import { useTheme } from "../../context/ThemeContext"; 
+import { useTheme } from "../context/ThemeContext";
 
-function Header({ levelOne, levelTwo, levelThree }) {
+function FormHeader({ levelOne, levelTwo, levelThree }) {
   const { darkMode } = useTheme();
 
   const containerClass = darkMode ? "bg-dark text-light" : "bg-light text-dark";
@@ -19,8 +19,11 @@ function Header({ levelOne, levelTwo, levelThree }) {
             <li className="breadcrumb-item">
               <span className={textClass}>{levelTwo}</span>
             </li>
-            <li className={`breadcrumb-item active ${textClass}`} aria-current="page">
-              logged as: {levelThree}
+            <li
+              className={`breadcrumb-item active ${textClass}`}
+              aria-current="page"
+            >
+              {levelThree}
             </li>
           </ol>
         </nav>
@@ -29,4 +32,4 @@ function Header({ levelOne, levelTwo, levelThree }) {
   );
 }
 
-export default Header;
+export default FormHeader;

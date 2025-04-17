@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
-import Header from "../Common/Header";
+import FormHeader from "../../commons/FormHeader";
 import TXNPaymentDetails from "../Transactions/TXNPaymentDetails";
 import TXNGeneratedQRCodes from "../Transactions/TXNGeneratedQRCodes"; 
 import { useTheme } from "../../context/ThemeContext";
@@ -23,10 +23,10 @@ const Transactions = ({ user }) => {
 
   return (
     <Container className="mt-6">
-      <Header
+      <FormHeader
         levelOne="Home"
         levelTwo="Transactions"
-        levelThree={user?.email}
+        levelThree={user?.name?.split(' ')[0]}
       />
       <Row className="justify-content-center">
         <Col md={10} lg={12}>

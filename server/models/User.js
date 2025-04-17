@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema(
     name: { type: String, required: false },
     picture: { type: String, required: false },
     role: { type: String, default: "client" },
+    address: { type: String, required: true },
   },
   { timestamps: true }
 );

@@ -6,13 +6,13 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import FormSearch from "../../commons/FormSearch";
 import FormPagination from "../../commons/FormPagination";
-import AccountModal from "../../modals/AccountModal";
-import TableAccounts from "../../tables/TableAccounts";
+import ClassificationModal from "../../modals/ClassificationModal";
+import TableClassifications from "../../tables/TableClassifications";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
-const FMAccounts = ({ user, darkMode }) => {
-  const [accounts, setAccounts] = useState([]);
+const FMClassifications = ({ user, darkMode }) => {
+  const [classifications, setClassifications] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -24,15 +24,15 @@ const FMAccounts = ({ user, darkMode }) => {
 
   useEffect(() => {
     if (user?.userId) {
-      fetchAccounts();
+      fetchClassifications();
     }
   }, [user]);
 
-  const fetchAccounts = async () => {
+  const fetchClassifications = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-users`);
-      setAccounts(res.data.data || []);
+      const res = await axios.get(`${API_URL}/api/get-classifications`);
+      setClassifications(res.data.data || []);
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
@@ -42,18 +42,18 @@ const FMAccounts = ({ user, darkMode }) => {
 
   const handleEdit = async (id) => {
     try {
-      const res = await axios.get(`${API_URL}/api/get-user/${id}`);
+      const res = await axios.get(`${API_URL}/api/get-classification/${id}`);
       setSelectedRow(res.data.data);
       setShowModal(true);
     } catch (err) {
-      toast.error("Failed to fetch Account.");
+      toast.error("Failed to fetch classification.");
     }
   };
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "This Account will be permanently deleted.",
+      text: "This classification will be permanently deleted.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, delete it!",
@@ -62,11 +62,11 @@ const FMAccounts = ({ user, darkMode }) => {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_URL}/api/delete-user/${id}`);
-        toast.success("Account deleted.");
-        fetchAccounts();
+        await axios.delete(`${API_URL}/api/delete-classification/${id}`);
+        toast.success("Classification deleted.");
+        fetchClassifications();
       } catch (err) {
-        toast.error("Failed to delete Account.");
+        toast.error("Failed to delete classification.");
       }
     }
   };
@@ -80,31 +80,24 @@ const FMAccounts = ({ user, darkMode }) => {
     setSelectedRow(null);
     setShowModal(false);
   };
-
-  const filteredData = accounts.filter((obj) => {
-    const values = [
-      obj._id?.slice(-6),
-      obj.email,
-      obj.name,
-      obj.role,
-      obj.address,
-      new Date(obj.createdAt).toLocaleString(),
-    ];
-
-    return values.some((val) =>
-      val?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  const filteredData = classifications.filter((obj) =>
+    obj.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const itemsPerPageValue =
     itemsPerPage === "All" ? filteredData.length : itemsPerPage;
 
   const indexOfLastItem = currentPage * itemsPerPageValue;
   const indexOfFirstItem = indexOfLastItem - itemsPerPageValue;
-  const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  const currentData = filteredData.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
 
   const totalPages =
-    itemsPerPage === "All" ? 1 : Math.ceil(filteredData.length / itemsPerPage);
+    itemsPerPage === "All"
+      ? 1
+      : Math.ceil(filteredData.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -113,7 +106,7 @@ const FMAccounts = ({ user, darkMode }) => {
       <div className="mb-4 text-start">
         <Button variant="success" onClick={() => setShowModal(true)}>
           <FaPlus className="me-2" />
-          Add User
+          Add Classification
         </Button>
       </div>
 
@@ -126,7 +119,7 @@ const FMAccounts = ({ user, darkMode }) => {
         onAdd={handleOpen}
       />
 
-      <TableAccounts
+      <TableClassifications
         loading={loading}
         currentData={currentData}
         darkMode={darkMode}
@@ -145,14 +138,14 @@ const FMAccounts = ({ user, darkMode }) => {
         darkMode={darkMode}
       />
 
-      <AccountModal
+      <ClassificationModal
         show={showModal}
         onHide={handleClose}
         selectedRow={selectedRow}
-        refreshList={fetchAccounts}
+        refreshList={fetchClassifications}
       />
     </>
   );
 };
 
-export default FMAccounts;
+export default FMClassifications;

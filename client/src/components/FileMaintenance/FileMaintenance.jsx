@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
-import Header from "../Common/Header";
-import TXNPaymentDetails from "../Transactions/TXNPaymentDetails";
-import TXNGeneratedQRCodes from "../Transactions/TXNGeneratedQRCodes"; 
+import FormHeader from "../../commons/FormHeader";
+import TXNGeneratedQRCodes from "../Transactions/TXNGeneratedQRCodes";
 import { useTheme } from "../../context/ThemeContext";
 import FMProofs from "./FMProofs";
+import FMClassifications from "./FMClassifications";
+import FMFees from "./FMFees";
+import FMPaymentMethod from "./FMPaymentMethod";
+import FMAccounts from "./FMAccounts";
 
 const FileMaintenance = ({ user }) => {
   const { darkMode } = useTheme();
@@ -27,10 +30,10 @@ const FileMaintenance = ({ user }) => {
 
   return (
     <Container className="mt-6">
-      <Header
+      <FormHeader
         levelOne="Home"
         levelTwo="File Maintenance"
-        levelThree={user?.email}
+        levelThree={user?.name?.split(" ")[0]}
       />
       <Row className="justify-content-center">
         <Col md={10} lg={12}>
@@ -58,6 +61,23 @@ const FileMaintenance = ({ user }) => {
                     Payment Methods
                   </button>
                 </li>
+
+                <li className="nav-item">
+                  <button
+                    className={tabLinkClass("classifications")}
+                    onClick={() => setActiveTab("classifications")}
+                  >
+                    Classifications
+                  </button>
+                </li>
+                <li className="nav-item">
+                  <button
+                    className={tabLinkClass("fees")}
+                    onClick={() => setActiveTab("fees")}
+                  >
+                    Fees
+                  </button>
+                </li>
                 <li className="nav-item">
                   <button
                     className={tabLinkClass("accounts")}
@@ -77,12 +97,22 @@ const FileMaintenance = ({ user }) => {
                 )}
                 {activeTab === "payment-method" && (
                   <div>
-                    <TXNGeneratedQRCodes user={user} darkMode={darkMode} />
+                    <FMPaymentMethod user={user} darkMode={darkMode} />
+                  </div>
+                )}
+                {activeTab === "classifications" && (
+                  <div>
+                    <FMClassifications user={user} darkMode={darkMode} />
+                  </div>
+                )}
+                {activeTab === "fees" && (
+                  <div>
+                    <FMFees user={user} darkMode={darkMode} />
                   </div>
                 )}
                 {activeTab === "accounts" && (
                   <div>
-                    <TXNGeneratedQRCodes user={user} darkMode={darkMode} />
+                    <FMAccounts user={user} darkMode={darkMode} />
                   </div>
                 )}
               </div>

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
-import Header from "../Common/Header";
-import TXNPaymentDetails from "../Transactions/TXNPaymentDetails";
-import TXNGeneratedQRCodes from "../Transactions/TXNGeneratedQRCodes"; 
+import FormHeader from "../../commons/FormHeader";
 import { useTheme } from "../../context/ThemeContext";
+import AdminPaymentDetails from "./AdminPaymentDetails";
+import AdminGeneratedQRCodes from "./AdminGeneratedQRCodes";
 
 const AdminTransactions = ({ user }) => {
   const { darkMode } = useTheme();
@@ -26,10 +26,10 @@ const AdminTransactions = ({ user }) => {
 
   return (
     <Container className="mt-6">
-      <Header
+      <FormHeader
         levelOne="Home"
         levelTwo="Transactions"
-        levelThree={user?.email}
+        levelThree={user?.name?.split(" ")[0]}
       />
       <Row className="justify-content-center">
         <Col md={10} lg={12}>
@@ -63,12 +63,12 @@ const AdminTransactions = ({ user }) => {
               <div className="tab-content">
                 {activeTab === "payment" && (
                   <div>
-                    <TXNPaymentDetails user={user} darkMode={darkMode} />
+                    <AdminPaymentDetails user={user} darkMode={darkMode} />
                   </div>
                 )}
                 {activeTab === "qr" && (
                   <div>
-                    <TXNGeneratedQRCodes user={user} darkMode={darkMode} />
+                    <AdminGeneratedQRCodes user={user} darkMode={darkMode} />
                   </div>
                 )}
               </div>

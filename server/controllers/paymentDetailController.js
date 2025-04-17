@@ -57,6 +57,21 @@ export const processPayment = async (req, res) => {
 
 export const getPaymentDetails = async (req, res) => {
   try {
+    const paymentDetails = await PaymentDetail.find()
+      .populate("userId") // Include user details
+      .sort({ paymentDate: -1 }); // Newest first
+
+    res.status(200).json({
+      data: paymentDetails,
+    });
+  } catch (error) {
+    console.error("Error fetching payment details:", error);
+    res.status(500).json({ message: "Server error fetching payment details." });
+  }
+};
+
+export const getPaymentDetailsById = async (req, res) => {
+  try {
     const { userId } = req.params;
 
     if (!userId) {
@@ -98,3 +113,48 @@ export const getPaymentProofs = async (req, res) => {
       .json({ message: "Server error while fetching proof of payments" });
   }
 };
+
+export const deletePaymentProofs = async (req, res) => {
+  const { selectedRows } = req.body; // Expecting an array of IDs
+
+  try {
+    // Delete the records from the database
+    await PaymentDetail.deleteMany({ _id: { $in: selectedRows } });
+    res.status(200).json({ message: 'Records deleted successfully.' });
+  } catch (error) {
+    console.error("Error deleting records:", error);
+    res.status(500).json({ message: 'Error deleting records.' });
+  }
+};
+
+
+export const updateVerificationStatus = async (req, res) => {
+  const { id } = req.params;
+  const { verificationStatus } = req.body;
+
+  try {
+    // Only allow "verified" or "declined" for credit transactions
+    const allowedStatuses = ["verified", "declined"];
+    if (!allowedStatuses.includes(verificationStatus)) {
+      return res.status(400).json({ message: "Invalid verification status." });
+    }
+
+    const payment = await PaymentDetail.findOne({ _id: id, transaction: "credit" });
+
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found or not a credit transaction." });
+    }
+
+    payment.verificationStatus = verificationStatus;
+    await payment.save();
+
+    res.status(200).json({
+      message: `Payment status updated to ${verificationStatus}.`,
+      data: payment,
+    });
+  } catch (error) {
+    console.error("Error updating verification status:", error);
+    res.status(500).json({ message: "Server error while updating payment status." });
+  }
+};
+

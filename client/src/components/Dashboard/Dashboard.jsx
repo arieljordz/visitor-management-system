@@ -1,73 +1,100 @@
-import React, { useState, useEffect } from "react";
-import {
-  Container,
-  Button,
-  Spinner,
-  Row,
-  Col,
-  Card,
-  Accordion,
-} from "react-bootstrap";
+// Dashboard.jsx
+import React, { useState, useEffect, useRef } from "react";
+import { Container, Button, Spinner, Row, Col, Card } from "react-bootstrap";
+import { FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import axios from "axios";
-import QRDisplay from "./QRDisplay";
-import TopUpForm from "../Dashboard/TopUpForm";
-import Header from "../Common/Header";
+import FormHeader from "../../commons/FormHeader";
+import FormSearch from "../../commons/FormSearch";
+import FormPagination from "../../commons/FormPagination";
+import TableVisitor from "../../tables/TableVisitor";
+import VisitorModal from "../../modals/VisitorModal";
+import QRCodeForm from "./QRCodeForm";
 import { useTheme } from "../../context/ThemeContext";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
 const Dashboard = ({ user }) => {
-  const [balance, setBalance] = useState(0.0);
-  const [qrCode, setQrCode] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("gcash");
-  const [proof, setProof] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [paymentMethods, setPaymentMethods] = useState([]);
-
   const { darkMode } = useTheme();
+
+  const [showVisitorModal, setShowVisitorModal] = useState(false);
+  const [isQRLoading, setQRIsLoading] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [qrImageUrl, setQrImageUrl] = useState("");
+  const [txnId, setTxnId] = useState("");
+  const [balance, setBalance] = useState(0.0);
+  const [proofs, setVisitors] = useState([]);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  const qrRef = useRef(null);
 
   useEffect(() => {
     if (user?.userId) {
       fetchUserBalance();
+      fetchVisitorByUserId();
     }
-    fetchPaymentMethods();
   }, [user]);
 
-  const fetchPaymentMethods = async () => {
+  useEffect(() => {
+    if (qrImageUrl && qrRef.current) {
+      qrRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [qrImageUrl]);
+
+  const fetchUserBalance = async () => {
+    setQRIsLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-payment-methods`);
-      setPaymentMethods(res.data);
-    } catch {
-      toast.error("Failed to load payment methods.");
+      const res = await axios.get(
+        `${API_URL}/api/check-balance/${user.userId}`
+      );
+      const parsedBalance = parseFloat(res.data?.balance);
+      setBalance(isNaN(parsedBalance) ? 0.0 : parsedBalance);
+    } catch (error) {
+      console.error("Balance fetch error:", error?.response || error);
+      toast.error("Failed to fetch balance.");
+      setBalance(0.0);
+    } finally {
+      setQRIsLoading(false);
     }
   };
 
-  const fetchUserBalance = async () => {
-    setIsLoading(true);
+  const fetchVisitorByUserId = async () => {
+    setTableLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/check-balance/${user?.userId}`);
-      if (res.status === 200 && res.data?.balance !== undefined) {
-        const parsedBalance = parseFloat(res.data.balance);
-        setBalance(isNaN(parsedBalance) ? 0.0 : parsedBalance);
-        console.log("Fetched balance:", parsedBalance);
-      } else {
-        toast.error("Unexpected response while fetching balance.");
-        setBalance(0.0);
-      }
-    } catch (error) {
-      console.error("Balance fetch error:", error?.response || error);
-      setBalance(0.0);
+      const res = await axios.get(
+        `${API_URL}/api/get-visitor-by-user/${user.userId}`
+      );
+      console.log("Fecth visitors", res.data);
+      setVisitors(res.data?.data || []);
+    } catch (err) {
+      console.error("Failed to fetch visitor:", err);
     } finally {
-      setIsLoading(false);
+      setTableLoading(false);
     }
+  };
+
+  const getBadgeClass = (status) => {
+    const s = status?.toLowerCase();
+    return (
+      {
+        verified: "success",
+        pending: "warning",
+        declined: "danger",
+      }[s] || "dark"
+    );
   };
 
   const generateQR = async () => {
     try {
-      const res = await axios.post(`${API_URL}/api/generate-qr/${user.userId}`);
-      setQrCode(res.data.qrImageUrl);
+      const res = await fetch(`${API_URL}/api/generate-qr/${user.userId}`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      setQrImageUrl(data.qrImageUrl);
       return true;
     } catch {
       toast.error("QR generation failed.");
@@ -77,29 +104,32 @@ const Dashboard = ({ user }) => {
 
   const payBalance = async () => {
     try {
-      const res = await axios.post(`${API_URL}/api/submit-payment`, {
-        userId: user.userId,
+      const res = await fetch(`${API_URL}/api/submit-payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.userId }),
       });
 
-      if (res.status === 200) {
-        const newBalance = balance - 100;
-        setBalance(parseFloat(newBalance));
-        toast.success("Payment successful. ₱100.00 has been deducted from your balance.");
-        return true;
-      }
+      const data = await res.json();
 
-      toast.error("Payment failed: " + (res.data.message || "Unknown error"));
-      setQrCode(null);
-      return false;
+      if (res.status === 200) {
+        setBalance((prev) => parseFloat(prev) - 100);
+        toast.success("₱100.00 has been deducted. Payment successful.");
+        return true;
+      } else {
+        toast.error("Payment failed: " + (data.message || "Unknown error"));
+        setQrImageUrl(null);
+        return false;
+      }
     } catch (error) {
       console.error("Payment error:", error);
       toast.error("Payment failed. Please try again.");
-      setQrCode(null);
+      setQrImageUrl(null);
       return false;
     }
   };
 
-  const handleGenerateAndPay = async () => {
+  const handleGenerateQR = async (visitorTxnId) => {
     if (balance < 100) {
       toast.warning("Your balance is insufficient to generate a QR code.");
       return;
@@ -110,32 +140,62 @@ const Dashboard = ({ user }) => {
       text: "₱100.00 will be deducted from your balance upon payment.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
       confirmButtonText: "Yes, generate and pay",
     });
 
     if (!result.isConfirmed) return;
 
-    setIsLoading(true);
+    setQRIsLoading(true);
     try {
       const qrGenerated = await generateQR();
       if (qrGenerated) {
-        await payBalance();
+        const paid = await payBalance();
+        if (paid) {
+          setTxnId(visitorTxnId);
+        }
       }
     } catch (error) {
-      console.error("Error generating QR or paying balance:", error);
+      console.error("QR/Payment process failed:", error);
     } finally {
-      setIsLoading(false);
+      setQRIsLoading(false);
     }
   };
 
+  const filteredData = proofs.filter((txn) => {
+    const values = [
+      txn._id?.slice(-6),
+      txn.transaction,
+      txn.amount?.toString(),
+      txn.paymentMethod,
+      txn.proofOfPayment,
+      new Date(txn.paymentDate).toLocaleString(),
+      txn.status,
+    ];
+    return values.some((val) =>
+      val?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  const itemsPerPageValue =
+    itemsPerPage === "All" ? filteredData.length : itemsPerPage;
+  const indexOfLastItem = currentPage * itemsPerPageValue;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPageValue;
+  const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages =
+    itemsPerPage === "All"
+      ? 1
+      : Math.ceil(filteredData.length / itemsPerPageValue);
+
   const cardClass = darkMode ? "dashboard-card-dark" : "dashboard-card-light";
-  const btnClass = darkMode ? "dashboard-btn-dark" : "dashboard-btn-light";
 
   return (
     <Container className="mt-6">
-      <Header levelOne="Home" levelTwo="Dashboard" levelThree={user?.email} />
+      <FormHeader
+        levelOne="Home"
+        levelTwo="Dashboard"
+        levelThree={user?.name?.split(" ")[0]}
+      />
+
       <Row className="justify-content-center">
         <Col md={8} lg={12}>
           <Card className={`shadow ${cardClass}`}>
@@ -144,39 +204,59 @@ const Dashboard = ({ user }) => {
                 Current Balance: ₱{parseFloat(balance).toFixed(2)}
               </h4>
 
-              <Accordion defaultActiveKey={null}>
-                <Accordion.Item eventKey="0" className="accordion-success">
-                  <Accordion.Header>Top-Up Balance</Accordion.Header>
-                  <Accordion.Body className={`${cardClass}`}>
-                    <TopUpForm
-                      user={user}
-                      paymentMethod={paymentMethod}
-                      setPaymentMethod={setPaymentMethod}
-                      paymentMethods={paymentMethods}
-                      proof={proof}
-                      setProof={setProof}
-                      setBalance={setBalance}
-                      isLoading={isLoading}
-                    />
-                  </Accordion.Body>
-                </Accordion.Item>
-              </Accordion>
-
-              <div className="text-center mt-4">
+              <div className="mb-4 text-start">
                 <Button
-                  onClick={handleGenerateAndPay}
-                  className={`mb-2 w-100 ${btnClass}`}
-                  disabled={isLoading}
+                  variant="success"
+                  onClick={() => setShowVisitorModal(true)}
                 >
-                  {isLoading ? (
-                    <Spinner animation="border" size="sm" />
-                  ) : (
-                    "Generate QR Code"
-                  )}
+                  <FaPlus className="me-2" />
+                  Add Visitor
                 </Button>
-
-                {qrCode && <QRDisplay qrCode={qrCode} />}
               </div>
+
+              <FormSearch
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={setItemsPerPage}
+                setCurrentPage={setCurrentPage}
+              />
+
+              <TableVisitor
+                tableLoading={tableLoading}
+                currentData={currentData}
+                darkMode={darkMode}
+                getBadgeClass={getBadgeClass}
+                onGenerateQRClick={handleGenerateQR}
+              />
+
+              <FormPagination
+                tableLoading={tableLoading}
+                filteredData={filteredData}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                indexOfFirstItem={indexOfFirstItem}
+                indexOfLastItem={indexOfLastItem}
+                paginate={setCurrentPage}
+                darkMode={darkMode}
+              />
+
+              <VisitorModal
+                user={user}
+                show={showVisitorModal}
+                onHide={() => setShowVisitorModal(false)}
+                refreshList={fetchVisitorByUserId}
+              />
+
+              {qrImageUrl && txnId && (
+                <div ref={qrRef}>
+                  <QRCodeForm
+                    qrCode={qrImageUrl}
+                    txnId={txnId}
+                    isLoading={isQRLoading}
+                  />
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>

@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { Navbar, Nav, Dropdown, Container, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
-import { useTheme } from "../../context/ThemeContext";
-import ProfileModal from "../../modals/ProfileModal";
+import { useTheme } from "../context/ThemeContext";
+import ProfileModal from "../modals/ProfileModal";
 
-const NavbarComponent = ({ user, onLogout }) => {
+const FormNavigation = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const { darkMode, toggleTheme } = useTheme();
@@ -31,13 +31,19 @@ const NavbarComponent = ({ user, onLogout }) => {
             className={textColor}
             onClick={() => navigate("/dashboard")}
           >
-            Dashboard
+            | Dashboard
           </Nav.Link>
           <Nav.Link
             className={textColor}
             onClick={() => navigate("/transactions")}
           >
-            Transactions
+            | Transactions
+          </Nav.Link>
+          <Nav.Link
+            className={textColor}
+            onClick={() => navigate("/my-wallet")}
+          >
+            | My Wallet
           </Nav.Link>
         </>
       )}
@@ -46,21 +52,27 @@ const NavbarComponent = ({ user, onLogout }) => {
         <>
           <Nav.Link
             className={textColor}
+            onClick={() => navigate("/admin/dashboard")}
+          >
+            | Dashboard
+          </Nav.Link>
+          <Nav.Link
+            className={textColor}
             onClick={() => navigate("/admin/transactions")}
           >
-            Transactions
+            | Transactions
           </Nav.Link>
           <Nav.Link
             className={textColor}
             onClick={() => navigate("/admin/verifications")}
           >
-            Verifications
+            | Verifications
           </Nav.Link>
           <Nav.Link
             className={textColor}
             onClick={() => navigate("/admin/file-maintenance")}
           >
-            File Maintenance
+            | File Maintenance
           </Nav.Link>
         </>
       )}
@@ -102,7 +114,7 @@ const NavbarComponent = ({ user, onLogout }) => {
             style={{ cursor: "pointer" }}
             onClick={() => navigate("/dashboard")}
           >
-            Visitor Management System
+            VMS
           </Navbar.Brand>
 
           <Navbar.Toggle aria-controls="navbar-nav" />
@@ -132,4 +144,4 @@ const NavbarComponent = ({ user, onLogout }) => {
   );
 };
 
-export default NavbarComponent;
+export default FormNavigation;

@@ -21,7 +21,7 @@ const LoginForm = ({ setUser, setLoading }) => {
     setTimeout(() => {
       setLoading(false); // ✅ Hide spinner after navigation
       if (role === "admin") {
-        navigate("/admin/transactions");
+        navigate("/admin/dashboard");
       } else {
         navigate("/dashboard");
       }

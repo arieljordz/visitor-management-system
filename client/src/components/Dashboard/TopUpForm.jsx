@@ -19,6 +19,8 @@ const TopUpForm = ({
   const [topUpAmount, setTopUpAmount] = useState("");
   const { darkMode } = useTheme();
 
+  console.log("paymentMethods:", paymentMethods);
+
   const handleTopUp = async () => {
     const amount = parseFloat(topUpAmount);
 
@@ -49,7 +51,9 @@ const TopUpForm = ({
       setTopUpAmount("");
       setProof(null);
 
-      toast.success(`Top-up successful. New balance: ₱${parseFloat(balance).toFixed(2)}`);
+      toast.success(
+        `Top-up successful. New balance: ₱${parseFloat(balance).toFixed(2)}`
+      );
     } catch (error) {
       console.error("Top-up error:", error);
       toast.error(
@@ -66,16 +70,6 @@ const TopUpForm = ({
     <Form>
       <Row className="mb-3">
         <Col xs={12} md={6}>
-          <Form.Control
-            type="number"
-            step="0.01"
-            placeholder="0.00"
-            min="0"
-            value={topUpAmount}
-            onChange={(e) => setTopUpAmount(e.target.value)}
-          />
-        </Col>
-        <Col xs={12} md={6}>
           <Form.Select
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value)}
@@ -85,6 +79,16 @@ const TopUpForm = ({
             <option value="paymaya">PayMaya</option>
             <option value="bank">Bank Transfer</option>
           </Form.Select>
+        </Col>
+        <Col xs={12} md={6}>
+          <Form.Control
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+            min="0"
+            value={topUpAmount}
+            onChange={(e) => setTopUpAmount(e.target.value)}
+          />
         </Col>
       </Row>
 

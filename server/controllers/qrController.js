@@ -10,7 +10,9 @@ export const generateQRCode = async (req, res) => {
     }
 
     const qrData = `visitor-${userId}-${Date.now()}`; // Make QR data unique
-    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrData)}&size=150x150`;
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+      qrData
+    )}&size=150x150`;
 
     // Save to QRCode collection
     const qrCodeDoc = new QRCode({
@@ -50,7 +52,9 @@ export const scanQRCode = async (req, res) => {
     }
 
     if (qrCodeDoc.status === "used") {
-      return res.status(400).json({ message: "QR code has already been used." });
+      return res
+        .status(400)
+        .json({ message: "QR code has already been used." });
     }
 
     if (qrCodeDoc.status === "expired") {
@@ -75,6 +79,25 @@ export const scanQRCode = async (req, res) => {
 
 export const getGeneratedQRCodes = async (req, res) => {
   try {
+    // Fetch all QR codes with user info, sorted by generation date (newest first)
+    const generatedQRCodes = await QRCode.find()
+      .populate("userId") // Populate full user object
+      .sort({ generatedAt: -1 });
+
+    return res.status(200).json({
+      message: "Successfully fetched all generated QR codes with user details.",
+      data: generatedQRCodes,
+    });
+  } catch (error) {
+    console.error("Error fetching QR codes:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error while fetching QR codes." });
+  }
+};
+
+export const getGeneratedQRCodesById = async (req, res) => {
+  try {
     const { userId } = req.params; // Get userId from the URL parameter
 
     if (!userId) {
@@ -82,11 +105,14 @@ export const getGeneratedQRCodes = async (req, res) => {
     }
 
     // Fetch QR codes for the user
-    const generatedQRCodes = await QRCode.find({ userId })
-      .sort({ generatedAt: -1 }); // Sort by generation date, descending
+    const generatedQRCodes = await QRCode.find({ userId }).sort({
+      generatedAt: -1,
+    }); // Sort by generation date, descending
 
     if (generatedQRCodes.length === 0) {
-      return res.status(404).json({ message: "No QR codes found for this user." });
+      return res
+        .status(404)
+        .json({ message: "No QR codes found for this user." });
     }
 
     // Respond with the fetched QR codes
@@ -96,7 +122,8 @@ export const getGeneratedQRCodes = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Server error while fetching QR codes." });
+    return res
+      .status(500)
+      .json({ message: "Server error while fetching QR codes." });
   }
 };
-

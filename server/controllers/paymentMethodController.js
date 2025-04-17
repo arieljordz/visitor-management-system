@@ -1,31 +1,70 @@
-import mongoose from "mongoose";
 import PaymentMethod from "../models/PaymentMethod.js";
 
-// GET all payment methods
-export const getAllPaymentMethods = async (req, res) => {
+// Create a new payment method
+export const createPaymentMethod = async (req, res) => {
   try {
-    const methods = await PaymentMethod.find();
-    res.json(methods);
+    const newMethod = new PaymentMethod(req.body);
+    const savedMethod = await newMethod.save();
+    res.status(201).json({ message: "Payment method created", data: savedMethod });
   } catch (err) {
-    res.status(500).json({ error: "Server error" });
+    console.error("Create error:", err);
+    res.status(500).json({ message: "Failed to create payment method", error: err.message });
   }
 };
 
-// POST a new payment method
-export const createPaymentMethod = async (req, res) => {
-  const { method, accountName, accountNumber, bankName } = req.body;
-
+// Get all payment methods
+export const getPaymentMethods = async (req, res) => {
   try {
-    const newMethod = new PaymentMethod({
-      method,
-      accountName,
-      accountNumber,
-      bankName: method === "Bank" ? bankName : undefined,
-    });
-
-    await newMethod.save();
-    res.status(201).json(newMethod);
+    const methods = await PaymentMethod.find();
+    res.status(200).json({ data: methods });
   } catch (err) {
-    res.status(400).json({ error: "Invalid payment method data" });
+    console.error("Get all error:", err);
+    res.status(500).json({ message: "Failed to fetch payment methods", error: err.message });
+  }
+};
+
+// Get a single payment method by ID
+export const getPaymentMethodById = async (req, res) => {
+  try {
+    const method = await PaymentMethod.findById(req.params.id);
+    if (!method) {
+      return res.status(404).json({ message: "Payment method not found" });
+    }
+    res.status(200).json({ data: method });
+  } catch (err) {
+    console.error("Get by ID error:", err);
+    res.status(500).json({ message: "Failed to fetch payment method", error: err.message });
+  }
+};
+
+// Delete a payment method
+export const deletePaymentMethod = async (req, res) => {
+  try {
+    const deleted = await PaymentMethod.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Payment method not found" });
+    }
+    res.status(200).json({ message: "Payment method deleted" });
+  } catch (err) {
+    console.error("Delete error:", err);
+    res.status(500).json({ message: "Failed to delete payment method", error: err.message });
+  }
+};
+
+// Update a payment method
+export const updatePaymentMethod = async (req, res) => {
+  try {
+    const updated = await PaymentMethod.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!updated) {
+      return res.status(404).json({ message: "Payment method not found" });
+    }
+    res.status(200).json({ message: "Payment method updated", data: updated });
+  } catch (err) {
+    console.error("Update error:", err);
+    res.status(500).json({ message: "Failed to update payment method", error: err.message });
   }
 };

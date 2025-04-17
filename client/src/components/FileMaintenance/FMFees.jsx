@@ -6,13 +6,13 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import FormSearch from "../../commons/FormSearch";
 import FormPagination from "../../commons/FormPagination";
-import AccountModal from "../../modals/AccountModal";
-import TableAccounts from "../../tables/TableAccounts";
+import FeeModal from "../../modals/FeeModal";
+import TableFees from "../../tables/TableFees";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
-const FMAccounts = ({ user, darkMode }) => {
-  const [accounts, setAccounts] = useState([]);
+const FMFees = ({ user, darkMode }) => {
+  const [fee, setFees] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -24,15 +24,17 @@ const FMAccounts = ({ user, darkMode }) => {
 
   useEffect(() => {
     if (user?.userId) {
-      fetchAccounts();
+      fetchFees();
     }
   }, [user]);
 
-  const fetchAccounts = async () => {
+  const fetchFees = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-users`);
-      setAccounts(res.data.data || []);
+      const res = await axios.get(`${API_URL}/api/get-fees`);
+
+      console.log("Fetch fee:", res.data.data);
+      setFees(res.data.data || []);
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
@@ -42,18 +44,18 @@ const FMAccounts = ({ user, darkMode }) => {
 
   const handleEdit = async (id) => {
     try {
-      const res = await axios.get(`${API_URL}/api/get-user/${id}`);
+      const res = await axios.get(`${API_URL}/api/get-fee/${id}`);
       setSelectedRow(res.data.data);
       setShowModal(true);
     } catch (err) {
-      toast.error("Failed to fetch Account.");
+      toast.error("Failed to fetch Fee.");
     }
   };
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "This Account will be permanently deleted.",
+      text: "This Fee will be permanently deleted.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, delete it!",
@@ -62,11 +64,11 @@ const FMAccounts = ({ user, darkMode }) => {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_URL}/api/delete-user/${id}`);
-        toast.success("Account deleted.");
-        fetchAccounts();
+        await axios.delete(`${API_URL}/api/delete-fee/${id}`);
+        toast.success("Fee deleted.");
+        fetchFees();
       } catch (err) {
-        toast.error("Failed to delete Account.");
+        toast.error("Failed to delete Fee.");
       }
     }
   };
@@ -80,21 +82,10 @@ const FMAccounts = ({ user, darkMode }) => {
     setSelectedRow(null);
     setShowModal(false);
   };
-
-  const filteredData = accounts.filter((obj) => {
-    const values = [
-      obj._id?.slice(-6),
-      obj.email,
-      obj.name,
-      obj.role,
-      obj.address,
-      new Date(obj.createdAt).toLocaleString(),
-    ];
-
-    return values.some((val) =>
-      val?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  
+  const filteredData = fee.filter((obj) =>
+    obj.fee?.toString().toLowerCase().includes(searchTerm.toLowerCase().trim())
+  );
 
   const itemsPerPageValue =
     itemsPerPage === "All" ? filteredData.length : itemsPerPage;
@@ -108,12 +99,13 @@ const FMAccounts = ({ user, darkMode }) => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  console.log("filteredData:", filteredData);
   return (
     <>
       <div className="mb-4 text-start">
         <Button variant="success" onClick={() => setShowModal(true)}>
           <FaPlus className="me-2" />
-          Add User
+          Add Fee
         </Button>
       </div>
 
@@ -126,7 +118,7 @@ const FMAccounts = ({ user, darkMode }) => {
         onAdd={handleOpen}
       />
 
-      <TableAccounts
+      <TableFees
         loading={loading}
         currentData={currentData}
         darkMode={darkMode}
@@ -145,14 +137,14 @@ const FMAccounts = ({ user, darkMode }) => {
         darkMode={darkMode}
       />
 
-      <AccountModal
+      <FeeModal
         show={showModal}
         onHide={handleClose}
         selectedRow={selectedRow}
-        refreshList={fetchAccounts}
+        refreshList={fetchFees}
       />
     </>
   );
 };
 
-export default FMAccounts;
+export default FMFees;
