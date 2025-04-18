@@ -1,27 +1,35 @@
 import React, { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "./context/ThemeContext";
 import { ToastContainer } from "react-toastify";
-import Dashboard from "./components/Dashboard/Dashboard";
-import Transactions from "./components/Transactions/Transactions";
-import AdminTransactions from "./components/Transactions/AdminTransactions";
-import Verifications from "./components/Verifications/Verifications";
-import FileMaintenance from "./components/FileMaintenance/FileMaintenance";
-import FormNavigation from "./commons/FormNavigation";
-import LoginForm from "./components/Login/LoginForm";
-import "./App.css";
 import "react-toastify/dist/ReactToastify.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import FullScreenSpinner from "./commons/FullScreenSpinner";
-import AdminDashboard from "./components/Dashboard/AdminDashboard";
-import MyWallet from "./components/MyWallet/MyWallet";
+import { ThemeProvider } from "./context/ThemeContext";
+import Navbar from "./components/common/Navbar";
+import Sidebar from "./components/common/Sidebar";
+import Footer from "./components/common/Footer";
+import Spinner from "./components/common/Spinner";
+
+import Login from "./pages/Login/Login";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import PaymentHistory from "./pages/Transactions/PaymentHistory";
+import GeneratedQRCodes from "./pages/Transactions/GeneratedQRCodes";
+import MyWallet from "./pages/MyWallet/MyWallet";
+import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
+import Verifications from "./pages/Verifications/Verifications";
+import AdminPaymentHistory from "./pages/AdminTransactions/AdminPaymentHistory";
+import AdminGeneratedQRCodes from "./pages/AdminTransactions/AdminGeneratedQRCodes";
+import FMProofs from "./pages/FileMaintenance/FMProofs";
+import FMPaymentMethod from "./pages/FileMaintenance/FMPaymentMethod";
+import FMClassification from "./pages/FileMaintenance/FMClassification";
+import FMFees from "./pages/FileMaintenance/FMFees";
+import FMAccounts from "./pages/FileMaintenance/FMAccounts";
 
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
-function App() {
+const App = () => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false); // ✅ Loading state
+  const [balance, setBalance] = useState(0.0);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -30,58 +38,107 @@ function App() {
     }
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-  };
-
   return (
     <ThemeProvider>
       <GoogleOAuthProvider clientId={API_KEY}>
         <BrowserRouter>
-          {user && !loading && (
-            <FormNavigation user={user} onLogout={handleLogout} />
-          )}
-          {loading && <FullScreenSpinner />} {/* ✅ Show spinner */}
-          <ToastContainer position="top-right" autoClose={2000} />
           <Routes>
             <Route
               path="/"
               element={
-                <LoginForm
-                  setUser={setUser}
-                  setLoading={setLoading}
+                <Login user={user} setUser={setUser} setLoading={setLoading} />
+              }
+            />
+            <Route
+              path="/*"
+              element={
+                <AuthenticatedLayout
                   user={user}
+                  setUser={setUser}
+                  loading={loading}
                 />
               }
             />
-            <Route path="/dashboard" element={<Dashboard user={user} />} />
-            <Route
-              path="/transactions"
-              element={<Transactions user={user} />}
-            />
-            <Route path="/my-wallet" element={<MyWallet user={user} />} />
-            <Route
-              path="/admin/dashboard"
-              element={<AdminDashboard user={user} />}
-            />
-            <Route
-              path="/admin/transactions"
-              element={<AdminTransactions user={user} />}
-            />
-            <Route
-              path="/admin/verifications"
-              element={<Verifications user={user} />}
-            />
-            <Route
-              path="/admin/file-maintenance"
-              element={<FileMaintenance user={user} />}
-            />
           </Routes>
+          <ToastContainer position="top-right" autoClose={2000} />
         </BrowserRouter>
       </GoogleOAuthProvider>
     </ThemeProvider>
   );
-}
+};
+
+const AuthenticatedLayout = ({ user, setUser, loading }) => {
+  const navigate = useNavigate();
+
+  if (loading) {
+    return <Spinner />; // Show spinner when loading is true
+  }
+
+  const authenticatedRoutes = (
+    <Routes>
+      <Route
+        path="/dashboard"
+        element={<Dashboard user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/transactions/payment-history"
+        element={<PaymentHistory user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/transactions/generated-qr-codes"
+        element={<GeneratedQRCodes user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/my-wallet"
+        element={<MyWallet user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/admin/dashboard"
+        element={<AdminDashboard user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/admin/transactions/payment-history"
+        element={<AdminPaymentHistory user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/admin/transactions/generated-qr-codes"
+        element={<AdminGeneratedQRCodes user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/admin/verifications"
+        element={<Verifications user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/admin/file-maintenance/proofs"
+        element={<FMProofs user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/admin/file-maintenance/payment-methods"
+        element={<FMPaymentMethod user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/admin/file-maintenance/classifications"
+        element={<FMClassification user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/admin/file-maintenance/fees"
+        element={<FMFees user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/admin/file-maintenance/accounts"
+        element={<FMAccounts user={user} setUser={setUser} />}
+      />
+    </Routes>
+  );
+
+  return (
+    <div className="wrapper">
+      <Navbar user={user} />
+      <Sidebar user={user} setUser={setUser} />
+      {authenticatedRoutes}
+      <Footer />
+    </div>
+  );
+};
 
 export default App;

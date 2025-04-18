@@ -4,7 +4,7 @@ import User from "../models/User.js";
 
 // User registration handler
 export const register = async (req, res) => {
-  const { email, password, name, picture, role } = req.body;
+  const { email, password, name, picture, role, address } = req.body;
 
   // Log the incoming data
   console.log("Received data:", req.body);
@@ -23,22 +23,21 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    // If Google login data is provided, use it. Otherwise, use default values
+    // Prepare user data
     const userData = {
       email,
-      password: await bcrypt.hash(password, 10), // Hash password if it's a normal registration
+      password: await bcrypt.hash(password, 10), // Hash password
       name: name || null,
       picture: picture || null,
-      role: role || null,
+      role: role || "client", // Default to "client" if not provided
+      address: address || null,
     };
 
-    // Create the new user
+    // Create and save the new user
     const newUser = new User(userData);
-
-    // Save the new user
     await newUser.save();
 
-    // Return a success message with user data
+    // Return success response
     return res.status(201).json({
       message: "Registration successful",
       email: newUser.email,
@@ -46,6 +45,7 @@ export const register = async (req, res) => {
       picture: newUser.picture,
       userId: newUser._id,
       role: newUser.role,
+      address: newUser.address,
     });
   } catch (error) {
     console.error("Error during registration:", error);
@@ -143,18 +143,27 @@ export const googleLogin = async (req, res) => {
 // Create a new user
 export const createUser = async (req, res) => {
   try {
-    const { email, password, name, picture, role, address } = req.body;
+    const {
+      email,
+      password: rawPassword,
+      name,
+      picture,
+      role,
+      address,
+    } = req.body;
 
+    console.log("Create user:", req.body);
     // Check if user exists
     const existingUser = await User.findOne({ email });
+    console.log("existingUser:", existingUser);
     if (existingUser) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    password = password || "DefaultPass";
+    const passwordToUse = rawPassword || "DefaultPass";
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(passwordToUse, 10);
 
     // Create new user
     const newUser = new User({
@@ -167,14 +176,16 @@ export const createUser = async (req, res) => {
     });
 
     const savedUser = await newUser.save();
-    res
-      .status(201)
-      .json({ message: "User created successfully", data: savedUser });
+    res.status(201).json({
+      message: "User created successfully",
+      data: savedUser,
+    });
   } catch (err) {
     console.error("Create User Error:", err);
-    res
-      .status(500)
-      .json({ message: "Failed to create user", error: err.message });
+    res.status(500).json({
+      message: "Failed to create user",
+      error: err.message,
+    });
   }
 };
 

@@ -1,85 +1,9 @@
-@media (forced-colors: active) {
-    body {
-      background-color: black;
-      color: white;
-    }
-  }
-  
-.hide {
-    display: none !important;
-}
-
-.mt-6 {
-  margin-top: 4rem !important;
+html,
+body,
+#root {
+  height: 100%;
 }
 
 .cursor-pointer {
   cursor: pointer !important;
 }
-
-/* Theme Styles for Card */
-.dashboard-card-light {
-  background-color: #f8f9fa !important;
-  color: #212529 !important;
-}
-
-.dashboard-card-dark {
-  background-color: #454d55 !important;
-  color: #ffffff !important;
-  border: 1px solid white !important;
-}
-
-.dashboard-card-dark .card-body {
-  border: none !important;
-  border-top: 1px solid white !important;
-}
-
-.dashboard-card-dark .main-card {
-  border: none !important;
-}
-
-.dashboard-card-dark .accordion-success {
-  border: none !important;
-}
-
-/* Theme Styles for Button */
-.dashboard-btn-light {
-  background-color: #0dcaf0 !important;
-  color: white !important;
-  border: none !important;
-}
-
-.dashboard-btn-dark {
-  background-color: transparent !important;
-  color: white !important;
-  border: 1px solid white !important;
-}
-
-.accordion-success .accordion-button {
-  background-color: #198754 !important;
-  color: white !important;
-}
-
-.accordion-success .accordion-button:not(.collapsed) {
-  background-color: #2cb374 !important; 
-  color: white !important;
-}
-
-/* For dark mode breadcrumb separator */
-.breadcrumb-dark .breadcrumb-item + .breadcrumb-item::before {
-  color: #ffffff; /* White separator in dark mode */
-}
-
-/* Optional: custom style for light mode separator (default is gray) */
-.breadcrumb:not(.breadcrumb-dark) .breadcrumb-item + .breadcrumb-item::before {
-  color: #6c757d; /* text-muted gray */
-}
-
-.nav-tabs .nav-link {
-  border: 1px solid #dee2e6 !important;
-}
-
-.nav-tabs .nav-link.active {
-  border-bottom-color: transparent !important;
-}
-
