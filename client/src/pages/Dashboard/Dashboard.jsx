@@ -10,6 +10,8 @@ import Paginations from "../../components/common/Paginations";
 import VisitorsTable from "../../components/dashboard/tables/VisitorsTable";
 import VisitorsModal from "../../components/dashboard/modals/VisitorsModal";
 import DisplayQRCode from "../../components/dashboard/DisplayQRCode";
+import QRCodeModal from "../../components/dashboard/modals/QRCodeModal";
+import DisplayBalance from "../../components/common/DisplayBalance";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
@@ -18,20 +20,25 @@ const Dashboard = ({ user, setUser }) => {
   const [isQRLoading, setQRIsLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [qrImageUrl, setQrImageUrl] = useState("");
-  const [txnId, setTxnId] = useState("");
-  const [balance, setBalance] = useState(0.0);
+  const [visitorId, setVisitorId] = useState("");
   const [proofs, setVisitors] = useState([]);
+  // const [balance, setBalance] = useState(0.0);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
+  // Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [qrViewImageUrl, setViewQrImageUrl] = useState("");
+  const [txnId, setTxnId] = useState("");
+
   const qrRef = useRef(null);
 
   useEffect(() => {
     if (user?.userId) {
-      fetchUserBalance();
       fetchVisitorByUserId();
+      fetchBalance();
     }
   }, [user]);
 
@@ -40,23 +47,6 @@ const Dashboard = ({ user, setUser }) => {
       qrRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [qrImageUrl]);
-
-  const fetchUserBalance = async () => {
-    setQRIsLoading(true);
-    try {
-      const res = await axios.get(
-        `${API_URL}/api/check-balance/${user.userId}`
-      );
-      const parsedBalance = parseFloat(res.data?.balance);
-      setBalance(isNaN(parsedBalance) ? 0.0 : parsedBalance);
-    } catch (error) {
-      console.error("Balance fetch error:", error?.response || error);
-      // toast.error("Failed to fetch balance.");
-      setBalance(0.0);
-    } finally {
-      setQRIsLoading(false);
-    }
-  };
 
   const fetchVisitorByUserId = async () => {
     setTableLoading(true);
@@ -84,33 +74,74 @@ const Dashboard = ({ user, setUser }) => {
     );
   };
 
-  const generateQR = async () => {
+  // const fetchBalance = async () => {
+  //   try {
+  //     const { data } = await axios.get(
+  //       `${API_URL}/api/check-balance/${user.userId}`
+  //     );
+  //     const parsedBalance = parseFloat(data?.balance);
+  //     const safeBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;
+  //     setBalance(safeBalance);
+  //   } catch (err) {
+  //     setBalance(0.0);
+  //   }
+  // };
+
+  const checkActiveQR = async (visitorId) => {
     try {
-      const res = await fetch(`${API_URL}/api/generate-qr/${user.userId}`, {
-        method: "POST",
-      });
+      const res = await fetch(
+        `${API_URL}/api/check-active-qr/${user.userId}/${visitorId}`
+      );
       const data = await res.json();
+
+      if (res.ok) {
+        console.log("Active QR:", data.qrImageUrl);
+        return data;
+      } else {
+        console.log(data.message);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error checking active QR:", error);
+      return null;
+    }
+  };
+
+  const generateQR = async (visitorId) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/api/generate-qr/${user.userId}/${visitorId}`,
+        { method: "POST" }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const message = data.message || "QR generation failed.";
+        response.status === 409 ? toast.info(message) : toast.error(message);
+        return false;
+      }
+
       setQrImageUrl(data.qrImageUrl);
       return true;
-    } catch {
+    } catch (error) {
       toast.error("QR generation failed.");
       return false;
     }
   };
 
-  const payBalance = async () => {
+  const payBalance = async (visitorId) => {
     try {
       const res = await fetch(`${API_URL}/api/submit-payment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.userId }),
+        body: JSON.stringify({ userId: user.userId, visitorId: visitorId }),
       });
 
       const data = await res.json();
 
       if (res.status === 200) {
-        setBalance((prev) => parseFloat(prev) - 100);
-        toast.success("₱100.00 has been deducted. Payment successful.");
+        toast.success("Your payment was successful and the QR code is ready.");
         return true;
       } else {
         toast.error("Payment failed: " + (data.message || "Unknown error"));
@@ -125,33 +156,43 @@ const Dashboard = ({ user, setUser }) => {
     }
   };
 
-  const handleGenerateQR = async (visitorTxnId) => {
-    if (balance < 100) {
-      toast.warning("Your balance is insufficient to generate a QR code.");
-      return;
-    }
-
-    const result = await Swal.fire({
-      title: "Proceed with QR Generation?",
-      text: "₱100.00 will be deducted from your balance upon payment.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, generate and pay",
-    });
-
-    if (!result.isConfirmed) return;
-
-    setQRIsLoading(true);
+  const handleGenerateQR = async (visitorId) => {
     try {
-      const qrGenerated = await generateQR();
-      if (qrGenerated) {
-        const paid = await payBalance();
-        if (paid) {
-          setTxnId(visitorTxnId);
-        }
+      if (balance < 100) {
+        toast.warning("Your balance is insufficient to generate a QR code.");
+        return;
       }
+
+      const hasActiveQR = await checkActiveQR(visitorId);
+      if (hasActiveQR) {
+        toast.warning("This visitor currently has an active QR code.");
+        return;
+      }
+
+      const result = await Swal.fire({
+        title: "Proceed with QR Generation?",
+        text: "The generation of a QR code will initiate a deduction from your available balance.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, generate it",
+      });
+
+      if (!result.isConfirmed) return;
+
+      setQRIsLoading(true);
+
+      const qrGenerated = await generateQR(visitorId);
+      if (!qrGenerated) throw new Error("QR generation failed.");
+
+      const paid = await payBalance(visitorId);
+      if (!paid) throw new Error("Payment deduction failed.");
+
+      setVisitorId(visitorId);
+      fetchVisitorByUserId();
+      fetchBalance();
     } catch (error) {
       console.error("QR/Payment process failed:", error);
+      toast.error("Something went wrong during QR generation or payment.");
     } finally {
       setQRIsLoading(false);
     }
@@ -181,6 +222,43 @@ const Dashboard = ({ user, setUser }) => {
     itemsPerPage === "All"
       ? 1
       : Math.ceil(filteredData.length / itemsPerPageValue);
+
+  // Handle QR code modal view
+  const handleViewQRCode = (imageUrl, txnId) => {
+    setViewQrImageUrl(imageUrl);
+    setTxnId(txnId);
+    setShowModal(true);
+  };
+
+  const [balance, setBalance] = useState(0.0);
+  const [isFetching, setIsFetching] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchBalance = async () => {
+    setIsFetching(true);
+    try {
+      const { data } = await axios.get(
+        `${API_URL}/api/check-balance/${user.userId}`
+      );
+      console.log("data:", data);
+      const parsedBalance = parseFloat(data?.balance);
+      const safeBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;
+      setBalance(safeBalance);
+      setError(null);
+    } catch (err) {
+      setError("Failed to fetch balance.");
+      setBalance(0.0);
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.userId) {
+      fetchBalance();
+    }
+  }, [user?.userId]);
+
   return (
     <div className="content-wrapper">
       {/* Content Header */}
@@ -256,10 +334,20 @@ const Dashboard = ({ user, setUser }) => {
               </div>
             </div>
           </div>
+
           <Row className="justify-content-center">
             <Col md={8} lg={12}>
               <Card className={`shadow`}>
                 <Card.Body className="main-card">
+                  <Row className="justify-content-center">
+                    <h5>
+                      <DisplayBalance
+                        balance={balance}
+                        isFetching={isFetching}
+                        error={error}
+                      />
+                    </h5>
+                  </Row>
                   <div className="mb-4 text-start">
                     <Button
                       variant="success"
@@ -283,6 +371,7 @@ const Dashboard = ({ user, setUser }) => {
                     currentData={currentData}
                     getBadgeClass={getBadgeClass}
                     onGenerateQRClick={handleGenerateQR}
+                    handleViewQRCode={handleViewQRCode}
                   />
 
                   <Paginations
@@ -302,11 +391,19 @@ const Dashboard = ({ user, setUser }) => {
                     refreshList={fetchVisitorByUserId}
                   />
 
-                  {qrImageUrl && txnId && (
+                  {/* Modal to view the QR code */}
+                  <QRCodeModal
+                    show={showModal}
+                    setShowModal={setShowModal}
+                    qrImageUrl={qrViewImageUrl}
+                    txnId={txnId}
+                  />
+
+                  {qrImageUrl && visitorId && (
                     <div ref={qrRef}>
                       <DisplayQRCode
                         qrCode={qrImageUrl}
-                        txnId={txnId}
+                        visitorId={visitorId}
                         isLoading={isQRLoading}
                       />
                     </div>

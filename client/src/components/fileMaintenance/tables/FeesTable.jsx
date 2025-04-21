@@ -14,6 +14,7 @@ const FeesTable = ({ loading, currentData, handleEdit, handleDelete }) => {
           <tr>
             <th className="text-center">#</th>
             <th className="text-center">FeeID</th>
+            <th className="text-center">Fee Description</th>
             <th className="text-center">Amount Fee</th>
             <th className="text-center">Date Created</th>
             <th className="text-center">Status</th>
@@ -28,6 +29,7 @@ const FeesTable = ({ loading, currentData, handleEdit, handleDelete }) => {
                 <td className="text-center">
                   {row._id.slice(-6).toUpperCase()}
                 </td>
+                <td className="text-center">{row.description}</td>
                 <td className="text-center">
                   ₱{Number(row.fee || 0).toFixed(2)}
                 </td>
@@ -72,7 +74,7 @@ const FeesTable = ({ loading, currentData, handleEdit, handleDelete }) => {
             ))
           ) : (
             <tr>
-              <td colSpan="6" className={`text-center text-muted`}>
+              <td colSpan="7" className={`text-center text-muted`}>
                 No records found.
               </td>
             </tr>

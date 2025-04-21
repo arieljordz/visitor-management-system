@@ -42,7 +42,7 @@ const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
 
   return (
     <Modal
-      className="modal-sm"
+      // className="modal-sm"
       show={show}
       onHide={() => setShowModal(false)}
       centered

@@ -11,8 +11,8 @@ export const getBalance = async (req, res) => {
     const balance = await Balance.findOne({ userId }).exec();
     if (!balance) {
       return res
-        .status(404)
-        .json({ message: "Balance not found for this user" });
+        .status(200)
+        .json({ balance: 0  });
     }
     return res.status(200).json({ balance: balance.balance });
   } catch (error) {
@@ -37,30 +37,16 @@ export const topUp = async (req, res) => {
   try {
     const userObjectId = new mongoose.Types.ObjectId(userId);
 
-    // Find or create user balance
-    let balance = await Balance.findOne({ userId: userObjectId });
-    if (!balance) {
-      balance = new Balance({
-        userId: userObjectId,
-        balance: parsedAmount,
-      });
-      await balance.save();
-      console.log("New balance created:", balance.balance);
-    } else {
-      balance.balance += parsedAmount;
-      await balance.save();
-      console.log("Updated balance:", balance.balance);
-    }
-
     // Handle uploaded file path if any
     let proofOfPaymentPath = null;
     if (req.file) {
-      proofOfPaymentPath = path.join("uploads", req.file.filename); // adjust based on your storage structure
+      proofOfPaymentPath = path.join("uploads", req.file.filename);
     }
 
-    // Log the payment transaction
+    // Just log the transaction as pending
     const transaction = new PaymentDetail({
       userId: userObjectId,
+      visitorId: null,
       amount: parsedAmount,
       paymentMethod: paymentMethod || "e-wallet",
       transaction: "credit",
@@ -68,15 +54,18 @@ export const topUp = async (req, res) => {
       isVerified: false,
       status: "pending",
       paymentDate: new Date(),
-      completedDate: new Date(),
+      completedDate: null, // Not completed yet until verified
     });
 
     await transaction.save();
-    console.log("Transaction recorded:", transaction._id);
+    console.log(
+      "Transaction recorded (awaiting verification):",
+      transaction._id
+    );
 
     return res.status(200).json({
-      message: "Top-up successful.",
-      balance: balance.balance,
+      message: "Top-up request submitted. Awaiting admin verification.",
+      transactionId: transaction._id,
     });
   } catch (error) {
     console.error("Top-up error:", error);

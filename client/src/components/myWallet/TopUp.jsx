@@ -20,33 +20,30 @@ const TopUp = ({
   // Handle top-up request
   const handleTopUp = async () => {
     const amount = parseFloat(topUpAmount);
-
+  
     if (!amount || amount <= 0 || !proof) {
       toast.warning("Please enter a valid top-up amount and upload proof.");
       return;
     }
-
+  
     const formData = new FormData();
-    formData.append("topUpAmount", amount.toFixed(2)); // ensure 2 decimal places
+    formData.append("topUpAmount", amount.toFixed(2));
     formData.append("paymentMethod", paymentMethod);
     formData.append("proof", proof);
-
+  
     setIsLoading(true);
-
+  
     try {
       const res = await axios.post(
         `${API_URL}/api/top-up/${user.userId}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-
-      const { balance } = res.data;
-      setBalance(parseFloat(balance).toFixed(2));
+  
       setTopUpAmount("");
       setProof(null);
-      toast.success(
-        `Top-up successful. New balance: ₱${parseFloat(balance).toFixed(2)}`
-      );
+  
+      toast.success("Top-up submitted. Awaiting admin verification.");
     } catch (error) {
       console.error("Top-up error:", error);
       toast.error(
@@ -56,6 +53,7 @@ const TopUp = ({
       setIsLoading(false);
     }
   };
+  
 
   // Payment method details for the selected method
   const selectedPaymentMethod = paymentMethods.find(

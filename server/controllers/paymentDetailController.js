@@ -1,57 +1,74 @@
 import mongoose from "mongoose";
 import Balance from "../models/Balance.js";
 import PaymentDetail from "../models/PaymentDetail.js";
+import Fee from "../models/Fee.js";
 
 export const processPayment = async (req, res) => {
   try {
     const {
       userId,
+      visitorId,
       paymentMethod = "e-wallet",
       proofOfPayment = null,
     } = req.body;
 
-    // console.log("processPayment body", req.body);
-
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid userId." });
     }
+
+    // Fetch the active fee for "Generate QR fee"
+    const feeDoc = await Fee.findOne({
+      description: { $regex: /generate qr fee/i },
+      active: true,
+    });
+
+    if (!feeDoc) {
+      return res
+        .status(404)
+        .json({ message: "'Generate QR fee' not found or inactive." });
+    }
+
+    const feeAmount = feeDoc.fee ?? 0;
 
     const balanceDoc = await Balance.findOne({ userId });
     if (!balanceDoc) {
       return res.status(404).json({ message: "Balance record not found." });
     }
 
-    if (balanceDoc.balance < 100) {
+    if (balanceDoc.balance < feeAmount) {
       return res.status(400).json({ message: "Insufficient balance." });
     }
 
-    // Deduct ₱100 from the balance
-    balanceDoc.balance -= 100;
+    // Deduct the fee amount from balance
+    balanceDoc.balance -= feeAmount;
     await balanceDoc.save();
 
-    // Create the payment transaction record
+    // Create the payment transaction
     const payment = new PaymentDetail({
       userId,
-      amount: 100,
+      visitorId,
+      amount: feeAmount,
       paymentMethod,
-      transaction: "debit", // Required by your schema
+      transaction: "debit",
       status: "completed",
-      proofOfPayment, // Optional, pass null if not provided
-      isVerified: true,
+      proofOfPayment,
+      verificationStatus: "verified",
       paymentDate: new Date(),
       completedDate: new Date(),
     });
 
     await payment.save();
 
-    res.json({
+    res.status(200).json({
       message: "Payment recorded successfully",
       newBalance: balanceDoc.balance,
       paymentId: payment._id,
     });
   } catch (error) {
     console.error("Payment processing failed:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 };
 
@@ -74,16 +91,15 @@ export const getPaymentDetailsById = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    if (!userId) {
-      console.log("Missing userId in route params.");
-      return res.status(400).json({ message: "userId is required." });
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid userId." });
     }
 
-    // console.log("Received userId from params:", userId);
-
-    const paymentDetails = await PaymentDetail.find({ userId }).sort({
-      paymentDate: -1,
-    }); // descending order
+    const paymentDetails = await PaymentDetail.find({ userId })
+      .populate("userId")
+      .populate("visitorId")
+      .sort({ paymentDate: -1 })
+      .lean();
 
     res.status(200).json({
       data: paymentDetails,
@@ -91,7 +107,12 @@ export const getPaymentDetailsById = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching payment details:", error);
-    res.status(500).json({ message: "Server error fetching payment details." });
+    res
+      .status(500)
+      .json({
+        message: "Server error fetching payment details.",
+        error: error.message,
+      });
   }
 };
 
@@ -120,41 +141,73 @@ export const deletePaymentProofs = async (req, res) => {
   try {
     // Delete the records from the database
     await PaymentDetail.deleteMany({ _id: { $in: selectedRows } });
-    res.status(200).json({ message: 'Records deleted successfully.' });
+    res.status(200).json({ message: "Records deleted successfully." });
   } catch (error) {
     console.error("Error deleting records:", error);
-    res.status(500).json({ message: 'Error deleting records.' });
+    res.status(500).json({ message: "Error deleting records." });
   }
 };
-
 
 export const updateVerificationStatus = async (req, res) => {
   const { id } = req.params;
   const { verificationStatus } = req.body;
 
   try {
-    // Only allow "verified" or "declined" for credit transactions
     const allowedStatuses = ["verified", "declined"];
     if (!allowedStatuses.includes(verificationStatus)) {
       return res.status(400).json({ message: "Invalid verification status." });
     }
 
-    const payment = await PaymentDetail.findOne({ _id: id, transaction: "credit" });
-
+    const payment = await PaymentDetail.findOne({
+      _id: id,
+      transaction: "credit",
+    });
     if (!payment) {
-      return res.status(404).json({ message: "Payment not found or not a credit transaction." });
+      return res
+        .status(404)
+        .json({ message: "Payment not found or not a credit transaction." });
+    }
+
+    if (payment.verificationStatus !== "pending") {
+      return res
+        .status(400)
+        .json({ message: "Payment has already been verified or declined." });
     }
 
     payment.verificationStatus = verificationStatus;
+    payment.completedDate = new Date();
+
+    if (verificationStatus === "verified") {
+      payment.status = "completed";
+
+      // Update user's balance
+      const Balance = (await import("../models/Balance.js")).default; // import here to avoid circular dep if any
+      let userBalance = await Balance.findOne({ userId: payment.userId });
+
+      if (!userBalance) {
+        userBalance = new Balance({
+          userId: payment.userId,
+          balance: payment.amount,
+        });
+      } else {
+        userBalance.balance += payment.amount;
+      }
+
+      await userBalance.save();
+    } else if (verificationStatus === "declined") {
+      payment.status = "cancelled";
+    }
+
     await payment.save();
 
-    res.status(200).json({
-      message: `Payment status updated to ${verificationStatus}.`,
+    return res.status(200).json({
+      message: `Payment ${verificationStatus} successfully.`,
       data: payment,
     });
   } catch (error) {
     console.error("Error updating verification status:", error);
-    res.status(500).json({ message: "Server error while updating payment status." });
+    return res
+      .status(500)
+      .json({ message: "Server error while updating payment status." });
   }
 };
-

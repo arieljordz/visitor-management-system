@@ -4,8 +4,13 @@ const paymentDetailsSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Assuming there's a User model for the user making the payment
+      ref: "User", 
       required: true,
+    },
+    visitorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Visitor",
+      required: false,
     },
     amount: {
       type: Number,

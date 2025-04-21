@@ -7,6 +7,7 @@ const API_URL = import.meta.env.VITE_BASE_API_URL;
 
 const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
   const [formData, setFormData] = useState({
+    description: "",
     fee: 0,
     active: true,
   });
@@ -14,11 +15,13 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
   useEffect(() => {
     if (selectedRow) {
       setFormData({
+        description: selectedRow.description ?? "",
         fee: selectedRow.fee ?? 0,
         active: selectedRow.active ?? true,
       });
     } else {
       setFormData({
+        description: "",
         fee: 0,
         active: true,
       });
@@ -53,19 +56,13 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
       refreshList();
       onHide();
     } catch (error) {
-      toast.error("Error saving classification.");
+      toast.error("Error saving fee.");
       console.error("Submit error:", error);
     }
   };
 
   return (
-    <Modal
-      show={show}
-      onHide={onHide}
-      size="md"
-      backdrop="static"
-      centered
-    >
+    <Modal show={show} onHide={onHide} size="md" backdrop="static" centered>
       <Modal.Header closeButton>
         <Modal.Title>{selectedRow ? "Edit" : "Add"} Fee</Modal.Title>
       </Modal.Header>
@@ -73,6 +70,20 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
       <Form onSubmit={handleSubmit}>
         <Modal.Body>
           <Row>
+            <Col md={12}>
+              <Form.Group className="mb-3">
+                <Form.Label>Description</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  required
+                />
+              </Form.Group>
+            </Col>
+
             <Col md={12}>
               <Form.Group className="mb-3">
                 <Form.Label>Amount Fee</Form.Label>

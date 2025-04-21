@@ -40,7 +40,7 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
       noOfVisitors: "",
       visitDate: "",
       purpose: "",
-      classification: "", // Reset classification on visitor type change
+      classification: "", 
     });
   };
 
@@ -69,7 +69,9 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
       onHide();
     } catch (error) {
       console.error("Error saving visitor:", error);
-      toast.error("Failed to save visitor");
+      if (error.status === 409){
+        toast.warning("The visitor is already registered, with an active QR code currently assigned.");
+      }
     }
   };
 

@@ -118,6 +118,7 @@ const Login = ({ user, setUser, setLoading }) => {
         email: decoded.email,
         picture: decoded.picture,
         role: "client",
+        address: "N/A",
       };
 
       const res = await axios.post(`${API_URL}/api/google-login`, userData);
@@ -297,7 +298,7 @@ const Login = ({ user, setUser, setLoading }) => {
           </Form>
 
           {message && (
-            <Alert variant="info" className="mt-3">
+            <Alert variant="info" className="mt-3 text-center">
               {message}
             </Alert>
           )}

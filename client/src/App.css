@@ -7,3 +7,7 @@ body,
 .cursor-pointer {
   cursor: pointer !important;
 }
+
+.sr-only, .visually-hidden {
+  display: none !important;
+}

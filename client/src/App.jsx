@@ -23,6 +23,7 @@ import FMPaymentMethod from "./pages/FileMaintenance/FMPaymentMethod";
 import FMClassification from "./pages/FileMaintenance/FMClassification";
 import FMFees from "./pages/FileMaintenance/FMFees";
 import FMAccounts from "./pages/FileMaintenance/FMAccounts";
+import "./App.css";
 
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
@@ -30,13 +31,20 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(0.0);
   const [loading, setLoading] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(true);
 
+  console.log("App user:", user);
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
+    setLoadingUser(false);
   }, []);
+
+  if (loadingUser) {
+    return <Spinner />;
+  }
 
   return (
     <ThemeProvider>
@@ -71,7 +79,7 @@ const AuthenticatedLayout = ({ user, setUser, loading }) => {
   const navigate = useNavigate();
 
   if (loading) {
-    return <Spinner />; // Show spinner when loading is true
+    return <Spinner />; 
   }
 
   const authenticatedRoutes = (
@@ -133,7 +141,7 @@ const AuthenticatedLayout = ({ user, setUser, loading }) => {
 
   return (
     <div className="wrapper">
-      <Navbar user={user} />
+      <Navbar user={user} setUser={setUser} />
       <Sidebar user={user} setUser={setUser} />
       {authenticatedRoutes}
       <Footer />

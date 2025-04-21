@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Card } from "react-bootstrap";
 import axios from "axios";
+import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
@@ -60,16 +61,28 @@ function Verifications({ user, setUser }) {
   };
 
   const handleVerification = async (id, verificationStatus) => {
-    try {
-      await axios.put(`${API_URL}/api/update-verification/${id}`, {
-        verificationStatus,
-      });
+    const result = await Swal.fire({
+      title: "Verification",
+      text: `Are you sure you want to ${verificationStatus} this payment?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: `Yes, ${verificationStatus} it`,
+      cancelButtonText: "Cancel",
+      reverseButtons: false,
+    });
 
-      toast.success(`Payment ${verificationStatus} successfully`);
-      fetchProofs(); // Refresh data
-    } catch (err) {
-      toast.error(`Payment ${verificationStatus} failed`);
-      console.error(err);
+    if (result.isConfirmed) {
+      try {
+        await axios.put(`${API_URL}/api/update-verification/${id}`, {
+          verificationStatus,
+        });
+
+        toast.success(`Payment ${verificationStatus} successfully.`);
+        fetchProofs(); // Refresh payment list
+      } catch (err) {
+        toast.error(`Payment ${verificationStatus} failed.`);
+        console.error(err);
+      }
     }
   };
 

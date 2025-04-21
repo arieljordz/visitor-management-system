@@ -1,32 +1,25 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React from "react";
 
-const DisplayBalance = ({ userId, pollInterval = 30000 }) => {
-  const [balance, setBalance] = useState(0.0);
-
-  const fetchBalance = async () => {
-    try {
-      const res = await axios.get(`${import.meta.env.VITE_BASE_API_URL}/api/check-balance/${userId}`);
-      const parsedBalance = parseFloat(res.data?.balance);
-      setBalance(isNaN(parsedBalance) ? 0.0 : parsedBalance);
-    } catch (error) {
-      console.error("Balance fetch error:", error);
-      setBalance(0.0);
-    }
-  };
-
-  useEffect(() => {
-    if (!userId) return;
-
-    fetchBalance();
-    const interval = setInterval(fetchBalance, pollInterval);
-    return () => clearInterval(interval);
-  }, [userId]);
+const DisplayBalance = ({ balance, isFetching, error }) => {
+  if (error) {
+    return <span className="text-danger">{error}</span>;
+  }
 
   return (
-    <span className="fw-bold me-3">
-      💰 Current Balance:{" "}
-      <span className="text-success">₱{balance.toFixed(2)}</span>
+    <span
+      className="fw-bold me-3 d-flex align-items-center gap-2"
+      style={{ transition: "opacity 0.3s ease" }}
+    >
+      💰 Current Balance:
+      <span className="text-success ml-2"> ₱{balance.toFixed(2)}</span>
+      {isFetching && (
+        <div
+          className="spinner-border spinner-border-sm text-secondary"
+          role="status"
+        >
+          <span className="visually-hidden">Refreshing...</span>
+        </div>
+      )}
     </span>
   );
 };

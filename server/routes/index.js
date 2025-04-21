@@ -15,6 +15,7 @@ import {
   scanQRCode,
   getGeneratedQRCodes,
   getGeneratedQRCodesById,
+  checkActiveQRCodeById,
 } from "../controllers/qrController.js";
 import { getBalance, topUp } from "../controllers/balanceController.js";
 import {
@@ -71,10 +72,11 @@ router.delete("/delete-user/:id", deleteUser);
 router.post("/login", loginUser);
 
 // QRCode
-router.post("/generate-qr/:userId", generateQRCode);
+router.post("/generate-qr/:userId/:visitorId", generateQRCode);
 router.post("/scan", scanQRCode);
 router.get("/get-generated-qr", getGeneratedQRCodes);
 router.get("/get-generated-qr/:userId", getGeneratedQRCodesById);
+router.get("/check-active-qr/:userId/:visitorId", checkActiveQRCodeById);
 
 // balance
 router.get("/check-balance/:userId", getBalance);

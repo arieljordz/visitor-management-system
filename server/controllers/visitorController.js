@@ -1,4 +1,6 @@
 import Visitor from "../models/Visitor.js";
+import QRCode from "../models/QRCode.js";
+
 
 export const createVisitor = async (req, res) => {
   console.log("Visitor data:", req.body);
@@ -116,18 +118,39 @@ export const getVisitorByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const visitors = await Visitor.find({ userId });
+    // Step 1: Find all visitors for the user, sorted by dateCreated descending
+    const visitors = await Visitor.find({ userId })
+      .sort({ createdAt: -1 }) // descending order
+      .lean(); // lean for performance
 
     if (!visitors || visitors.length === 0) {
       return res.status(404).json({ message: "No visitors found." });
     }
 
-    res.status(200).json({ data: visitors });
+    // Step 2: For each visitor, find their active QR code
+    const visitorsWithActiveQR = await Promise.all(
+      visitors.map(async (visitor) => {
+        const activeQRCode = await QRCode.findOne({
+          visitorId: visitor._id,
+          status: "active",
+        }).lean();
+
+        return {
+          ...visitor,
+          activeQRCode: activeQRCode || null,
+        };
+      })
+    );
+
+    // Step 3: Respond with enriched data
+    res.status(200).json({ data: visitorsWithActiveQR });
   } catch (error) {
     console.error("Error fetching visitors:", error);
     res.status(500).json({ message: "Server error while fetching visitors." });
   }
 };
+
+
 
 // DELETE visitor by ID
 export const deleteVisitorById = async (req, res) => {

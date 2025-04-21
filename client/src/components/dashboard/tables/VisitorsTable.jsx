@@ -5,6 +5,7 @@ const VisitorsTable = ({
   loading,
   currentData,
   onGenerateQRClick,
+  handleViewQRCode,
   getBadgeClass,
 }) => {
   return loading ? (
@@ -26,6 +27,7 @@ const VisitorsTable = ({
             <th className="text-center">Classification</th>
             <th className="text-center">Visit Date</th>
             <th className="text-center">Date Created</th>
+            <th className="text-center">QR Code</th>
             <th className="text-center">Generate QR</th>
           </tr>
         </thead>
@@ -54,20 +56,37 @@ const VisitorsTable = ({
                   {new Date(visitor.createdAt).toLocaleString()}
                 </td>
                 <td className="text-center">
+                  {visitor.activeQRCode?.qrImageUrl ? (
+                    <span
+                      className="text-primary cursor-pointer"
+                      onClick={() =>
+                        handleViewQRCode(
+                          visitor.activeQRCode?.qrImageUrl,
+                          visitor.activeQRCode?._id.slice(-6).toUpperCase()
+                        )
+                      }
+                    >
+                      View QR Code
+                    </span>
+                  ) : (
+                    "Generate QR Code"
+                  )}
+                </td>
+                <td className="text-center">
                   <Button
                     size="sm"
                     variant="success"
                     className="me-2"
                     onClick={() => onGenerateQRClick(visitor._id)}
                   >
-                    Generate QR
+                    Generate
                   </Button>
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="11" className={`text-center ${"text-muted"}`}>
+              <td colSpan="12" className={`text-center ${"text-muted"}`}>
                 No records found.
               </td>
             </tr>

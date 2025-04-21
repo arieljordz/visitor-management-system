@@ -1,18 +1,12 @@
 import React, { useEffect, useState } from "react";
-import {
-  Row,
-  Col,
-  Card,
-  Spinner,
-  Form,
-  InputGroup,
-  Table,
-  Pagination,
-} from "react-bootstrap";
+import Search from "../../components/common/Search";
+import Paginations from "../../components/common/Paginations";
+import { Row, Col, Card } from "react-bootstrap";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Navpath from "../../components/common/Navpath";
 import QRCodeModal from "../../components/transactions/modals/QRCodeModal";
+import GeneratedQRCodeTable from "../../components/transactions/tables/GeneratedQRCodeTable";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
@@ -64,7 +58,7 @@ function GeneratedQRCodes({ user, setUser }) {
   };
 
   // Filter generatedQRs by search term
-  const filteredGeneratedQRs = generatedQRs.filter((txn) => {
+  const filteredData = generatedQRs.filter((txn) => {
     const values = [
       txn._id?.slice(-6),
       txn.transaction,
@@ -72,6 +66,10 @@ function GeneratedQRCodes({ user, setUser }) {
       txn.paymentMethod,
       new Date(txn.paymentDate).toLocaleString(),
       txn.status,
+      txn.visitorId?.firstName,
+      txn.visitorId?.lastName,
+      txn.visitorId?.groupName,
+      txn.visitorId?.purpose,
     ];
     return values.some((val) =>
       val?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -80,14 +78,14 @@ function GeneratedQRCodes({ user, setUser }) {
 
   // Determine actual items per page
   const itemsPerPageValue =
-    itemsPerPage === "All" ? filteredGeneratedQRs.length : itemsPerPage;
+    itemsPerPage === "All" ? filteredData.length : itemsPerPage;
 
   // Calculate indices based on itemsPerPageValue
   const indexOfLastItem = currentPage * itemsPerPageValue;
   const indexOfFirstItem = indexOfLastItem - itemsPerPageValue;
 
   // Slice generatedQRs accordingly
-  const currentGeneratedQRs = filteredGeneratedQRs.slice(
+  const currentData = filteredData.slice(
     indexOfFirstItem,
     indexOfLastItem
   );
@@ -96,7 +94,7 @@ function GeneratedQRCodes({ user, setUser }) {
   const totalPages =
     itemsPerPage === "All"
       ? 1
-      : Math.ceil(filteredGeneratedQRs.length / itemsPerPage);
+      : Math.ceil(filteredData.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -125,161 +123,33 @@ function GeneratedQRCodes({ user, setUser }) {
                 {/* Card with conditional dark mode styling */}
                 <Card>
                   <Card.Body className="main-card">
-                    <Row className="mb-3 align-items-center">
-                      <Col xs={12} sm={6} className="mb-2 mb-sm-0">
-                        <InputGroup>
-                          <InputGroup.Text>🔍</InputGroup.Text>
-                          <Form.Control
-                            type="text"
-                            placeholder="Search..."
-                            value={searchTerm}
-                            onChange={(e) => {
-                              setSearchTerm(e.target.value);
-                              setCurrentPage(1);
-                            }}
-                          />
-                        </InputGroup>
-                      </Col>
+                    {/* Search and Items per page */}
+                    <Search
+                      searchTerm={searchTerm}
+                      setSearchTerm={setSearchTerm}
+                      itemsPerPage={itemsPerPage}
+                      setItemsPerPage={setItemsPerPage}
+                      setCurrentPage={setCurrentPage}
+                    />
 
-                      <Col xs={12} sm={6} className="text-sm-end">
-                        <Form.Select
-                          value={itemsPerPage}
-                          className="form-control"
-                          onChange={(e) => {
-                            const value =
-                              e.target.value === "All"
-                                ? "All"
-                                : parseInt(e.target.value);
-                            setItemsPerPage(value);
-                            setCurrentPage(1);
-                          }}
-                          style={{ maxWidth: "150px", marginLeft: "auto" }}
-                        >
-                          {[5, 10, 20, 50].map((option) => (
-                            <option key={option} value={option}>
-                              Show {option}
-                            </option>
-                          ))}
-                          <option value="All">Show All</option>
-                        </Form.Select>
-                      </Col>
-                    </Row>
+                    {/* Table */}
+                    <GeneratedQRCodeTable
+                      loading={loading}
+                      currentData={currentData}
+                      handleViewQRCode={handleViewQRCode}
+                      getBadgeClass={getBadgeClass}
+                    />
 
-                    {loading ? (
-                      <div className="text-center my-4">
-                        <Spinner animation="border" />
-                      </div>
-                    ) : (
-                      <div className="table-responsive">
-                        <Table striped bordered hover className="mb-0">
-                          <thead>
-                            <tr>
-                              <th className="text-center">#</th>
-                              <th>TransactionID</th>
-                              <th className="text-center">QR Code</th>
-                              <th>Generated Date</th>
-                              <th className="text-center">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {currentGeneratedQRs.length > 0 ? (
-                              currentGeneratedQRs.map((txn, index) => (
-                                <tr key={txn._id}>
-                                  <td className="text-center">{index + 1}</td>
-                                  <td>{txn._id.slice(-6).toUpperCase()}</td>
-                                  <td className="text-center">
-                                    {/* Check if qrImageUrl exists and render the image */}
-                                    {txn.qrImageUrl ? (
-                                      <span
-                                        className="text-primary cursor-pointer"
-                                        onClick={() =>
-                                          handleViewQRCode(
-                                            txn.qrImageUrl,
-                                            txn._id.slice(-6).toUpperCase()
-                                          )
-                                        }
-                                      >
-                                        View QR Code
-                                      </span>
-                                    ) : (
-                                      "No QR Image"
-                                    )}
-                                  </td>
-                                  <td>
-                                    {txn.createdAt
-                                      ? new Date(txn.createdAt).toLocaleString()
-                                      : "—"}
-                                  </td>
-                                  <td className="text-center">
-                                    <span
-                                      className={`badge bg-${getBadgeClass(
-                                        txn.status
-                                      )}`}
-                                    >
-                                      {txn.status}
-                                    </span>
-                                  </td>
-                                </tr>
-                              ))
-                            ) : (
-                              <tr>
-                                <td
-                                  colSpan="5"
-                                  className={`text-center text-muted`}
-                                >
-                                  No records found.
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </Table>
-                      </div>
-                    )}
-
-                    {!loading && filteredGeneratedQRs.length > 0 && (
-                      <div className="d-flex justify-content-between align-items-center mt-3 flex-column flex-sm-row gap-2">
-                        <div className={`text-muted`}>
-                          Showing{" "}
-                          {filteredGeneratedQRs.length === 1
-                            ? "1 row"
-                            : `${indexOfFirstItem + 1}–${Math.min(
-                                indexOfLastItem,
-                                filteredGeneratedQRs.length
-                              )} rows`}{" "}
-                          out of{" "}
-                          {filteredGeneratedQRs.length === 1
-                            ? "1 entry"
-                            : `${filteredGeneratedQRs.length} entries`}
-                        </div>
-
-                        {totalPages > 1 && (
-                          <Pagination className="mb-0">
-                            <Pagination.Prev
-                              onClick={() =>
-                                currentPage > 1 && paginate(currentPage - 1)
-                              }
-                              disabled={currentPage === 1}
-                            />
-                            {[...Array(totalPages)].map((_, i) => (
-                              <Pagination.Item
-                                key={i + 1}
-                                active={i + 1 === currentPage}
-                                onClick={() => paginate(i + 1)}
-                              >
-                                {i + 1}
-                              </Pagination.Item>
-                            ))}
-                            <Pagination.Next
-                              onClick={() =>
-                                currentPage < totalPages &&
-                                paginate(currentPage + 1)
-                              }
-                              disabled={currentPage === totalPages}
-                            />
-                          </Pagination>
-                        )}
-                      </div>
-                    )}
+                    {/* Pagination + Count */}
+                    <Paginations
+                      loading={loading}
+                      filteredData={filteredData}
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      indexOfFirstItem={indexOfFirstItem}
+                      indexOfLastItem={indexOfLastItem}
+                      paginate={paginate}
+                    />
                     {/* Modal to view the QR code */}
                     <QRCodeModal
                       show={showModal}

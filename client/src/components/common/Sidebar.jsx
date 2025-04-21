@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = ({ user, setUser }) => {
-  console.log("User:", user);
+  // console.log("User:", user);
   const userRole = user?.role || "client";
   const [openMenus, setOpenMenus] = useState({});
   const navigate = useNavigate();

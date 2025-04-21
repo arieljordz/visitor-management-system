@@ -3,9 +3,16 @@ import Fee from "../models/Fee.js";
 // Create a new fee
 export const createFee = async (req, res) => {
   try {
-    const newFee = new Fee(req.body);
+    const { description, fee, active } = req.body;
+
+    if (!description || active === undefined) {
+      return res.status(400).json({ message: "Description and active status are required." });
+    }
+
+    const newFee = new Fee({ description, fee, active });
     const savedFee = await newFee.save();
-    res.status(201).json({ message: "Fee created", data: savedFee });
+
+    res.status(201).json({ message: "Fee created successfully", data: savedFee });
   } catch (err) {
     console.error("Create Fee Error:", err);
     res.status(500).json({ message: "Failed to create fee", error: err.message });
@@ -40,15 +47,24 @@ export const getFeeById = async (req, res) => {
 // Update a fee
 export const updateFee = async (req, res) => {
   try {
+    const { id } = req.params;
+    const { description, fee, active } = req.body;
+
+    if (!description || active === undefined) {
+      return res.status(400).json({ message: "Description and active status are required." });
+    }
+
     const updatedFee = await Fee.findByIdAndUpdate(
-      req.params.id,
-      req.body,
+      id,
+      { description, fee, active },
       { new: true, runValidators: true }
     );
+
     if (!updatedFee) {
       return res.status(404).json({ message: "Fee not found" });
     }
-    res.status(200).json({ message: "Fee updated", data: updatedFee });
+
+    res.status(200).json({ message: "Fee updated successfully", data: updatedFee });
   } catch (err) {
     console.error("Update Fee Error:", err);
     res.status(500).json({ message: "Failed to update fee", error: err.message });
@@ -66,5 +82,24 @@ export const deleteFee = async (req, res) => {
   } catch (err) {
     console.error("Delete Fee Error:", err);
     res.status(500).json({ message: "Failed to delete fee", error: err.message });
+  }
+};
+
+// Active Generate QR Fee
+export const getActiveGenerateQRFee = async (req, res) => {
+  try {
+    const fee = await Fee.findOne({
+      description: { $regex: /generate qr fee/i },
+      active: true,
+    });
+
+    if (!fee) {
+      return res.status(404).json({ message: "Active 'Generate QR fee' not found." });
+    }
+
+    res.status(200).json({ message: "Active 'Generate QR fee' fetched successfully", data: fee });
+  } catch (err) {
+    console.error("Get Active Generate QR Fee Error:", err);
+    res.status(500).json({ message: "Failed to fetch fee", error: err.message });
   }
 };

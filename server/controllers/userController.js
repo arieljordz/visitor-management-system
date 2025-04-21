@@ -99,7 +99,7 @@ export const login = async (req, res) => {
 };
 
 export const googleLogin = async (req, res) => {
-  const { email, password, name, picture, role } = req.body;
+  const { email, password, name, picture, role, address } = req.body;
 
   console.log("googleLogin data:", req.body);
   try {
@@ -114,6 +114,7 @@ export const googleLogin = async (req, res) => {
         name,
         picture,
         role,
+        address,
       });
 
       // Save the new user to the database
@@ -133,6 +134,7 @@ export const googleLogin = async (req, res) => {
       picture: user.picture,
       userId: user._id,
       role: user.role,
+      address: user.address,
     });
   } catch (error) {
     console.error(error);
