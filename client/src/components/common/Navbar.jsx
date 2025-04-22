@@ -2,41 +2,14 @@ import React, { useContext, useEffect, useState, useRef } from "react";
 import { ThemeContext } from "../../context/ThemeContext";
 import DisplayBalance from "./DisplayBalance";
 import axios from "axios";
+import Notifications from "./Notifications";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
 const Navbar = ({ user, setUser }) => {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
-  const [balance, setBalance] = useState(0.0);
-  const [isFetching, setIsFetching] = useState(false);
-  const [error, setError] = useState(null);
 
-  const fetchBalance = async () => {
-    setIsFetching(true);
-    try {
-      const { data } = await axios.get(
-        `${API_URL}/api/check-balance/${user.userId}`
-      );
-      console.log("data:", data);
-      const parsedBalance = parseFloat(data?.balance);
-      const safeBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;
-      setBalance(safeBalance);
-      setError(null);
-    } catch (err) {
-      setError("Failed to fetch balance.");
-      setBalance(0.0);
-    } finally {
-      setIsFetching(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user?.userId) {
-      fetchBalance();
-    }
-  }, [user?.userId]);
-
-  console.log("Nav user:", user);
+  // console.log("Nav user:", user);
 
   return (
     <nav
@@ -58,28 +31,24 @@ const Navbar = ({ user, setUser }) => {
 
       {/* Centered balance on mobile */}
       <ul className="navbar-nav mx-auto d-sm-none">
-        {/* <li className="nav-item">
-          <DisplayBalance
-            balance={balance}
-            isFetching={isFetching}
-            error={error}
-          />
-        </li> */}
+        <li className="nav-item">
+          <DisplayBalance user={user} />
+        </li>
       </ul>
 
       {/* Right navbar links */}
       <ul className="navbar-nav ml-auto align-items-center">
         {/* Balance on desktop */}
-        {/* <li className="nav-item d-none d-sm-inline-block mr-2">
-          <DisplayBalance
-            balance={balance}
-            isFetching={isFetching}
-            error={error}
-          />
-        </li> */}
+        <li className="nav-item d-none d-sm-inline-block mr-2">
+          <DisplayBalance user={user} />
+        </li>
+        {/* Notifications */}
+        <li className="nav-item dropdown">
+          <Notifications user={user} />
+        </li>
 
         {/* Dark Mode Toggle */}
-        <li className="nav-item">
+        <li className="nav-item ml-1">
           <button
             className="btn btn-sm btn-outline-secondary"
             onClick={toggleTheme}

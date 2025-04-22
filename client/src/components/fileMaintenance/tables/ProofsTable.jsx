@@ -97,7 +97,7 @@ const ProofsTable = ({
               <th className="text-center">TransactionID</th>
               <th className="text-center">Transaction</th>
               <th className="text-center">Proof</th>
-              <th className="text-end">Amount</th>
+              <th className="text-right">Amount</th>
               <th className="text-center">Payment Method</th>
               <th className="text-center">Payment Date</th>
               <th className="text-center">Status</th>
@@ -144,7 +144,7 @@ const ProofsTable = ({
                     )}
                   </td>
                   <td
-                    className={`text-end ${
+                    className={`text-right ${
                       txn.transaction.toLowerCase() === "credit"
                         ? "text-success"
                         : "text-danger"

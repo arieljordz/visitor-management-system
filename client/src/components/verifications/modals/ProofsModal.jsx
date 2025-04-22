@@ -11,7 +11,7 @@ const ProofsModal = ({ show, setShowModal, imageProof, txnId }) => {
   const normalizedPath = imageProof?.replace(/\\/g, "/");
   const imageUrl = normalizedPath ? `${API_URL}/${normalizedPath}` : "";
 
-  console.log("imageUrl:", imageUrl);
+  // console.log("imageUrl:", imageUrl);
 
   // Reset loading when modal opens or imageProof changes
   useEffect(() => {

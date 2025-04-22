@@ -2,7 +2,7 @@ import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 
 const PaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
-  console.log("currentData:", currentData);
+  // console.log("currentData:", currentData);
   return loading ? (
     <div className="text-center my-4">
       <Spinner animation="border" />
@@ -14,6 +14,7 @@ const PaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
           <tr>
             <th className="text-center">#</th>
             <th className="text-center">TransactionID</th>
+            <th className="text-center">Visitor Type</th>
             <th className="text-center">Name/Group</th>
             <th className="text-center">Transaction</th>
             <th className="text-right">Amount</th>
@@ -29,6 +30,9 @@ const PaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
                 <td className="text-center">{index + 1}</td>
                 <td className="text-center">
                   {txn._id.slice(-6).toUpperCase()}
+                </td>
+                <td className="text-center">
+                  {txn.visitorId?.visitorType.toUpperCase()}
                 </td>
                 <td className="text-center">
                   {txn.visitorId?.visitorType === "Individual"
@@ -72,7 +76,7 @@ const PaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
             ))
           ) : (
             <tr>
-              <td colSpan="8" className={`text-center text-muted`}>
+              <td colSpan="9" className={`text-center text-muted`}>
                 No records found.
               </td>
             </tr>

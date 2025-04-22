@@ -34,7 +34,7 @@ function GeneratedQRCodes({ user, setUser }) {
       const res = await axios.get(
         `${API_URL}/api/get-generated-qr/${user.userId}`
       );
-      console.log("Fetched GeneratedQRs:", res.data);
+      // console.log("Fetched GeneratedQRs:", res.data);
       const fetchedData = res.data.data || [];
       setGeneratedQRs(fetchedData);
     } catch (err) {

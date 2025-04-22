@@ -33,7 +33,7 @@ function FMPaymentMethod({ user, setUser }) {
     setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/api/get-payment-methods`);
-      console.log("Fetch payment-method:", res.data.data);
+      // console.log("Fetch payment-method:", res.data.data);
       setPaymentMethod(res.data.data || []);
     } catch (err) {
       console.error("Fetch error:", err);

@@ -33,7 +33,8 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  console.log("App user:", user);
+  // console.log("App user:", user);
+
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {

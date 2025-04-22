@@ -22,7 +22,10 @@ const Dashboard = ({ user, setUser }) => {
   const [qrImageUrl, setQrImageUrl] = useState("");
   const [visitorId, setVisitorId] = useState("");
   const [proofs, setVisitors] = useState([]);
-  // const [balance, setBalance] = useState(0.0);
+
+  const [balance, setBalance] = useState(0.0);
+  const [isFetching, setIsFetching] = useState(false);
+  const [error, setError] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,7 +57,7 @@ const Dashboard = ({ user, setUser }) => {
       const res = await axios.get(
         `${API_URL}/api/get-visitor-by-user/${user.userId}`
       );
-      console.log("Fecth visitors", res.data);
+      // console.log("Fecth visitors", res.data);
       setVisitors(res.data?.data || []);
     } catch (err) {
       console.error("Failed to fetch visitor:", err);
@@ -74,19 +77,6 @@ const Dashboard = ({ user, setUser }) => {
     );
   };
 
-  // const fetchBalance = async () => {
-  //   try {
-  //     const { data } = await axios.get(
-  //       `${API_URL}/api/check-balance/${user.userId}`
-  //     );
-  //     const parsedBalance = parseFloat(data?.balance);
-  //     const safeBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;
-  //     setBalance(safeBalance);
-  //   } catch (err) {
-  //     setBalance(0.0);
-  //   }
-  // };
-
   const checkActiveQR = async (visitorId) => {
     try {
       const res = await fetch(
@@ -95,10 +85,10 @@ const Dashboard = ({ user, setUser }) => {
       const data = await res.json();
 
       if (res.ok) {
-        console.log("Active QR:", data.qrImageUrl);
+        // console.log("Active QR:", data.qrImageUrl);
         return data;
       } else {
-        console.log(data.message);
+        // console.log(data.message);
         return null;
       }
     } catch (error) {
@@ -230,17 +220,13 @@ const Dashboard = ({ user, setUser }) => {
     setShowModal(true);
   };
 
-  const [balance, setBalance] = useState(0.0);
-  const [isFetching, setIsFetching] = useState(false);
-  const [error, setError] = useState(null);
-
   const fetchBalance = async () => {
     setIsFetching(true);
     try {
       const { data } = await axios.get(
         `${API_URL}/api/check-balance/${user.userId}`
       );
-      console.log("data:", data);
+      // console.log("data:", data);
       const parsedBalance = parseFloat(data?.balance);
       const safeBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;
       setBalance(safeBalance);
@@ -339,15 +325,6 @@ const Dashboard = ({ user, setUser }) => {
             <Col md={8} lg={12}>
               <Card className={`shadow`}>
                 <Card.Body className="main-card">
-                  <Row className="justify-content-center">
-                    <h5>
-                      <DisplayBalance
-                        balance={balance}
-                        isFetching={isFetching}
-                        error={error}
-                      />
-                    </h5>
-                  </Row>
                   <div className="mb-4 text-start">
                     <Button
                       variant="success"

@@ -12,10 +12,10 @@ const AdminPaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
         <thead>
           <tr>
             <th className="text-center">#</th>
-            <th>TransactionID</th>
-            <th>Client Name</th>
+            <th className="text-center">TransactionID</th>
+            <th className="text-center">Client Name</th>
             <th className="text-center">Transaction</th>
-            <th className="text-end">Amount</th>
+            <th className="text-right">Amount</th>
             <th className="text-center">Payment Method</th>
             <th className="text-center">Payment Date</th>
             <th className="text-center">Status</th>
@@ -26,8 +26,8 @@ const AdminPaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
             currentData.map((txn, index) => (
               <tr key={txn._id}>
                 <td className="text-center">{index + 1}</td>
-                <td>{txn._id.slice(-6).toUpperCase()}</td>
-                <td>{txn.userId.name}</td>
+                <td className="text-center">{txn._id.slice(-6).toUpperCase()}</td>
+                <td className="text-center">{txn.userId.name}</td>
                 <td
                   className={`text-center ${
                     txn.transaction.toLowerCase() === "credit"
@@ -38,7 +38,7 @@ const AdminPaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
                   {txn.transaction.toUpperCase()}
                 </td>
                 <td
-                  className={`text-end ${
+                  className={`text-right ${
                     txn.transaction.toLowerCase() === "credit"
                       ? "text-success"
                       : "text-danger"

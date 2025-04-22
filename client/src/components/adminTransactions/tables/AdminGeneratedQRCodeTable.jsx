@@ -13,19 +13,17 @@ const AdminGeneratedQRCodeTable = ({
     </div>
   ) : (
     <div className="table-responsive">
-      <Table
-        striped
-        bordered
-        hover
-        className="mb-0"
-      >
+      <Table striped bordered hover className="mb-0">
         <thead>
           <tr>
             <th className="text-center">#</th>
-            <th>TransactionID</th>
-            <th>Client Name</th>
+            <th className="text-center">TransactionID</th>
+            <th className="text-center">Visitor Type</th>
+            <th className="text-center">Client Name</th>
+            <th className="text-center">Name/Group</th>
+            <th className="text-center">Purpose</th>
             <th className="text-center">QR Code</th>
-            <th>Generated Date</th>
+            <th className="text-center">Generated Date</th>
             <th className="text-center">Status</th>
           </tr>
         </thead>
@@ -34,8 +32,19 @@ const AdminGeneratedQRCodeTable = ({
             currentData.map((txn, index) => (
               <tr key={txn._id}>
                 <td className="text-center">{index + 1}</td>
-                <td>{txn._id.slice(-6).toUpperCase()}</td>
-                <td>{txn.userId.name}</td>
+                <td className="text-center">
+                  {txn._id.slice(-6).toUpperCase()}
+                </td>
+                <td className="text-center">{txn.visitorId?.visitorType}</td>
+                <td className="text-center">{txn.userId.name}</td>
+                <td className="text-center">
+                  {txn.visitorId?.visitorType === "Individual"
+                    ? `${txn.visitorId?.firstName.toUpperCase() || ""} ${
+                        txn.visitorId?.lastName.toUpperCase() || ""
+                      }`
+                    : txn.visitorId?.groupName.toUpperCase()}
+                </td>
+                <td className="text-center">{txn.visitorId?.purpose}</td>
                 <td className="text-center">
                   {/* Check if qrImageUrl exists and render the image */}
                   {txn.qrImageUrl ? (
@@ -54,7 +63,7 @@ const AdminGeneratedQRCodeTable = ({
                     "No QR Image"
                   )}
                 </td>
-                <td>
+                <td className="text-center">
                   {txn.createdAt
                     ? new Date(txn.createdAt).toLocaleString()
                     : "—"}
@@ -68,7 +77,7 @@ const AdminGeneratedQRCodeTable = ({
             ))
           ) : (
             <tr>
-              <td colSpan="6" className={`text-center text-muted`}>
+              <td colSpan="9" className={`text-center text-muted`}>
                 No records found.
               </td>
             </tr>

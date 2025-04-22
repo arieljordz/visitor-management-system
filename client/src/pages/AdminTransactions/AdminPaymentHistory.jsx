@@ -26,7 +26,7 @@ function AdminPaymentHistory({ user, setUser }) {
     setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/api/get-payment-details`);
-      console.log("Fetched Transactions:", res.data);
+      // console.log("Fetched Transactions:", res.data);
       const fetchedData = res.data.data || [];
       setTransactions(fetchedData);
     } catch (err) {

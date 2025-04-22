@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import QRCode from "../models/QRCode.js";
-import Visitor from "../models/Visitor.js"; 
+import Visitor from "../models/Visitor.js";
 
 export const generateQRCodes = async (req, res) => {
   try {

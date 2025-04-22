@@ -32,7 +32,7 @@ function FMProofs({ user, setUser }) {
     setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/api/get-payment-proofs`);
-      console.log("Fetched Proofs:", res.data.data);
+      // console.log("Fetched Proofs:", res.data.data);
       const fetchedData = res.data.data || [];
       setProofs(fetchedData);
     } catch (err) {

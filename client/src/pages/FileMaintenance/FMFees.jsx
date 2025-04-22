@@ -34,7 +34,7 @@ function FMFees({ user, setUser }) {
     try {
       const res = await axios.get(`${API_URL}/api/get-fees`);
 
-      console.log("Fetch fee:", res.data.data);
+      // console.log("Fetch fee:", res.data.data);
       setFees(res.data.data || []);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -100,7 +100,7 @@ function FMFees({ user, setUser }) {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  console.log("filteredData:", filteredData);
+  // console.log("filteredData:", filteredData);
 
   return (
     <div>

@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, useLocation } from "react-router-dom";
+import ProfileModal from "../dashboard/modals/ProfileModal";
 
 const Sidebar = ({ user, setUser }) => {
-  // console.log("User:", user);
+  const [showModal, setShowModal] = useState(false);
   const userRole = user?.role || "client";
   const [openMenus, setOpenMenus] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
+
+  // console.log("User:", user);
 
   const toggleMenu = (menu) => {
     setOpenMenus((prev) => ({ ...prev, [menu]: !prev[menu] }));
@@ -181,27 +184,38 @@ const Sidebar = ({ user, setUser }) => {
       ? clientMenu
       : staffMenu;
 
+  const handleShowModal = (e) => {
+    e.preventDefault();
+    setShowModal(true);
+  };
   return (
-    <aside className="main-sidebar sidebar-dark-primary elevation-4">
-      <a href="#" className="brand-link">
-        <img
-          src="https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png"
-          alt="AdminLTE Logo"
-          className="brand-image img-circle elevation-3"
-          style={{ opacity: ".8" }}
-        />
-        <span className="brand-text font-weight-light">
-          {user?.name?.split(" ")[0]}
-        </span>
-      </a>
-      <div className="sidebar">
-        <nav className="mt-2">
-          <ul className="nav nav-pills nav-sidebar flex-column" role="menu">
-            {menu}
-          </ul>
-        </nav>
-      </div>
-    </aside>
+    <>
+      <aside className="main-sidebar sidebar-dark-primary elevation-4">
+        <a href="#" className="brand-link" onClick={handleShowModal}>
+          <img
+            src="https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png"
+            alt="AdminLTE Logo"
+            className="brand-image img-circle elevation-3"
+            style={{ opacity: ".8" }}
+          />
+          <span className="brand-text font-weight-bold ml-4">VMS-APP</span>
+        </a>
+        <div className="sidebar">
+          <nav className="mt-2">
+            <ul className="nav nav-pills nav-sidebar flex-column" role="menu">
+              {menu}
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      {/* Show Profile Modal if true */}
+      <ProfileModal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        user={user}
+      />
+    </>
   );
 };
 

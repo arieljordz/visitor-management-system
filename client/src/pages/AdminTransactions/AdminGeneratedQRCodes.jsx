@@ -32,7 +32,7 @@ function AdminGeneratedQRCodes({ user, setUser }) {
     setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/api/get-generated-qr`);
-      console.log("Fetched qRCodes:", res);
+      // console.log("Fetched qRCodes:", res);
       const fetchedData = res.data.data || [];
       setQRCodes(fetchedData);
     } catch (err) {

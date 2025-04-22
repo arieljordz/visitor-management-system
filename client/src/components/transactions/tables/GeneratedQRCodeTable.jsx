@@ -7,7 +7,7 @@ const GeneratedQRCodeTable = ({
   handleViewQRCode,
   getBadgeClass,
 }) => {
-  console.log("currentData:", currentData);
+  // console.log("currentData:", currentData);
   return loading ? (
     <div className="text-center my-4">
       <Spinner animation="border" />
@@ -19,6 +19,7 @@ const GeneratedQRCodeTable = ({
           <tr>
             <th className="text-center">#</th>
             <th className="text-center">TransactionID</th>
+            <th className="text-center">Visitor Type</th>
             <th className="text-center">Client Name</th>
             <th className="text-center">Name/Group</th>
             <th className="text-center">Purpose</th>
@@ -36,6 +37,7 @@ const GeneratedQRCodeTable = ({
                   {txn._id.slice(-6).toUpperCase()}
                 </td>
                 <td className="text-center">{txn.userId.name.toUpperCase()}</td>
+                <td className="text-center">{txn.visitorId?.visitorType}</td>
                 <td className="text-center">
                   {txn.visitorId?.visitorType === "Individual"
                     ? `${txn.visitorId?.firstName.toUpperCase() || ""} ${
@@ -76,7 +78,7 @@ const GeneratedQRCodeTable = ({
             ))
           ) : (
             <tr>
-              <td colSpan="8" className={`text-center text-muted`}>
+              <td colSpan="9" className={`text-center text-muted`}>
                 No records found.
               </td>
             </tr>
