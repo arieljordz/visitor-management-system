@@ -2,45 +2,6 @@ import mongoose from "mongoose";
 import QRCode from "../models/QRCode.js";
 import Visitor from "../models/Visitor.js";
 
-export const generateQRCodes = async (req, res) => {
-  try {
-    const { userId, visitorId } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: "Invalid user ID." });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(visitorId)) {
-      return res.status(400).json({ message: "Invalid visitor ID." });
-    }
-
-    const qrData = `visitor-${userId}-${visitorId}-${Date.now()}`;
-    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
-      qrData
-    )}&size=150x150`;
-
-    const qrCodeDoc = new QRCode({
-      userId,
-      visitorId,
-      qrData,
-      qrImageUrl,
-      status: "active",
-    });
-
-    await qrCodeDoc.save();
-
-    res.status(200).json({
-      message: "QR code generated successfully",
-      qrCodeId: qrCodeDoc._id,
-      qrImageUrl,
-      qrData,
-    });
-  } catch (error) {
-    console.error("QR generation failed:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
 export const generateQRCode = async (req, res) => {
   try {
     const { userId, visitorId } = req.params;
@@ -53,37 +14,40 @@ export const generateQRCode = async (req, res) => {
       return res.status(400).json({ message: "Invalid visitor ID." });
     }
 
-    // Optional: Check if visitor exists (to avoid orphan QR generation)
+    // Optional: Check if visitor exists
     const visitorExists = await Visitor.findById(visitorId);
     if (!visitorExists) {
       return res.status(404).json({ message: "Visitor not found." });
     }
 
-    // Generate new QR code
+    // Generate QR data and image URL
     const qrData = `visitor-${userId}-${visitorId}-${Date.now()}`;
     const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
       qrData
     )}&size=150x150`;
 
+    // Save QRCode document
     const qrCodeDoc = new QRCode({
       userId,
       visitorId,
       qrData,
       qrImageUrl,
-      status: "active", // Default status
+      status: "active",
     });
 
     await qrCodeDoc.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "QR code generated successfully.",
-      qrCodeId: qrCodeDoc._id,
-      qrImageUrl,
-      qrData,
+      data: {
+        qrCodeId: qrCodeDoc._id,
+        qrImageUrl,
+        qrData,
+      },
     });
   } catch (error) {
     console.error("QR generation failed:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 

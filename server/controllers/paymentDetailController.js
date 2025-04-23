@@ -15,29 +15,25 @@ export const processPayment = async (req, res) => {
     proofOfPayment = null,
   } = req.body;
 
-  // 🛑 Validate userId
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json({ message: "Invalid userId." });
   }
 
   try {
-    // 💸 Fetch active "Generate QR Fee"
     const feeDoc = await Fee.findOne({
       description: { $regex: /generate qr fee/i },
       active: true,
     });
 
     if (!feeDoc) {
-      return res
-        .status(404)
-        .json({ message: "'Generate QR fee' not found or inactive." });
+      return res.status(404).json({
+        message: "'Generate QR fee' not found or inactive.",
+      });
     }
 
     const feeAmount = feeDoc.fee ?? 0;
 
-    // 💰 Check user balance
     const balanceDoc = await Balance.findOne({ userId });
-
     if (!balanceDoc) {
       return res.status(404).json({ message: "Balance record not found." });
     }
@@ -46,11 +42,9 @@ export const processPayment = async (req, res) => {
       return res.status(400).json({ message: "Insufficient balance." });
     }
 
-    // 🧾 Deduct fee from balance
     balanceDoc.balance -= feeAmount;
     await balanceDoc.save();
 
-    // 💳 Create payment transaction
     const payment = new PaymentDetail({
       userId,
       visitorId,
@@ -66,39 +60,22 @@ export const processPayment = async (req, res) => {
 
     await payment.save();
 
-    // 🔔 Emit updated balance to user via Socket.IO
     const io = req.app.get("io");
     io.emit("balance-updated", {
       userId,
       newBalance: balanceDoc.balance,
     });
 
-    // 🛎️ Optionally create a notification (commented for now)
-    /*
-    const message = `₱${feeAmount} has been deducted for generating a QR code using ${paymentMethod}.`;
-
-    const newNotification = await createNotification(
-      userId,
-      "Generate",
-      "Payment",
-      message
-    );
-
-    emitNotification(req.app.get("io"), userId, message);
-    */
-
-    // ✅ Return success response
     return res.status(200).json({
-      message: "Payment recorded successfully",
       newBalance: balanceDoc.balance,
       paymentId: payment._id,
     });
-
   } catch (error) {
     console.error("Payment processing failed:", error);
-    return res
-      .status(500)
-      .json({ message: "Internal server error", error: error.message });
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
 

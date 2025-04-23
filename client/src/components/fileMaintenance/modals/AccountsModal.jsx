@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
-import axios from "axios";
 import { toast } from "react-toastify";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { updateUser, createUser } from "../../../services/userService.js";
 
 const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
   const initialFormData = {
@@ -36,34 +34,23 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      if (selectedRow?._id) {
-        // Update
-        await axios.put(
-          `${API_URL}/api/update-user/${selectedRow._id}`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
-          }
-        );
-        toast.success("User updated successfully.");
-      } else {
-        // Create
-        await axios.post(`${API_URL}/api/create-user`, formData, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-        toast.success("User created successfully.");
-      }
+    const isUpdate = Boolean(selectedRow?._id);
+    const successMessage = isUpdate
+      ? "User updated successfully."
+      : "User created successfully.";
 
+    try {
+      if (isUpdate) {
+        await updateUser(selectedRow._id, formData);
+      } else {
+        await createUser(formData);
+      }
+      toast.success(successMessage);
       refreshList();
       onHide();
     } catch (error) {
+      console.error("Error saving user:", error);
       toast.error("Error saving user.");
-      console.error("Submit error:", error);
     }
   };
 

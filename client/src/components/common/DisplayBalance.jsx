@@ -1,31 +1,20 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import socket from "../../utils/socket";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { getBalance } from "../../services/balanceService.js";
 
 const DisplayBalance = ({ user }) => {
   const [balance, setBalance] = useState(0.0);
   const [isFetching, setIsFetching] = useState(false);
-  const [error, setError] = useState(null);
 
   const fetchBalance = async () => {
     setIsFetching(true);
     try {
-      const { data } = await axios.get(
-        `${API_URL}/api/check-balance/${user.userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
+      const data = await getBalance(user.userId);
+      // console.log("data:", data);
       const parsedBalance = parseFloat(data?.balance);
       const safeBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;
       setBalance(safeBalance);
-      setError(null);
     } catch (err) {
-      setError("Failed to fetch balance.");
       setBalance(0.0);
     } finally {
       setIsFetching(false);
@@ -51,10 +40,6 @@ const DisplayBalance = ({ user }) => {
       socket.off("balance-updated", handleBalanceUpdate);
     };
   }, []);
-
-  if (error) {
-    return <span className="text-danger">{error}</span>;
-  }
 
   return (
     <>

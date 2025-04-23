@@ -2,7 +2,10 @@ import mongoose from "mongoose";
 import path from "path";
 import Balance from "../models/Balance.js";
 import PaymentDetail from "../models/PaymentDetail.js";
-import { createNotification, emitNotification } from "../services/notificationService.js";
+import {
+  createNotification,
+  emitNotification,
+} from "../services/notificationService.js";
 
 // Get user balance handler
 export const getBalance = async (req, res) => {
@@ -10,10 +13,12 @@ export const getBalance = async (req, res) => {
 
   try {
     const balance = await Balance.findOne({ userId }).exec();
+
     if (!balance) {
-      return res.status(200).json({ balance: 0 });
+      return res.status(200).json({ data: { balance: 0 } });
     }
-    return res.status(200).json({ balance: balance.balance });
+
+    return res.status(200).json({ data: { balance: balance.balance } });
   } catch (error) {
     console.error("Error fetching balance:", error);
     return res

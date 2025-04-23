@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
-import axios from "axios";
 import { toast } from "react-toastify";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { updateFee, createFee } from "../../../services/feeService.js";
 
 const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
   const [formData, setFormData] = useState({
@@ -39,37 +37,26 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const isUpdate = Boolean(selectedRow?._id);
+    const successMessage = isUpdate
+      ? "Fee updated successfully."
+      : "Fee created successfully.";
+
     try {
-      if (selectedRow?._id) {
-        // Update
-        await axios.put(
-          `${API_URL}/api/update-fee/${selectedRow._id}`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
-          }
-        );
-        toast.success("Fee updated successfully.");
+      if (isUpdate) {
+        await updateFee(selectedRow._id, formData);
       } else {
-        // Create
-        await axios.post(`${API_URL}/api/create-fee`, formData, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-        toast.success("Fee created successfully.");
+        await createFee(formData);
       }
 
+      toast.success(successMessage);
       refreshList();
       onHide();
     } catch (error) {
-      toast.error("Error saving fee.");
       console.error("Submit error:", error);
+      toast.error("Error saving fee.");
     }
   };
-
   return (
     <Modal show={show} onHide={onHide} size="md" backdrop="static" centered>
       <Modal.Header closeButton>

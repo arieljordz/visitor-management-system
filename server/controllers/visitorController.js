@@ -150,8 +150,6 @@ export const getVisitorByUserId = async (req, res) => {
   }
 };
 
-
-
 // DELETE visitor by ID
 export const deleteVisitorById = async (req, res) => {
   try {

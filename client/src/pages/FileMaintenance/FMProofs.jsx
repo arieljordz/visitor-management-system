@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
 import { Card, Row, Col } from "react-bootstrap";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import ProofsTable from "../../components/fileMaintenance/tables/ProofsTable";
 import ProofsModal from "../../components/verifications/modals/ProofsModal";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { getPaymentProofs } from "../../services/paymentDetailService.js";
 
 function FMProofs({ user, setUser }) {
   const [proofs, setProofs] = useState([]);
@@ -31,15 +28,9 @@ function FMProofs({ user, setUser }) {
   const fetchProofs = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-payment-proofs`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-      // console.log("Fetched Proofs:", res.data.data);
-      const fetchedData = res.data.data || [];
-      setProofs(fetchedData);
+      const data = await getPaymentProofs();
+      // console.log("Fetched Proofs:", data);
+      setProofs(data);
     } catch (err) {
       console.error("Failed to fetch proofs:", err);
     } finally {

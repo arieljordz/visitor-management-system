@@ -3,7 +3,13 @@ import { Button, Row, Col, Card } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import axios from "axios";
+import { getVisitorByUserId } from "../../services/visitorService.js";
+import {
+  checkActiveQRCodeById,
+  generateQRCode,
+} from "../../services/qrService.js";
+import { processPayment } from "../../services/paymentDetailService.js";
+import { getBalance } from "../../services/balanceService.js";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
@@ -11,8 +17,6 @@ import VisitorsTable from "../../components/dashboard/tables/VisitorsTable";
 import VisitorsModal from "../../components/dashboard/modals/VisitorsModal";
 import DisplayQRCode from "../../components/dashboard/DisplayQRCode";
 import QRCodeModal from "../../components/dashboard/modals/QRCodeModal";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
 
 const Dashboard = ({ user, setUser }) => {
   const [showVisitorModal, setShowVisitorModal] = useState(false);
@@ -39,7 +43,7 @@ const Dashboard = ({ user, setUser }) => {
 
   useEffect(() => {
     if (user?.userId) {
-      fetchVisitorByUserId();
+      fetchVisitors();
       fetchBalance();
     }
   }, [user]);
@@ -50,19 +54,12 @@ const Dashboard = ({ user, setUser }) => {
     }
   }, [qrImageUrl]);
 
-  const fetchVisitorByUserId = async () => {
+  const fetchVisitors = async () => {
     setTableLoading(true);
     try {
-      const res = await axios.get(
-        `${API_URL}/api/get-visitor-by-user/${user.userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-      // console.log("Fecth visitors", res.data);
-      setVisitors(res.data?.data || []);
+      const data = await getVisitorByUserId(user.userId);
+      // console.log("Fecth visitors", data);
+      setVisitors(data);
     } catch (err) {
       console.error("Failed to fetch visitor:", err);
     } finally {
@@ -83,46 +80,24 @@ const Dashboard = ({ user, setUser }) => {
 
   const checkActiveQR = async (visitorId) => {
     try {
-      const res = await fetch(
-        `${API_URL}/api/check-active-qr/${user.userId}/${visitorId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-      const data = await res.json();
-
-      if (res.ok) {
-        // console.log("Active QR:", data.qrImageUrl);
-        return data;
-      } else {
-        // console.log(data.message);
-        return null;
-      }
+      const data = await checkActiveQRCodeById(user, visitorId);
+      return data ?? null;
     } catch (error) {
-      console.error("Error checking active QR:", error);
+      // console.error("Failed to check active QR code:", error);
       return null;
     }
   };
 
   const generateQR = async (visitorId) => {
     try {
-      const response = await fetch(
-        `${API_URL}/api/generate-qr/${user.userId}/${visitorId}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
+      const data = await generateQRCode(user, visitorId);
 
-      const data = await response.json();
+      if (!data || !data.qrImageUrl) {
+        const message = data?.message || "QR generation failed.";
+        const statusCode = data?.statusCode || 409;
 
-      if (!response.ok) {
-        const message = data.message || "QR generation failed.";
-        response.status === 409 ? toast.info(message) : toast.error(message);
+        statusCode === 409 ? toast.info(message) : toast.error(message);
+
         return false;
       }
 
@@ -136,25 +111,17 @@ const Dashboard = ({ user, setUser }) => {
 
   const payBalance = async (visitorId) => {
     try {
-      const res = await fetch(`${API_URL}/api/submit-payment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({ userId: user.userId, visitorId: visitorId }),
-      });
+      const data = await processPayment(user, visitorId);
 
-      const data = await res.json();
-
-      if (res.status === 200) {
+      if (data?.status === 200) {
         toast.success("Your payment was successful and the QR code is ready.");
         return true;
-      } else {
-        toast.error("Payment failed: " + (data.message || "Unknown error"));
-        setQrImageUrl(null);
-        return false;
       }
+
+      const message = data?.message || "Payment failed.";
+      toast.error(`Payment failed: ${message}`);
+      setQrImageUrl(null);
+      return false;
     } catch (error) {
       console.error("Payment error:", error);
       toast.error("Payment failed. Please try again.");
@@ -195,7 +162,7 @@ const Dashboard = ({ user, setUser }) => {
       if (!paid) throw new Error("Payment deduction failed.");
 
       setVisitorId(visitorId);
-      fetchVisitorByUserId();
+      fetchVisitors();
       fetchBalance();
     } catch (error) {
       console.error("QR/Payment process failed:", error);
@@ -240,14 +207,7 @@ const Dashboard = ({ user, setUser }) => {
   const fetchBalance = async () => {
     setIsFetching(true);
     try {
-      const { data } = await axios.get(
-        `${API_URL}/api/check-balance/${user.userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
+      const data = await getBalance(user.userId);
       // console.log("data:", data);
       const parsedBalance = parseFloat(data?.balance);
       const safeBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;
@@ -352,7 +312,7 @@ const Dashboard = ({ user, setUser }) => {
                       variant="success"
                       onClick={() => setShowVisitorModal(true)}
                     >
-                      <FaPlus className="me-2" />
+                      <FaPlus className="mr-1" />
                       Add Visitor
                     </Button>
                   </div>
@@ -387,7 +347,7 @@ const Dashboard = ({ user, setUser }) => {
                     user={user}
                     show={showVisitorModal}
                     onHide={() => setShowVisitorModal(false)}
-                    refreshList={fetchVisitorByUserId}
+                    refreshList={fetchVisitors}
                   />
 
                   {/* Modal to view the QR code */}

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Spinner, Row, Col, Card } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import Navpath from "../../components/common/Navpath";
@@ -9,8 +8,11 @@ import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import AccountsTable from "../../components/fileMaintenance/tables/AccountsTable";
 import AccountsModal from "../../components/fileMaintenance/modals/AccountsModal";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import {
+  getUsers,
+  getUserById,
+  deleteUser,
+} from "../../services/userService.js";
 
 function FMAccounts({ user, setUser }) {
   const [accounts, setAccounts] = useState([]);
@@ -32,12 +34,8 @@ function FMAccounts({ user, setUser }) {
   const fetchAccounts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-users`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      setAccounts(res.data.data || []);
+      const data = await getUsers();
+      setAccounts(data);
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
@@ -47,12 +45,8 @@ function FMAccounts({ user, setUser }) {
 
   const handleEdit = async (id) => {
     try {
-      const res = await axios.get(`${API_URL}/api/get-user/${id}`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      setSelectedRow(res.data.data);
+      const data = await getUserById(id);
+      setSelectedRow(data);
       setShowModal(true);
     } catch (err) {
       toast.error("Failed to fetch Account.");
@@ -71,11 +65,7 @@ function FMAccounts({ user, setUser }) {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_URL}/api/delete-user/${id}`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
+        await deleteUser(id);
         toast.success("Account deleted.");
         fetchAccounts();
       } catch (err) {
@@ -144,7 +134,7 @@ function FMAccounts({ user, setUser }) {
                         variant="success"
                         onClick={() => setShowModal(true)}
                       >
-                        <FaPlus className="me-2" />
+                        <FaPlus className="mr-1" />
                         Add User
                       </Button>
                     </div>

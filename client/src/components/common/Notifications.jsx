@@ -1,35 +1,36 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import socket from "../../utils/socket"; // Make sure socket.js is configured correctly
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import socket from "../../utils/socket";
+import {
+  getNotifications,
+  getNotificationsById,
+  markAsRead,
+  markAsReadById,
+} from "../../services/notificationService.js";
 
 const Notifications = ({ user }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // console.log("user:", user);
+  const fetchNotifications = async () => {
+    try {
+      let data = [];
+
+      if (user.role === "admin") {
+        data = await getNotifications();
+      } else {
+        data = await getNotificationsById(user.userId);
+      }
+
+      console.log("response:", data);
+      setNotifications(data);
+      countUnreadNotifications(data);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
   // Fetch notifications when the component mounts or when user changes
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const endpoint =
-          user.role === "admin"
-            ? `${API_URL}/api/get-notifications`
-            : `${API_URL}/api/get-notifications/${user.userId}`;
-
-        const response = await axios.get(endpoint, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-        // console.log("response:", response.data);
-        setNotifications(response.data);
-        countUnreadNotifications(response.data);
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    };
-
     // Fetch notifications on mount and when the user changes
     fetchNotifications();
 
@@ -52,8 +53,15 @@ const Notifications = ({ user }) => {
     };
 
     // Add the new notification to the top of the list
-    setNotifications((prev) => [notification, ...prev]);
-    setUnreadCount((prev) => prev + 1);
+    if (user.role === "admin") {
+      console.log("data admin:", data);
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+    } else {
+      console.log("data client:", data);
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+    }
   };
 
   // Count unread notifications
@@ -76,19 +84,18 @@ const Notifications = ({ user }) => {
   // Mark all notifications as read
   const markAllAsRead = async () => {
     try {
-      const endpoint =
-        user.role === "admin"
-          ? `${API_URL}/api/mark-as-read`
-          : `${API_URL}/api/mark-as-read/${user.userId}`;
-
-      await axios.put(endpoint, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-
+      if (user.role === "admin") {
+        await markAsRead();
+      } else {
+        await markAsReadById(user.userId);
+      }
       setNotifications((prev) =>
-        prev.map((notification) => ({ ...notification, read: true }))
+        prev.map((notification) => ({
+          ...notification,
+          isAdminRead: user.role === "admin" ? true : notification.isAdminRead,
+          isClientRead:
+            user.role !== "admin" ? true : notification.isClientRead,
+        }))
       );
     } catch (error) {
       console.error("Error marking notifications as read:", error);

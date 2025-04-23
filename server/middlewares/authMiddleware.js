@@ -3,11 +3,11 @@ import User from "../models/User.js";
 
 const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-    // console.log("authHeader:", authHeader);
+  // console.log("authHeader:", authHeader);
   if (!authHeader) return res.status(401).json({ message: "Unauthorized" });
 
   const token = authHeader.split(" ")[1];
-    // console.log("TOKEN RAW:", token);
+  // console.log("TOKEN RAW:", token);
   try {
     const decoded = jwt.verify(token, "your_jwt_secret_key");
 
@@ -21,7 +21,14 @@ const authenticate = async (req, res, next) => {
     next();
   } catch (error) {
     console.error("JWT verification error:", error.message);
-    res.status(401).json({ message: "Invalid token" });
+
+    if (error.name === "TokenExpiredError") {
+      return res
+        .status(401)
+        .json({ message: "Token expired. Please login again." });
+    }
+
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
 

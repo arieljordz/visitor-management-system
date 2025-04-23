@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Card, Row, Col } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import Navpath from "../../components/common/Navpath";
@@ -9,8 +8,11 @@ import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import PaymentMethodTable from "../../components/fileMaintenance/tables/PaymentMethodTable";
 import PaymentMethodModal from "../../components/fileMaintenance/modals/PaymentMethodModal";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import {
+  getPaymentMethods,
+  getPaymentMethodById,
+  deletePaymentMethod,
+} from "../../services/paymentMethodService.js";
 
 function FMPaymentMethod({ user, setUser }) {
   const [paymentMethod, setPaymentMethod] = useState([]);
@@ -32,13 +34,9 @@ function FMPaymentMethod({ user, setUser }) {
   const fetchPaymentMethod = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-payment-methods`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      // console.log("Fetch payment-method:", res.data.data);
-      setPaymentMethod(res.data.data || []);
+      const data = await getPaymentMethods();
+      // console.log("Fetch payment-method:", data);
+      setPaymentMethod(data);
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
@@ -48,12 +46,8 @@ function FMPaymentMethod({ user, setUser }) {
 
   const handleEdit = async (id) => {
     try {
-      const res = await axios.get(`${API_URL}/api/get-payment-method/${id}`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      setSelectedRow(res.data.data);
+      const data = await getPaymentMethodById(id);
+      setSelectedRow(data);
       setShowModal(true);
     } catch (err) {
       toast.error("Failed to fetch payment-method.");
@@ -72,11 +66,7 @@ function FMPaymentMethod({ user, setUser }) {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_URL}/api/delete-payment-method/${id}`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
+        await deletePaymentMethod(id);
         toast.success("Payment method deleted.");
         fetchPaymentMethod();
       } catch (err) {
@@ -145,7 +135,7 @@ function FMPaymentMethod({ user, setUser }) {
                         variant="success"
                         onClick={() => setShowModal(true)}
                       >
-                        <FaPlus className="me-2" />
+                        <FaPlus className="mr-1" />
                         Add Payment Method
                       </Button>
                     </div>

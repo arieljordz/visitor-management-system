@@ -3,11 +3,20 @@ import Notification from "../models/Notification.js";
 
 // Create a new notification
 export const createNotification = async (req, res) => {
-  const { userId, type, message } = req.body;
+  const { userId, transaction, type, message } = req.body;
 
   try {
-    const notification = new Notification({ userId, type, message });
+    const notification = new Notification({
+      userId,
+      transaction,
+      type,
+      message,
+    });
     await notification.save();
+
+    // Populate user for immediate use in frontend
+    await notification.populate("userId", "name email");
+
     return res.status(201).json(notification);
   } catch (error) {
     console.error("Error creating notification:", error);
@@ -20,8 +29,9 @@ export const getNotificationsById = async (req, res) => {
   const { userId } = req.params;
   try {
     const notifications = await Notification.find({ userId })
-      .populate("userId", "name email") // populate with only needed fields
-      .sort({ dateCreated: -1 });
+      .populate("userId", "name email")
+      .sort({ dateCreated: -1 })
+      .limit(5);
 
     return res.status(200).json(notifications);
   } catch (error) {
@@ -32,17 +42,20 @@ export const getNotificationsById = async (req, res) => {
 
 // Get all notifications (with user populated)
 export const getNotifications = async (req, res) => {
-    try {
-      const notifications = await Notification.find({ transaction: "Top-up" })
-        .populate("userId", "name email") // only include necessary fields
-        .sort({ dateCreated: -1 });
-  
-      return res.status(200).json(notifications);
-    } catch (error) {
-      console.error("Error fetching top-up notifications:", error);
-      return res.status(500).json({ message: "Failed to fetch top-up notifications" });
-    }
-  };
+  try {
+    const notifications = await Notification.find({ transaction: "Top-up" })
+      .populate("userId", "name email")
+      .sort({ dateCreated: -1 })
+      .limit(5);
+
+    return res.status(200).json(notifications);
+  } catch (error) {
+    console.error("Error fetching top-up notifications:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch top-up notifications" });
+  }
+};
 
 // Mark notification as read by user
 export const markAsReadById = async (req, res) => {
@@ -59,7 +72,8 @@ export const markAsReadById = async (req, res) => {
       { isClientRead: true }
     );
 
-    if (result.nModified === 0) {
+    // console.log("result:", result);
+    if (result.modifiedCount === 0) {
       return res
         .status(404)
         .json({ message: "No notifications to mark as read" });
@@ -78,24 +92,24 @@ export const markAsReadById = async (req, res) => {
 
 // Mark notification as read (general)
 export const markAsRead = async (req, res) => {
-    try {
-      // Find all unread notifications and update their 'read' status to true
-      const notifications = await Notification.updateMany(
-        { isAdminRead: false },
-        { $set: { isAdminRead: true } },
-        { new: true }
-      );
-  
-      if (notifications.nModified === 0) {
-        return res.status(404).json({ message: "No unread notifications found" });
-      }
-  
-      return res.status(200).json({ message: "Notifications marked as read" });
-    } catch (error) {
-      console.error("Error updating notifications:", error);
-      return res
-        .status(500)
-        .json({ message: "Failed to mark notifications as read" });
+  try {
+    // Find all unread notifications and update their 'read' status to true
+    const notifications = await Notification.updateMany(
+      { isAdminRead: false },
+      { $set: { isAdminRead: true } },
+      { new: true }
+    );
+
+    // console.log("notifications:", notifications);
+    if (notifications.modifiedCount === 0) {
+      return res.status(404).json({ message: "No unread notifications found" });
     }
-  };
-  
+
+    return res.status(200).json({ message: "Notifications marked as read" });
+  } catch (error) {
+    console.error("Error updating notifications:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to mark notifications as read" });
+  }
+};

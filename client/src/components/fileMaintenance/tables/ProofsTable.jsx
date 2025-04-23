@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { deletePaymentProofs } from "../../../services/paymentDetailService.js";
 
 const ProofsTable = ({
   loading,
@@ -51,17 +49,7 @@ const ProofsTable = ({
 
     if (result.isConfirmed) {
       try {
-        const res = await axios.delete(
-          `${API_URL}/api/delete-payment-proofs`,
-          {
-            data: { selectedRows },
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
-          }
-        );
+        await deletePaymentProofs(selectedRows);
         toast.success(`${selectedRows.length} record(s) have been deleted.`);
         refreshList();
         setSelectedRows([]);

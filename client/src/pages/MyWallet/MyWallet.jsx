@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
-import axios from "axios";
 import TopUp from "../../components/myWallet/TopUp";
 import Navpath from "../../components/common/Navpath";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { getPaymentMethods } from "../../services/paymentMethodService.js";
 
 const MyWallet = ({ user, setUser }) => {
   // State variables for wallet details
@@ -22,14 +20,10 @@ const MyWallet = ({ user, setUser }) => {
 
   const fetchPaymentMethods = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/get-payment-methods`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      setPaymentMethods(response.data.data);
+      const data = await getPaymentMethods();
+      setPaymentMethods(data);
     } catch (error) {
-      toast.error("Failed to load payment methods.");
+      console.error(error.message);
     }
   };
 

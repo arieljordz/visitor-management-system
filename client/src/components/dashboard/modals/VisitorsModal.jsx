@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { createVisitor } from "../../../services/visitorService.js";
+import { getClassifications } from "../../../services/classificationService.js";
 
 const VisitorsModal = ({ user, show, onHide, refreshList }) => {
   const [classifications, setClassifications] = useState([]);
@@ -24,12 +23,8 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
 
   const fetchClassifications = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/get-classifications`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      setClassifications(res.data.data || []);
+      const data = await getClassifications();
+      setClassifications(data || []);
     } catch (err) {
       console.error("Error fetching classifications:", err);
     }
@@ -67,11 +62,7 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
     };
 
     try {
-      await axios.post(`${API_URL}/api/create-visitor`, dataToSubmit, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
+      await createVisitor(dataToSubmit);
       toast.success("Visitor saved successfully");
       refreshList();
       onHide();

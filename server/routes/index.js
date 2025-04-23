@@ -8,7 +8,6 @@ import {
   getUserById,
   updateUser,
   deleteUser,
-  loginUser,
 } from "../controllers/userController.js";
 import {
   generateQRCode,
@@ -77,7 +76,6 @@ router.get("/get-users", getUsers);
 router.get("/get-user/:id", getUserById);
 router.put("/update-user/:id", updateUser);
 router.delete("/delete-user/:id", deleteUser);
-router.post("/login", loginUser);
 
 // QRCode Routes
 router.post("/generate-qr/:userId/:visitorId", authenticate, generateQRCode);

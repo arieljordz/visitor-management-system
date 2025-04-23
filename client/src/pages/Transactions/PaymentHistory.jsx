@@ -3,11 +3,8 @@ import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import { Card, Row, Col } from "react-bootstrap";
-import axios from "axios";
-import { toast } from "react-toastify";
 import PaymentHistoryTable from "../../components/transactions/tables/PaymentHistoryTable";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { getPaymentDetailsById } from "../../services/paymentDetailService.js";
 
 function PaymentHistory({ user, setUser }) {
   const [transactions, setTransactions] = useState([]);
@@ -25,17 +22,9 @@ function PaymentHistory({ user, setUser }) {
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `${API_URL}/api/get-payment-details/${user.userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-      // console.log("Fetched Transactions:", res);
-      const fetchedData = res.data.data || [];
-      setTransactions(fetchedData);
+      const data = await getPaymentDetailsById(user.userId);
+      // console.log("Fetched Transactions:", data);
+      setTransactions(data);
     } catch (err) {
       console.error("Failed to fetch transactions:", err);
     } finally {

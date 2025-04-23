@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { Button, Form, Row, Col, Card, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { getBalance, topUp } from "../../services/balanceService.js";
 
 const TopUp = ({
   user,
@@ -34,17 +32,7 @@ const TopUp = ({
     setIsLoading(true);
 
     try {
-      const res = await axios.post(
-        `${API_URL}/api/top-up/${user.userId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-
+      const data = await topUp(user.userId, formData);
       setTopUpAmount("");
       setProof(null);
 

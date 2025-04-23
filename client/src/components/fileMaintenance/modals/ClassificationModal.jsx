@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
-import axios from "axios";
 import { toast } from "react-toastify";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { updateClassification, addClassification } from "../../../services/classificationService.js";
 
 const ClassificationModal = ({ show, onHide, selectedRow, refreshList }) => {
   const [formData, setFormData] = useState({ description: "" });
@@ -24,34 +22,24 @@ const ClassificationModal = ({ show, onHide, selectedRow, refreshList }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const isUpdate = Boolean(selectedRow?._id);
+    const successMessage = isUpdate
+      ? "Classification updated successfully."
+      : "Classification created successfully.";
+
     try {
-      if (selectedRow?._id) {
-        // Update
-        await axios.put(
-          `${API_URL}/api/update-classification/${selectedRow._id}`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
-          }
-        );
-        toast.success("Classification updated successfully.");
+      if (isUpdate) {
+        await updateClassification(user.token, selectedRow._id, formData);
       } else {
-        // Create
-        await axios.post(`${API_URL}/api/create-classification`, formData, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-        toast.success("Classification created successfully.");
+        await addClassification(user.token, formData);
       }
 
+      toast.success(successMessage);
       refreshList();
       onHide();
     } catch (error) {
-      toast.error("Error saving classification.");
       console.error("Submit error:", error);
+      toast.error("Error saving classification.");
     }
   };
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Card } from "react-bootstrap";
-import axios from "axios";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import Navpath from "../../components/common/Navpath";
@@ -8,8 +7,10 @@ import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import VerificationsTable from "../../components/verifications/tables/VerificationsTable";
 import ProofsModal from "../../components/verifications/modals/ProofsModal";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import {
+  getPaymentProofs,
+  updateVerificationStatus,
+} from "../../services/paymentDetailService.js";
 
 function Verifications({ user, setUser }) {
   const [proofs, setProofs] = useState([]);
@@ -31,13 +32,8 @@ function Verifications({ user, setUser }) {
   const fetchProofs = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-payment-proofs`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      const fetchedData = res.data.data || [];
-      setProofs(fetchedData);
+      const data = await getPaymentProofs();
+      setProofs(data);
     } catch (err) {
       console.error("Failed to fetch proofs:", err);
     } finally {
@@ -77,18 +73,7 @@ function Verifications({ user, setUser }) {
 
     if (result.isConfirmed) {
       try {
-        await axios.put(
-          `${API_URL}/api/update-verification/${id}`,
-          {
-            verificationStatus,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
-          }
-        );
-
+        await updateVerificationStatus(id, verificationStatus);
         toast.success(`Payment ${verificationStatus} successfully.`);
         fetchProofs(); // Refresh payment list
       } catch (err) {

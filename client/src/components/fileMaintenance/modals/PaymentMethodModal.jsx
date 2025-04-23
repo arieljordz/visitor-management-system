@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
-import axios from "axios";
 import { toast } from "react-toastify";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import {
+  updatePaymentMethod,
+  createPaymentMethod,
+} from "../../../services/paymentMethodService.js";
 
 const PaymentMethodModal = ({ show, onHide, selectedRow, refreshList }) => {
   const initialFormData = {
@@ -36,34 +37,24 @@ const PaymentMethodModal = ({ show, onHide, selectedRow, refreshList }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const isUpdate = Boolean(selectedRow?._id);
+    const successMessage = isUpdate
+      ? "Payment method updated successfully."
+      : "Payment method created successfully.";
+
     try {
-      if (selectedRow?._id) {
-        // Update
-        await axios.put(
-          `${API_URL}/api/update-payment-method/${selectedRow._id}`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
-          }
-        );
-        toast.success("Payment method updated successfully.");
+      if (isUpdate) {
+        await updatePaymentMethod(selectedRow._id, formData);
       } else {
-        // Create
-        await axios.post(`${API_URL}/api/create-payment-method`, formData, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-        toast.success("Payment method created successfully.");
+        await createPaymentMethod(formData);
       }
 
+      toast.success(successMessage);
       refreshList();
       onHide();
     } catch (error) {
-      toast.error("Error saving payment method.");
       console.error("Submit error:", error);
+      toast.error("Error saving payment method.");
     }
   };
 

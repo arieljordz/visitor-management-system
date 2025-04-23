@@ -7,8 +7,7 @@ import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import AdminGeneratedQRCodeTable from "../../components/adminTransactions/tables/AdminGeneratedQRCodeTable";
 import QRCodeModal from "../../components/adminTransactions/modals/QRCodeModal";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { getGeneratedQRCodes } from "../../services/qrService.js";
 
 function AdminGeneratedQRCodes({ user, setUser }) {
   const [qRCodes, setQRCodes] = useState([]);
@@ -31,14 +30,9 @@ function AdminGeneratedQRCodes({ user, setUser }) {
   const fetchQRCodes = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-generated-qr`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      // console.log("Fetched qRCodes:", res);
-      const fetchedData = res.data.data || [];
-      setQRCodes(fetchedData);
+      const data = await getGeneratedQRCodes();
+      // console.log("Fetched qRCodes:", data);
+      setQRCodes(data);
     } catch (err) {
       console.error("Failed to fetch qRCodes:", err);
     } finally {

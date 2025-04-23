@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Spinner, Row, Col, Card } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import Navpath from "../../components/common/Navpath";
@@ -9,8 +8,11 @@ import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import FeesTable from "../../components/fileMaintenance/tables/FeesTable";
 import FeeModal from "../../components/fileMaintenance/modals/FeeModal";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import {
+  getFees,
+  getFeeById,
+  deleteFee,
+} from "../../services/feeService.js";
 
 function FMFees({ user, setUser }) {
   const [fee, setFees] = useState([]);
@@ -32,14 +34,9 @@ function FMFees({ user, setUser }) {
   const fetchFees = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-fees`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-
-      // console.log("Fetch fee:", res.data.data);
-      setFees(res.data.data || []);
+      const data = await getFees();
+      // console.log("Fetch fee:", data);
+      setFees(data);
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
@@ -49,12 +46,8 @@ function FMFees({ user, setUser }) {
 
   const handleEdit = async (id) => {
     try {
-      const res = await axios.get(`${API_URL}/api/get-fee/${id}`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      setSelectedRow(res.data.data);
+      const data = await getFeeById(id);
+      setSelectedRow(data);
       setShowModal(true);
     } catch (err) {
       toast.error("Failed to fetch Fee.");
@@ -73,11 +66,7 @@ function FMFees({ user, setUser }) {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_URL}/api/delete-fee/${id}`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
+        await deleteFee(id);
         toast.success("Fee deleted.");
         fetchFees();
       } catch (err) {
@@ -137,7 +126,7 @@ function FMFees({ user, setUser }) {
                         variant="success"
                         onClick={() => setShowModal(true)}
                       >
-                        <FaPlus className="me-2" />
+                        <FaPlus className="mr-1" />
                         Add Fee
                       </Button>
                     </div>

@@ -2,13 +2,10 @@ import React, { useEffect, useState } from "react";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import { Row, Col, Card } from "react-bootstrap";
-import axios from "axios";
-import { toast } from "react-toastify";
 import Navpath from "../../components/common/Navpath";
 import QRCodeModal from "../../components/transactions/modals/QRCodeModal";
 import GeneratedQRCodeTable from "../../components/transactions/tables/GeneratedQRCodeTable";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { getGeneratedQRCodesById } from "../../services/qrService.js";
 
 function GeneratedQRCodes({ user, setUser }) {
   const [generatedQRs, setGeneratedQRs] = useState([]);
@@ -31,17 +28,9 @@ function GeneratedQRCodes({ user, setUser }) {
   const fetchGeneratedQRs = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `${API_URL}/api/get-generated-qr/${user.userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-      // console.log("Fetched GeneratedQRs:", res.data);
-      const fetchedData = res.data.data || [];
-      setGeneratedQRs(fetchedData);
+      const data = await getGeneratedQRCodesById(user.userId);
+      // console.log("Fetched GeneratedQRs:", data);
+      setGeneratedQRs(data);
     } catch (err) {
       console.error("Failed to fetch generatedQRs:", err);
     } finally {

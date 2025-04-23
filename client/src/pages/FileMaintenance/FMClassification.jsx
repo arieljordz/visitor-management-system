@@ -9,6 +9,11 @@ import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import ClassificationTable from "../../components/fileMaintenance/tables/ClassificationTable";
 import ClassificationModal from "../../components/fileMaintenance/modals/ClassificationModal";
+import {
+  getClassifications,
+  getClassificationById,
+  deleteClassification,
+} from "../../services/classificationService.js";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
@@ -32,12 +37,8 @@ function FMClassification({ user, setUser }) {
   const fetchClassifications = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-classifications`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      setClassifications(res.data.data || []);
+      const data = await getClassifications();
+      setClassifications(data);
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
@@ -47,12 +48,8 @@ function FMClassification({ user, setUser }) {
 
   const handleEdit = async (id) => {
     try {
-      const res = await axios.get(`${API_URL}/api/get-classification/${id}`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      setSelectedRow(res.data.data);
+      const data = await getClassificationById(id);
+      setSelectedRow(data);
       setShowModal(true);
     } catch (err) {
       toast.error("Failed to fetch classification.");
@@ -71,11 +68,7 @@ function FMClassification({ user, setUser }) {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_URL}/api/delete-classification/${id}`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
+        await deleteClassification(id);
         toast.success("Classification deleted.");
         fetchClassifications();
       } catch (err) {
@@ -132,7 +125,7 @@ function FMClassification({ user, setUser }) {
                         variant="success"
                         onClick={() => setShowModal(true)}
                       >
-                        <FaPlus className="me-2" />
+                        <FaPlus className="mr-1" />
                         Add Classification
                       </Button>
                     </div>
