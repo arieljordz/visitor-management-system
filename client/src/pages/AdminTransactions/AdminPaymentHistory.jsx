@@ -25,7 +25,11 @@ function AdminPaymentHistory({ user, setUser }) {
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-payment-details`);
+      const res = await axios.get(`${API_URL}/api/get-payment-details`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       // console.log("Fetched Transactions:", res.data);
       const fetchedData = res.data.data || [];
       setTransactions(fetchedData);

@@ -32,7 +32,11 @@ function FMAccounts({ user, setUser }) {
   const fetchAccounts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-users`);
+      const res = await axios.get(`${API_URL}/api/get-users`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       setAccounts(res.data.data || []);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -43,7 +47,11 @@ function FMAccounts({ user, setUser }) {
 
   const handleEdit = async (id) => {
     try {
-      const res = await axios.get(`${API_URL}/api/get-user/${id}`);
+      const res = await axios.get(`${API_URL}/api/get-user/${id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       setSelectedRow(res.data.data);
       setShowModal(true);
     } catch (err) {
@@ -63,7 +71,11 @@ function FMAccounts({ user, setUser }) {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_URL}/api/delete-user/${id}`);
+        await axios.delete(`${API_URL}/api/delete-user/${id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
         toast.success("Account deleted.");
         fetchAccounts();
       } catch (err) {

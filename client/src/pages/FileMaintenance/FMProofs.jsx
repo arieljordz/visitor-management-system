@@ -31,7 +31,12 @@ function FMProofs({ user, setUser }) {
   const fetchProofs = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-payment-proofs`);
+      const res = await axios.get(`${API_URL}/api/get-payment-proofs`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
       // console.log("Fetched Proofs:", res.data.data);
       const fetchedData = res.data.data || [];
       setProofs(fetchedData);

@@ -32,7 +32,11 @@ function FMFees({ user, setUser }) {
   const fetchFees = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-fees`);
+      const res = await axios.get(`${API_URL}/api/get-fees`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
 
       // console.log("Fetch fee:", res.data.data);
       setFees(res.data.data || []);
@@ -45,7 +49,11 @@ function FMFees({ user, setUser }) {
 
   const handleEdit = async (id) => {
     try {
-      const res = await axios.get(`${API_URL}/api/get-fee/${id}`);
+      const res = await axios.get(`${API_URL}/api/get-fee/${id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       setSelectedRow(res.data.data);
       setShowModal(true);
     } catch (err) {
@@ -65,7 +73,11 @@ function FMFees({ user, setUser }) {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_URL}/api/delete-fee/${id}`);
+        await axios.delete(`${API_URL}/api/delete-fee/${id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
         toast.success("Fee deleted.");
         fetchFees();
       } catch (err) {

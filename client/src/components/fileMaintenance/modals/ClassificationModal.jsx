@@ -29,12 +29,21 @@ const ClassificationModal = ({ show, onHide, selectedRow, refreshList }) => {
         // Update
         await axios.put(
           `${API_URL}/api/update-classification/${selectedRow._id}`,
-          formData
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
         );
         toast.success("Classification updated successfully.");
       } else {
         // Create
-        await axios.post(`${API_URL}/api/create-classification`, formData);
+        await axios.post(`${API_URL}/api/create-classification`, formData, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
         toast.success("Classification created successfully.");
       }
 

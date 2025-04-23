@@ -51,9 +51,17 @@ const ProofsTable = ({
 
     if (result.isConfirmed) {
       try {
-        const res = await axios.delete(`${API_URL}/api/delete-payment-proofs`, {
-          data: { selectedRows },
-        });
+        const res = await axios.delete(
+          `${API_URL}/api/delete-payment-proofs`,
+          {
+            data: { selectedRows },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
+        );
         toast.success(`${selectedRows.length} record(s) have been deleted.`);
         refreshList();
         setSelectedRows([]);

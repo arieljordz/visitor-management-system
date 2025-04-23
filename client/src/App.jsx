@@ -29,7 +29,6 @@ const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [balance, setBalance] = useState(0.0);
   const [loading, setLoading] = useState(false);
   const [loadingUser, setLoadingUser] = useState(true);
 

@@ -41,12 +41,21 @@ const PaymentMethodModal = ({ show, onHide, selectedRow, refreshList }) => {
         // Update
         await axios.put(
           `${API_URL}/api/update-payment-method/${selectedRow._id}`,
-          formData
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
         );
         toast.success("Payment method updated successfully.");
       } else {
         // Create
-        await axios.post(`${API_URL}/api/create-payment-method`, formData);
+        await axios.post(`${API_URL}/api/create-payment-method`, formData, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
         toast.success("Payment method created successfully.");
       }
 

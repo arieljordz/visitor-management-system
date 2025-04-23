@@ -31,7 +31,11 @@ function Verifications({ user, setUser }) {
   const fetchProofs = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-payment-proofs`);
+      const res = await axios.get(`${API_URL}/api/get-payment-proofs`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       const fetchedData = res.data.data || [];
       setProofs(fetchedData);
     } catch (err) {
@@ -73,9 +77,17 @@ function Verifications({ user, setUser }) {
 
     if (result.isConfirmed) {
       try {
-        await axios.put(`${API_URL}/api/update-verification/${id}`, {
-          verificationStatus,
-        });
+        await axios.put(
+          `${API_URL}/api/update-verification/${id}`,
+          {
+            verificationStatus,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
+        );
 
         toast.success(`Payment ${verificationStatus} successfully.`);
         fetchProofs(); // Refresh payment list

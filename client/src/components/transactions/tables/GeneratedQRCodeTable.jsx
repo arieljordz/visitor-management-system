@@ -36,8 +36,8 @@ const GeneratedQRCodeTable = ({
                 <td className="text-center">
                   {txn._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">{txn.userId.name.toUpperCase()}</td>
                 <td className="text-center">{txn.visitorId?.visitorType}</td>
+                <td className="text-center">{txn.userId.name.toUpperCase()}</td>
                 <td className="text-center">
                   {txn.visitorId?.visitorType === "Individual"
                     ? `${txn.visitorId?.firstName.toUpperCase() || ""} ${

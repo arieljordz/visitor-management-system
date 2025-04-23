@@ -37,7 +37,8 @@ app.use(
   cors({
     origin: "*", // You can update this to a more restrictive origin in production
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type"],
+    allowedHeaders: ["Content-Type", "Authorization"], 
+    credentials: true, // if you’re using cookies/sessions
   })
 );
 

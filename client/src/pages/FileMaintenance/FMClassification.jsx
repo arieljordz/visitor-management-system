@@ -32,7 +32,11 @@ function FMClassification({ user, setUser }) {
   const fetchClassifications = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-classifications`);
+      const res = await axios.get(`${API_URL}/api/get-classifications`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       setClassifications(res.data.data || []);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -43,7 +47,11 @@ function FMClassification({ user, setUser }) {
 
   const handleEdit = async (id) => {
     try {
-      const res = await axios.get(`${API_URL}/api/get-classification/${id}`);
+      const res = await axios.get(`${API_URL}/api/get-classification/${id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       setSelectedRow(res.data.data);
       setShowModal(true);
     } catch (err) {
@@ -63,7 +71,11 @@ function FMClassification({ user, setUser }) {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_URL}/api/delete-classification/${id}`);
+        await axios.delete(`${API_URL}/api/delete-classification/${id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
         toast.success("Classification deleted.");
         fetchClassifications();
       } catch (err) {

@@ -32,7 +32,12 @@ function GeneratedQRCodes({ user, setUser }) {
     setLoading(true);
     try {
       const res = await axios.get(
-        `${API_URL}/api/get-generated-qr/${user.userId}`
+        `${API_URL}/api/get-generated-qr/${user.userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
       );
       // console.log("Fetched GeneratedQRs:", res.data);
       const fetchedData = res.data.data || [];
@@ -85,16 +90,11 @@ function GeneratedQRCodes({ user, setUser }) {
   const indexOfFirstItem = indexOfLastItem - itemsPerPageValue;
 
   // Slice generatedQRs accordingly
-  const currentData = filteredData.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
+  const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   // Total pages only if not showing All
   const totalPages =
-    itemsPerPage === "All"
-      ? 1
-      : Math.ceil(filteredData.length / itemsPerPage);
+    itemsPerPage === "All" ? 1 : Math.ceil(filteredData.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 

@@ -17,7 +17,11 @@ const Notifications = ({ user }) => {
             ? `${API_URL}/api/get-notifications`
             : `${API_URL}/api/get-notifications/${user.userId}`;
 
-        const response = await axios.get(endpoint);
+        const response = await axios.get(endpoint, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
         // console.log("response:", response.data);
         setNotifications(response.data);
         countUnreadNotifications(response.data);
@@ -77,7 +81,11 @@ const Notifications = ({ user }) => {
           ? `${API_URL}/api/mark-as-read`
           : `${API_URL}/api/mark-as-read/${user.userId}`;
 
-      await axios.put(endpoint);
+      await axios.put(endpoint, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
 
       setNotifications((prev) =>
         prev.map((notification) => ({ ...notification, read: true }))

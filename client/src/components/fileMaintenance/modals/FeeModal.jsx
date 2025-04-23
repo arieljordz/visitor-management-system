@@ -44,12 +44,21 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
         // Update
         await axios.put(
           `${API_URL}/api/update-fee/${selectedRow._id}`,
-          formData
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
         );
         toast.success("Fee updated successfully.");
       } else {
         // Create
-        await axios.post(`${API_URL}/api/create-fee`, formData);
+        await axios.post(`${API_URL}/api/create-fee`, formData, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
         toast.success("Fee created successfully.");
       }
 

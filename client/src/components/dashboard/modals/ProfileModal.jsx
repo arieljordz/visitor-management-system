@@ -2,11 +2,11 @@ import React from "react";
 import { Modal } from "react-bootstrap";
 
 const ProfileModal = ({ show, onClose, user }) => {
-  const formattedRole = user.role
-    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+  const formattedRole = user?.role
+    ? user?.role.charAt(0).toUpperCase() + user?.role.slice(1)
     : "N/A";
 
-  const profilePicture = user.picture || "https://via.placeholder.com/100";
+  const profilePicture = user?.picture || "https://via.placeholder.com/100";
   // Format dateAdded (March 22, 2025)
   const formattedDate = new Intl.DateTimeFormat("en-US", {
     year: "numeric",

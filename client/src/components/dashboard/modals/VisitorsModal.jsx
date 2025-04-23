@@ -24,7 +24,11 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
 
   const fetchClassifications = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/get-classifications`);
+      const res = await axios.get(`${API_URL}/api/get-classifications`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       setClassifications(res.data.data || []);
     } catch (err) {
       console.error("Error fetching classifications:", err);
@@ -40,7 +44,7 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
       noOfVisitors: "",
       visitDate: "",
       purpose: "",
-      classification: "", 
+      classification: "",
     });
   };
 
@@ -63,14 +67,20 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
     };
 
     try {
-      await axios.post(`${API_URL}/api/create-visitor`, dataToSubmit);
+      await axios.post(`${API_URL}/api/create-visitor`, dataToSubmit, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       toast.success("Visitor saved successfully");
       refreshList();
       onHide();
     } catch (error) {
       console.error("Error saving visitor:", error);
-      if (error.status === 409){
-        toast.warning("The visitor is already registered, with an active QR code currently assigned.");
+      if (error.status === 409) {
+        toast.warning(
+          "The visitor is already registered, with an active QR code currently assigned."
+        );
       }
     }
   };

@@ -26,7 +26,12 @@ function PaymentHistory({ user, setUser }) {
     setLoading(true);
     try {
       const res = await axios.get(
-        `${API_URL}/api/get-payment-details/${user.userId}`
+        `${API_URL}/api/get-payment-details/${user.userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
       );
       // console.log("Fetched Transactions:", res);
       const fetchedData = res.data.data || [];

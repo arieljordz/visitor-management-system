@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 
@@ -58,39 +59,42 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
-  // Log the incoming data
   console.log("Received data:", req.body);
 
   try {
-    // Find the user by email
     const user = await User.findOne({ email });
 
-    // If no user found, return an error
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Compare the password with the hashed password in the database
     const isMatch = await bcrypt.compare(password, user.password);
 
-    // If the password doesn't match, return an error
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Generate a JWT token
-    const token = jwt.sign({ userId: user._id }, "your_jwt_secret_key", {
-      expiresIn: "1h",
-    });
+    // Generate a unique session token
+    const newSessionToken = uuidv4();
+    user.sessionToken = newSessionToken;
+    await user.save();
 
-    // Return the token, email, and userId to the client
+    // Sign JWT with the session token
+    const token = jwt.sign(
+      { userId: user._id, sessionToken: newSessionToken },
+      "your_jwt_secret_key",
+      { expiresIn: "1h" }
+    );
+
     res.json({
       token,
       email: user.email,
       name: user.name,
       picture: user.picture,
-      role: user.role,
       userId: user._id,
+      role: user.role,
+      address: user.address,
+      sessionToken: user.sessionToken,
     });
   } catch (error) {
     console.error(error);
@@ -101,13 +105,12 @@ export const login = async (req, res) => {
 export const googleLogin = async (req, res) => {
   const { email, password, name, picture, role, address } = req.body;
 
-  console.log("googleLogin data:", req.body);
   try {
-    // Check if the user already exists in the database
     let user = await User.findOne({ email });
 
+    const newSessionToken = uuidv4(); // generate unique session token
+
     if (!user) {
-      // If user does not exist, create a new one
       user = new User({
         email,
         password,
@@ -115,18 +118,21 @@ export const googleLogin = async (req, res) => {
         picture,
         role,
         address,
+        sessionToken: newSessionToken,
       });
-
-      // Save the new user to the database
-      await user.save();
+    } else {
+      // Invalidate previous sessions by updating sessionToken
+      user.sessionToken = newSessionToken;
     }
 
-    // If the user exists or is newly created, generate a JWT token
-    const token = jwt.sign({ userId: user._id }, "your_jwt_secret_key", {
-      expiresIn: "1h",
-    });
+    await user.save();
 
-    // Return the token and user info to the frontend
+    const token = jwt.sign(
+      { userId: user._id, sessionToken: newSessionToken },
+      "your_jwt_secret_key",
+      { expiresIn: "1h" }
+    );
+
     res.json({
       token,
       name: user.name,
@@ -135,10 +141,21 @@ export const googleLogin = async (req, res) => {
       userId: user._id,
       role: user.role,
       address: user.address,
+      sessionToken: user.sessionToken,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    await User.findByIdAndUpdate(userId, { sessionToken: null });
+    res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Logout failed" });
   }
 };
 

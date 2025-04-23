@@ -53,10 +53,10 @@ const Login = ({ user, setUser, setLoading }) => {
         role: res.data.role,
       };
 
-      localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(res.data));
+      setUser(res.data);
       setMessage("Login successful");
-      navigateByRole(userData.role);
+      navigateByRole(res.data.role);
     } catch (error) {
       setMessage("Login failed");
       setLoading(false);
@@ -95,7 +95,8 @@ const Login = ({ user, setUser, setLoading }) => {
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
       setMessage("Registration successful");
-      navigateByRole(userData.role);
+      // navigateByRole(userData.role);
+      setIsRegistering(false);
     } catch (error) {
       const msg = error.response?.data?.message || "Registration failed";
       setMessage(msg);

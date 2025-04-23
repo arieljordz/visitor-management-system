@@ -1,10 +1,7 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { ThemeContext } from "../../context/ThemeContext";
 import DisplayBalance from "./DisplayBalance";
-import axios from "axios";
 import Notifications from "./Notifications";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
 
 const Navbar = ({ user, setUser }) => {
   const { darkMode, toggleTheme } = useContext(ThemeContext);

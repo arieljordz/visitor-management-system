@@ -8,6 +8,7 @@ const UserSchema = new mongoose.Schema(
     picture: { type: String, required: false },
     role: { type: String, default: "client" },
     address: { type: String, required: true },
+    sessionToken: { type: String, default: null },    
   },
   { timestamps: true }
 );

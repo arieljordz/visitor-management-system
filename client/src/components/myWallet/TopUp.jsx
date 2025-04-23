@@ -20,29 +20,34 @@ const TopUp = ({
   // Handle top-up request
   const handleTopUp = async () => {
     const amount = parseFloat(topUpAmount);
-  
+
     if (!amount || amount <= 0 || !proof) {
       toast.warning("Please enter a valid top-up amount and upload proof.");
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("topUpAmount", amount.toFixed(2));
     formData.append("paymentMethod", paymentMethod);
     formData.append("proof", proof);
-  
+
     setIsLoading(true);
-  
+
     try {
       const res = await axios.post(
         `${API_URL}/api/top-up/${user.userId}`,
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
       );
-  
+
       setTopUpAmount("");
       setProof(null);
-  
+
       toast.success("Top-up submitted. Awaiting admin verification.");
     } catch (error) {
       console.error("Top-up error:", error);
@@ -53,7 +58,6 @@ const TopUp = ({
       setIsLoading(false);
     }
   };
-  
 
   // Payment method details for the selected method
   const selectedPaymentMethod = paymentMethods.find(
@@ -74,7 +78,6 @@ const TopUp = ({
             <option value="paymaya">PayMaya</option>
             <option value="bank">Bank Transfer</option>
           </Form.Select>
-
         </Col>
 
         {/* Top-up Amount Input */}

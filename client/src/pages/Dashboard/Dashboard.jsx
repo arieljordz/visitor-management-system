@@ -11,7 +11,6 @@ import VisitorsTable from "../../components/dashboard/tables/VisitorsTable";
 import VisitorsModal from "../../components/dashboard/modals/VisitorsModal";
 import DisplayQRCode from "../../components/dashboard/DisplayQRCode";
 import QRCodeModal from "../../components/dashboard/modals/QRCodeModal";
-import DisplayBalance from "../../components/common/DisplayBalance";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
@@ -55,7 +54,12 @@ const Dashboard = ({ user, setUser }) => {
     setTableLoading(true);
     try {
       const res = await axios.get(
-        `${API_URL}/api/get-visitor-by-user/${user.userId}`
+        `${API_URL}/api/get-visitor-by-user/${user.userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
       );
       // console.log("Fecth visitors", res.data);
       setVisitors(res.data?.data || []);
@@ -80,7 +84,12 @@ const Dashboard = ({ user, setUser }) => {
   const checkActiveQR = async (visitorId) => {
     try {
       const res = await fetch(
-        `${API_URL}/api/check-active-qr/${user.userId}/${visitorId}`
+        `${API_URL}/api/check-active-qr/${user.userId}/${visitorId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
       );
       const data = await res.json();
 
@@ -101,7 +110,12 @@ const Dashboard = ({ user, setUser }) => {
     try {
       const response = await fetch(
         `${API_URL}/api/generate-qr/${user.userId}/${visitorId}`,
-        { method: "POST" }
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
       );
 
       const data = await response.json();
@@ -124,7 +138,10 @@ const Dashboard = ({ user, setUser }) => {
     try {
       const res = await fetch(`${API_URL}/api/submit-payment`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
         body: JSON.stringify({ userId: user.userId, visitorId: visitorId }),
       });
 
@@ -224,7 +241,12 @@ const Dashboard = ({ user, setUser }) => {
     setIsFetching(true);
     try {
       const { data } = await axios.get(
-        `${API_URL}/api/check-balance/${user.userId}`
+        `${API_URL}/api/check-balance/${user.userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
       );
       // console.log("data:", data);
       const parsedBalance = parseFloat(data?.balance);

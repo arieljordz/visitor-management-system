@@ -22,7 +22,11 @@ const MyWallet = ({ user, setUser }) => {
 
   const fetchPaymentMethods = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/get-payment-methods`);
+      const response = await axios.get(`${API_URL}/api/get-payment-methods`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       setPaymentMethods(response.data.data);
     } catch (error) {
       toast.error("Failed to load payment methods.");

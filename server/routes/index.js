@@ -62,7 +62,8 @@ import {
   markAsRead,
   markAsReadById,
 } from "../controllers/notificationController.js";
-import upload from "../middlewares/upload.js";
+import upload from "../middlewares/uploadMiddleware.js";
+import authenticate from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -79,58 +80,62 @@ router.delete("/delete-user/:id", deleteUser);
 router.post("/login", loginUser);
 
 // QRCode Routes
-router.post("/generate-qr/:userId/:visitorId", generateQRCode);
-router.post("/scan", scanQRCode);
-router.get("/get-generated-qr", getGeneratedQRCodes);
-router.get("/get-generated-qr/:userId", getGeneratedQRCodesById);
-router.get("/check-active-qr/:userId/:visitorId", checkActiveQRCodeById);
+router.post("/generate-qr/:userId/:visitorId", authenticate, generateQRCode);
+router.post("/scan", authenticate, scanQRCode);
+router.get("/get-generated-qr", authenticate, getGeneratedQRCodes);
+router.get("/get-generated-qr/:userId", authenticate, getGeneratedQRCodesById);
+router.get(
+  "/check-active-qr/:userId/:visitorId",
+  authenticate,
+  checkActiveQRCodeById
+);
 
 // Balance Routes
-router.get("/check-balance/:userId", getBalance);
-router.post("/top-up/:userId", upload.single("proof"), topUp);
+router.get("/check-balance/:userId", authenticate, getBalance);
+router.post("/top-up/:userId", authenticate, upload.single("proof"), topUp);
 
 // PaymentMethod Routes
-router.post("/create-payment-method", createPaymentMethod);
-router.get("/get-payment-methods", getPaymentMethods);
-router.get("/get-payment-method/:id", getPaymentMethodById);
-router.delete("/delete-payment-method/:id", deletePaymentMethod);
-router.put("/update-payment-method/:id", updatePaymentMethod);
+router.post("/create-payment-method", authenticate, createPaymentMethod);
+router.get("/get-payment-methods", authenticate, getPaymentMethods);
+router.get("/get-payment-method/:id", authenticate, getPaymentMethodById);
+router.delete("/delete-payment-method/:id", authenticate, deletePaymentMethod);
+router.put("/update-payment-method/:id", authenticate, updatePaymentMethod);
 
 // PaymentDetail Routes
-router.post("/submit-payment", processPayment);
-router.get("/get-payment-details", getPaymentDetails);
-router.get("/get-payment-details/:userId", getPaymentDetailsById);
-router.get("/get-payment-proofs", getPaymentProofs);
-router.delete("/delete-payment-proofs", deletePaymentProofs); 
-router.put("/update-verification/:id", updateVerificationStatus);
+router.post("/submit-payment", authenticate, processPayment);
+router.get("/get-payment-details", authenticate, getPaymentDetails);
+router.get("/get-payment-details/:userId", authenticate, getPaymentDetailsById);
+router.get("/get-payment-proofs", authenticate, getPaymentProofs);
+router.delete("/delete-payment-proofs", authenticate, deletePaymentProofs);
+router.put("/update-verification/:id", authenticate, updateVerificationStatus);
 
 // Classification Routes
-router.post("/create-classification", addClassification);
-router.get("/get-classifications", getClassifications);
-router.get("/get-classification/:id", getClassificationById);
-router.delete("/delete-classification/:id", deleteClassification);
-router.put("/update-classification/:id", updateClassification);
+router.post("/create-classification", authenticate, addClassification);
+router.get("/get-classifications", authenticate, getClassifications);
+router.get("/get-classification/:id", authenticate, getClassificationById);
+router.delete("/delete-classification/:id", authenticate, deleteClassification);
+router.put("/update-classification/:id", authenticate, updateClassification);
 
 // Visitor Routes
-router.post("/create-visitor", createVisitor);
-router.get("/get-visitors", getAllVisitors);
-router.get("/get-visitor/:id", getVisitorById);
-router.get("/get-visitor-by-user/:userId", getVisitorByUserId);
-router.delete("/delete-visitor/:id", deleteVisitorById);
-router.put("/update-visitor/:id", updateVisitorById);
+router.post("/create-visitor", authenticate, createVisitor);
+router.get("/get-visitors", authenticate, getAllVisitors);
+router.get("/get-visitor/:id", authenticate, getVisitorById);
+router.get("/get-visitor-by-user/:userId", authenticate, getVisitorByUserId);
+router.delete("/delete-visitor/:id", authenticate, deleteVisitorById);
+router.put("/update-visitor/:id", authenticate, updateVisitorById);
 
 // Fee Routes
-router.post("/create-fee", createFee);
-router.get("/get-fees", getFees);
-router.get("/get-fee/:id", getFeeById);
-router.put("/update-fee/:id", updateFee);
-router.delete("/delete-fee/:id", deleteFee);
+router.post("/create-fee", authenticate, createFee);
+router.get("/get-fees", authenticate, getFees);
+router.get("/get-fee/:id", authenticate, getFeeById);
+router.put("/update-fee/:id", authenticate, updateFee);
+router.delete("/delete-fee/:id", authenticate, deleteFee);
 
 // Notification Routes
-router.post("/create-notification", createNotification);
-router.get("/get-notifications", getNotifications);
-router.get("/get-notifications/:userId", getNotificationsById);
-router.put("/mark-as-read", markAsRead);
-router.put("/mark-as-read/:userId", markAsReadById);
+router.post("/create-notification", authenticate, createNotification);
+router.get("/get-notifications", authenticate, getNotifications);
+router.get("/get-notifications/:userId", authenticate, getNotificationsById);
+router.put("/mark-as-read", authenticate, markAsRead);
+router.put("/mark-as-read/:userId", authenticate, markAsReadById);
 
 export default router;

@@ -32,7 +32,11 @@ function FMPaymentMethod({ user, setUser }) {
   const fetchPaymentMethod = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-payment-methods`);
+      const res = await axios.get(`${API_URL}/api/get-payment-methods`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       // console.log("Fetch payment-method:", res.data.data);
       setPaymentMethod(res.data.data || []);
     } catch (err) {
@@ -44,7 +48,11 @@ function FMPaymentMethod({ user, setUser }) {
 
   const handleEdit = async (id) => {
     try {
-      const res = await axios.get(`${API_URL}/api/get-payment-method/${id}`);
+      const res = await axios.get(`${API_URL}/api/get-payment-method/${id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       setSelectedRow(res.data.data);
       setShowModal(true);
     } catch (err) {
@@ -64,7 +72,11 @@ function FMPaymentMethod({ user, setUser }) {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${API_URL}/api/delete-payment-method/${id}`);
+        await axios.delete(`${API_URL}/api/delete-payment-method/${id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
         toast.success("Payment method deleted.");
         fetchPaymentMethod();
       } catch (err) {

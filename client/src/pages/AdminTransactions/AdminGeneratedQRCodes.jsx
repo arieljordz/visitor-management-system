@@ -31,7 +31,11 @@ function AdminGeneratedQRCodes({ user, setUser }) {
   const fetchQRCodes = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/get-generated-qr`);
+      const res = await axios.get(`${API_URL}/api/get-generated-qr`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
       // console.log("Fetched qRCodes:", res);
       const fetchedData = res.data.data || [];
       setQRCodes(fetchedData);

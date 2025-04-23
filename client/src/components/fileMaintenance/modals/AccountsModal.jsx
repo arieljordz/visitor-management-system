@@ -41,12 +41,21 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
         // Update
         await axios.put(
           `${API_URL}/api/update-user/${selectedRow._id}`,
-          formData
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
         );
         toast.success("User updated successfully.");
       } else {
         // Create
-        await axios.post(`${API_URL}/api/create-user`, formData);
+        await axios.post(`${API_URL}/api/create-user`, formData, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
         toast.success("User created successfully.");
       }
 

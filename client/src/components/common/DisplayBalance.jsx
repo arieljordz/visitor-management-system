@@ -13,7 +13,12 @@ const DisplayBalance = ({ user }) => {
     setIsFetching(true);
     try {
       const { data } = await axios.get(
-        `${API_URL}/api/check-balance/${user.userId}`
+        `${API_URL}/api/check-balance/${user.userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
       );
       const parsedBalance = parseFloat(data?.balance);
       const safeBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;
