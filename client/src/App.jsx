@@ -8,7 +8,7 @@ import Navbar from "./components/common/Navbar";
 import Sidebar from "./components/common/Sidebar";
 import Footer from "./components/common/Footer";
 import Spinner from "./components/common/Spinner";
-
+import socket from "./utils/socket";
 import Login from "./pages/Login/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import PaymentHistory from "./pages/Transactions/PaymentHistory";
@@ -36,10 +36,37 @@ const App = () => {
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
+
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      const parsedUser = JSON.parse(savedUser);
+
+      if (parsedUser?.userId && parsedUser?.role) {
+        // Emit 'join' event with userId and role
+        socket.emit("join", {
+          userId: parsedUser.userId,
+          role: parsedUser.role,
+        });
+
+        console.log(
+          "✅ Joined socket room:",
+          parsedUser.userId,
+          parsedUser.role
+        );
+      }
+
+      setUser(parsedUser);
     }
     setLoadingUser(false);
+
+    // Listen for real-time notifications
+    socket.on("notification", (message) => {
+      console.log("🔔 New notification:", message);
+      // Handle the message, e.g., show a toast or update state
+    });
+
+    return () => {
+      socket.off("notification"); // Clean up the listener when the component unmounts
+    };
   }, []);
 
   if (loadingUser) {
@@ -79,7 +106,7 @@ const AuthenticatedLayout = ({ user, setUser, loading }) => {
   const navigate = useNavigate();
 
   if (loading) {
-    return <Spinner />; 
+    return <Spinner />;
   }
 
   const authenticatedRoutes = (

@@ -62,6 +62,10 @@ function AdminGeneratedQRCodes({ user, setUser }) {
       txn.paymentMethod,
       new Date(txn.paymentDate).toLocaleString(),
       txn.status,
+      txn.visitorId?.firstName,
+      txn.visitorId?.lastName,
+      txn.visitorId?.groupName,
+      txn.visitorId?.purpose,
     ];
     return values.some((val) =>
       val?.toLowerCase().includes(searchTerm.toLowerCase())

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import User from "../models/User.js";
 import PaymentDetail from "../models/PaymentDetail.js";
 import Balance from "../models/Balance.js";
 import Fee from "../models/Fee.js";
@@ -220,18 +221,20 @@ export const updateVerificationStatus = async (req, res) => {
 
     await payment.save();
 
-    const message = `₱${payment.amount} has been successfully added to your wallet after top-up verification.`;
+    // 🔍 Get user's name for admin notification
+    const user = await User.findById(payment.userId).lean();
+    const userName = user ? `${user.name.split(" ")[0]}` : "A user";
 
-    // Create and save the notification
-    const newNotification = await createNotification(
-      payment.userId,
-      "Verification",
-      "Payment",
-      message
-    );
+    const clientMessage = `₱${payment.amount} has been successfully added to your wallet after top-up verification.`;
+    const adminMessage = `Top-up of ₱${payment.amount} for ${userName} has been verified and added to the wallet.`;
 
-    // Emit the notification to the client
-    emitNotification(req.app.get("io"), payment.userId, message);
+    // Create notification for client
+    await createNotification(payment.userId, "Top-up", "Payment", clientMessage, "client");
+    emitNotification(req.app.get("io"), payment.userId, clientMessage);
+
+    // Create and emit notification for admin
+    await createNotification(payment.userId, "Top-up", "Payment", adminMessage, "admin");
+    emitNotification(req.app.get("io"), "admin", adminMessage);
 
     return res.status(200).json({
       message: `Payment ${verificationStatus} successfully.`,

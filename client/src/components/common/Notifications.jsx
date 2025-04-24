@@ -41,7 +41,7 @@ const Notifications = ({ user }) => {
     return () => {
       socket.off("new-notification", handleNewNotification);
     };
-  }, []);
+  }, [user]);
 
   // Handle new notifications from Socket.IO
   const handleNewNotification = (data) => {
@@ -52,16 +52,10 @@ const Notifications = ({ user }) => {
       read: false,
     };
 
+    console.log("🔔 Received new notification:", data);
     // Add the new notification to the top of the list
-    if (user.role === "admin") {
-      console.log("data admin:", data);
-      setNotifications((prev) => [notification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
-    } else {
-      console.log("data client:", data);
-      setNotifications((prev) => [notification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
-    }
+    setNotifications((prev) => [notification, ...prev]);
+    setUnreadCount((prev) => prev + 1);
   };
 
   // Count unread notifications
@@ -98,7 +92,7 @@ const Notifications = ({ user }) => {
         }))
       );
     } catch (error) {
-      console.error("Error marking notifications as read:", error);
+      // console.error("Error marking notifications as read:", error);
     }
   };
 
@@ -145,9 +139,7 @@ const Notifications = ({ user }) => {
                       fontSize: "0.875rem",
                     }}
                   >
-                    {user.role === "admin"
-                      ? n.message.replace(/^You/, n.userId?.name.split(" ")[0])
-                      : n.message}
+                    {n.message}
                   </span>
                 </div>
                 <span className="text-muted text-sm ml-2 d-none d-md-inline">

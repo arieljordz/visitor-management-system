@@ -37,7 +37,7 @@ app.use(
   cors({
     origin: "*", // You can update this to a more restrictive origin in production
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"], 
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true, // if you’re using cookies/sessions
   })
 );
@@ -58,6 +58,16 @@ app.use((req, res, next) => {
 // --- Socket.IO Connection Logic ---
 io.on("connection", (socket) => {
   console.log(`🟢 New socket connection: ${socket.id}`);
+
+  socket.on("join", ({ userId, role }) => {
+    socket.join(userId);
+    if (role === "admin") {
+      socket.join("admin");
+    } 
+    console.log(
+      `${role} joined room: ${userId}${role === "admin" ? " and admin" : ""}`
+    );
+  });
 
   socket.on("disconnect", () => {
     console.log(`🔴 Socket disconnected: ${socket.id}`);

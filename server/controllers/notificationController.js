@@ -28,7 +28,7 @@ export const createNotification = async (req, res) => {
 export const getNotificationsById = async (req, res) => {
   const { userId } = req.params;
   try {
-    const notifications = await Notification.find({ userId })
+    const notifications = await Notification.find({ userId, role: "client" })
       .populate("userId", "name email")
       .sort({ dateCreated: -1 })
       .limit(5);
@@ -43,7 +43,7 @@ export const getNotificationsById = async (req, res) => {
 // Get all notifications (with user populated)
 export const getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ transaction: "Top-up" })
+    const notifications = await Notification.find({ role: "admin" })
       .populate("userId", "name email")
       .sort({ dateCreated: -1 })
       .limit(5);

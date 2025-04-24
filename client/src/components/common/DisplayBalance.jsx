@@ -39,7 +39,7 @@ const DisplayBalance = ({ user }) => {
     return () => {
       socket.off("balance-updated", handleBalanceUpdate);
     };
-  }, []);
+  }, [user]);
 
   return (
     <>

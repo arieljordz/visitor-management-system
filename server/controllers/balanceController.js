@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import path from "path";
+import User from "../models/User.js";
 import Balance from "../models/Balance.js";
 import PaymentDetail from "../models/PaymentDetail.js";
 import {
@@ -31,26 +32,19 @@ export const topUp = async (req, res) => {
   const { userId } = req.params;
   const { topUpAmount, paymentMethod } = req.body;
 
-  console.log("Top-up request received for:", userId, req.body);
-
-  // Step 1: Validate top-up amount
   const parsedAmount = parseFloat(topUpAmount);
   if (isNaN(parsedAmount) || parsedAmount <= 0) {
-    return res
-      .status(400)
-      .json({ message: "The top-up amount must be a valid, positive number." });
+    return res.status(400).json({
+      message: "The top-up amount must be a valid, positive number.",
+    });
   }
 
   try {
-    // Step 2: Ensure valid user ObjectId
     const userObjectId = new mongoose.Types.ObjectId(userId);
-
-    // Step 3: Handle file upload (proof of payment)
     const proofOfPaymentPath = req.file
       ? path.join("uploads", req.file.filename)
       : null;
 
-    // Step 4: Create and save the payment transaction
     const transaction = new PaymentDetail({
       userId: userObjectId,
       visitorId: null,
@@ -64,27 +58,23 @@ export const topUp = async (req, res) => {
       completedDate: null,
     });
 
-    // Save the transaction to the database
     await transaction.save();
-    console.log(
-      "Transaction recorded (awaiting admin verification):",
-      transaction._id
-    );
 
-    const message = `You have requested a top-up of ₱${parsedAmount} using ${transaction.paymentMethod}. Awaiting verification.`;
+    // 🔍 Get user's name for admin notification
+    const user = await User.findById(userObjectId).lean();
+    const userName = user ? `${user.name.split(" ")[0]}` : "A user";
 
-    // Create and save the notification
-    const newNotification = await createNotification(
-      userId,
-      "Top-up",
-      "Payment",
-      message
-    );
+    const clientMessage = `You have requested a top-up of ₱${parsedAmount} using ${transaction.paymentMethod}. Awaiting verification.`;
+    const adminMessage = `${userName} has requested a top-up of ₱${parsedAmount} using ${transaction.paymentMethod}. Verify now.`;
 
-    // Emit the notification to the client
-    emitNotification(req.app.get("io"), userId, message);
+    // Create notification for client
+    await createNotification(userId, "Top-up", "Payment", clientMessage, "client");
+    emitNotification(req.app.get("io"), userId, clientMessage);
 
-    // Step 7: Respond with a success message
+    // Create and emit notification for admin
+    await createNotification(userId, "Top-up", "Payment", adminMessage, "admin");
+    emitNotification(req.app.get("io"), "admin", adminMessage);
+
     return res.status(200).json({
       message:
         "Top-up request submitted successfully. Please await admin verification.",
@@ -98,3 +88,4 @@ export const topUp = async (req, res) => {
     });
   }
 };
+

@@ -56,6 +56,9 @@ function AdminPaymentHistory({ user, setUser }) {
       txn.paymentMethod,
       new Date(txn.paymentDate).toLocaleString(),
       txn.status,
+      txn.visitorId?.firstName,
+      txn.visitorId?.lastName,
+      txn.visitorId?.groupName,
     ];
     return values.some((val) =>
       val?.toLowerCase().includes(searchTerm.toLowerCase())
