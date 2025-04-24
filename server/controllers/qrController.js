@@ -53,7 +53,9 @@ export const generateQRCode = async (req, res) => {
 
 export const scanQRCode = async (req, res) => {
   try {
-    const { qrData } = req.body;
+    const { qrData } = req.params; 
+
+    console.log("Received QR Data:", req.params.qrData);
 
     if (!qrData) {
       return res.status(400).json({ message: "QR data is required." });
@@ -67,9 +69,7 @@ export const scanQRCode = async (req, res) => {
     }
 
     if (qrCodeDoc.status === "used") {
-      return res
-        .status(400)
-        .json({ message: "QR code has already been used." });
+      return res.status(400).json({ message: "QR code has already been used." });
     }
 
     if (qrCodeDoc.status === "expired") {

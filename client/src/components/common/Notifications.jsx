@@ -16,13 +16,13 @@ const Notifications = ({ user }) => {
     try {
       let data = [];
 
-      if (user.role === "admin") {
+      if (user?.role === "admin") {
         data = await getNotifications();
       } else {
         data = await getNotificationsById(user.userId);
       }
 
-      console.log("response:", data);
+      // console.log("response:", data);
       setNotifications(data);
       countUnreadNotifications(data);
     } catch (error) {

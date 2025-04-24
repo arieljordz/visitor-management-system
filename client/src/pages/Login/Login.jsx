@@ -33,7 +33,13 @@ const Login = ({ user, setUser, setLoading }) => {
   const navigateByRole = (role) => {
     setTimeout(() => {
       setLoading(false);
-      role === "admin" ? navigate("/admin/dashboard") : navigate("/dashboard");
+      if (role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (role === "staff") {
+        navigate("/staff/scan-qr");
+      } else {
+        navigate("/dashboard");
+      }
     }, 800);
   };
 

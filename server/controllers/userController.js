@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import { logAudit } from "../utils/auditLogger.js";
 
 // User registration handler
 export const register = async (req, res) => {
@@ -86,6 +87,14 @@ export const login = async (req, res) => {
       { expiresIn: "1h" }
     );
 
+    // ✅ Log successful login
+    await logAudit({
+      userId: user._id,
+      action: "LOGIN",
+      ipAddress: req.ip,
+      details: { method: "local", email },
+    });
+
     res.json({
       token,
       email: user.email,
@@ -132,6 +141,14 @@ export const googleLogin = async (req, res) => {
       "your_jwt_secret_key",
       { expiresIn: "1h" }
     );
+
+    // ✅ Log Google login
+    await logAudit({
+      userId: user._id,
+      action: "GOOGLE_LOGIN",
+      ipAddress: req.ip,
+      details: { method: "google", email },
+    });
 
     res.json({
       token,

@@ -77,7 +77,7 @@ function Verifications({ user, setUser }) {
         toast.success(`Payment ${verificationStatus} successfully.`);
         fetchProofs(); // Refresh payment list
       } catch (err) {
-        toast.error(`Payment ${verificationStatus} failed.`);
+        toast.error(err.response.data.message);
         console.error(err);
       }
     }

@@ -172,7 +172,7 @@ const Sidebar = ({ user, setUser }) => {
       "fas fa-qrcode",
       [],
       "staff-scan",
-      "/staff/scan"
+      "/staff/scan-qr"
     ),
     renderNavItem("Logout", "fas fa-sign-out-alt", [], "staff-logout", "/"),
   ];

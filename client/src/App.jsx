@@ -23,6 +23,7 @@ import FMPaymentMethod from "./pages/FileMaintenance/FMPaymentMethod";
 import FMClassification from "./pages/FileMaintenance/FMClassification";
 import FMFees from "./pages/FileMaintenance/FMFees";
 import FMAccounts from "./pages/FileMaintenance/FMAccounts";
+import ScanQR from "./pages/ScanQR/ScanQR";
 import "./App.css";
 
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
@@ -162,6 +163,10 @@ const AuthenticatedLayout = ({ user, setUser, loading }) => {
       <Route
         path="/admin/file-maintenance/accounts"
         element={<FMAccounts user={user} setUser={setUser} />}
+      />
+      <Route
+        path="/staff/scan-qr"
+        element={<ScanQR user={user} setUser={setUser} />}
       />
     </Routes>
   );
