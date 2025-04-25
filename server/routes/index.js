@@ -1,8 +1,8 @@
 import express from "express";
 import {
-  register,
   login,
   googleLogin,
+  logout,
   createUser,
   getUsers,
   getUserById,
@@ -73,11 +73,10 @@ import auditMiddleware from "../middlewares/auditMiddleware.js";
 const router = express.Router();
 
 // User Routes
-router.post("/register", register);
-router.post("/login", login);
-router.post("/google-login", googleLogin);
-
-router.post("/create-user", createUser);
+router.post("/login-user", auditMiddleware("LOGIN_USER"), login);
+router.post("/google-login-user", auditMiddleware("GOOGLE_LOGIN_USER"), googleLogin);
+router.put("/logout-user", authenticate, auditMiddleware("LOGOUT_USER"), logout);
+router.post("/create-user", auditMiddleware("REGISTER_USER"), createUser);
 router.get("/get-users", authenticate, getUsers);
 router.get("/get-user/:id", authenticate, getUserById);
 router.put("/update-user/:id", authenticate, auditMiddleware("UPDATE_USER"), updateUser);
@@ -88,11 +87,7 @@ router.post("/generate-qr/:userId/:visitorId", authenticate, auditMiddleware("GE
 router.get("/scan-qr/:qrData", authenticate, auditMiddleware("SCAN_QR_CODE"), scanQRCode);
 router.get("/get-generated-qr", authenticate, getGeneratedQRCodes);
 router.get("/get-generated-qr/:userId", authenticate, getGeneratedQRCodesById);
-router.get(
-  "/check-active-qr/:userId/:visitorId",
-  authenticate,
-  checkActiveQRCodeById
-);
+router.get("/check-active-qr/:userId/:visitorId", authenticate, checkActiveQRCodeById);
 
 // Balance Routes
 router.get("/check-balance/:userId", authenticate, getBalance);

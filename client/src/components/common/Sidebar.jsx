@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate, useLocation } from "react-router-dom";
 import ProfileModal from "../dashboard/modals/ProfileModal";
+import { logout } from "../../services/userService.js";
 
 const Sidebar = ({ user, setUser }) => {
   const [showModal, setShowModal] = useState(false);
@@ -16,24 +17,32 @@ const Sidebar = ({ user, setUser }) => {
     setOpenMenus((prev) => ({ ...prev, [menu]: !prev[menu] }));
   };
 
-  const handleClick = (path) => {
+  const handleClick = async (path) => {
     if (path === "/") {
-      Swal.fire({
-        title: "Are you sure?",
-        text: "You will be logged out!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, logout!",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          localStorage.removeItem("user");
-          setUser(null);
-          navigate(path);
-        }
-      });
+      const isConfirmed = await showLogoutConfirmation();
+      if (isConfirmed) {
+        await handleLogout();
+        navigate(path);
+      }
     } else {
       navigate(path);
     }
+  };
+  
+  const showLogoutConfirmation = () => {
+    return Swal.fire({
+      title: "Are you sure?",
+      text: "You will be logged out!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, logout!",
+    }).then((result) => result.isConfirmed);
+  };
+  
+  const handleLogout = async () => {
+    await logout();
+    setUser(null);
+    localStorage.removeItem("user");
   };
 
   const renderNavItem = (label, icon, submenu = [], key, path) => {

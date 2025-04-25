@@ -61,7 +61,7 @@ const Dashboard = ({ user, setUser }) => {
       // console.log("Fecth visitors", data);
       setVisitors(data);
     } catch (err) {
-      console.error("Failed to fetch visitor:", err);
+      // console.error("Failed to fetch visitor:", err);
     } finally {
       setTableLoading(false);
     }

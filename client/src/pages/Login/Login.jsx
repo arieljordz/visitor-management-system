@@ -46,7 +46,7 @@ const Login = ({ user, setUser, setLoading }) => {
   const login = async () => {
     try {
       setLoading(true);
-      const res = await axios.post(`${API_URL}/api/login`, {
+      const res = await axios.post(`${API_URL}/api/login-user`, {
         email: username,
         password,
       });
@@ -128,7 +128,7 @@ const Login = ({ user, setUser, setLoading }) => {
         address: "N/A",
       };
 
-      const res = await axios.post(`${API_URL}/api/google-login`, userData);
+      const res = await axios.post(`${API_URL}/api/google-login-user`, userData);
 
       localStorage.setItem("user", JSON.stringify(res.data));
       setUser(res.data);

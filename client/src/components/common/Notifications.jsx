@@ -19,14 +19,14 @@ const Notifications = ({ user }) => {
       if (user?.role === "admin") {
         data = await getNotifications();
       } else {
-        data = await getNotificationsById(user.userId);
+        data = await getNotificationsById(user?.userId);
       }
 
       // console.log("response:", data);
       setNotifications(data);
       countUnreadNotifications(data);
     } catch (error) {
-      console.error("Error fetching notifications:", error);
+      // console.error("Error fetching notifications:", error);
     }
   };
   // Fetch notifications when the component mounts or when user changes

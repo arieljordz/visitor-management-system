@@ -1,110 +1,34 @@
-import jwt from "jsonwebtoken";
-import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
+import { v4 as uuidv4 } from "uuid";
 import User from "../models/User.js";
-import { logAudit } from "../utils/auditLogger.js";
+import Session from "../models/Session.js";
+import {
+  generateJWT,
+  createSession,
+  buildResponse,
+} from "../utils/authUtils.js";
 
-// User registration handler
-export const register = async (req, res) => {
-  const { email, password, name, picture, role, address } = req.body;
-
-  // Log the incoming data
-  console.log("Received data:", req.body);
-
-  try {
-    // Validate input
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
-
-    // Prepare user data
-    const userData = {
-      email,
-      password: await bcrypt.hash(password, 10), // Hash password
-      name: name || null,
-      picture: picture || null,
-      role: role || "client", // Default to "client" if not provided
-      address: address || null,
-    };
-
-    // Create and save the new user
-    const newUser = new User(userData);
-    await newUser.save();
-
-    // Return success response
-    return res.status(201).json({
-      message: "Registration successful",
-      email: newUser.email,
-      name: newUser.name,
-      picture: newUser.picture,
-      userId: newUser._id,
-      role: newUser.role,
-      address: newUser.address,
-    });
-  } catch (error) {
-    console.error("Error during registration:", error);
-    return res
-      .status(500)
-      .json({ message: "Server error, please try again later" });
-  }
-};
-
+// User handler
 export const login = async (req, res) => {
   const { email, password } = req.body;
-
-  console.log("Received data:", req.body);
-
   try {
     const user = await User.findOne({ email });
-
-    if (!user) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    // Generate a unique session token
-    const newSessionToken = uuidv4();
-    user.sessionToken = newSessionToken;
+    const sessionToken = uuidv4();
+    user.sessionToken = sessionToken;
     await user.save();
 
-    // Sign JWT with the session token
-    const token = jwt.sign(
-      { userId: user._id, sessionToken: newSessionToken },
-      "your_jwt_secret_key",
-      { expiresIn: "1h" }
-    );
+    // Exclude only the password
+    const { password: _, ...safeUser } = user.toObject();
+    req.user = safeUser;
 
-    // ✅ Log successful login
-    await logAudit({
-      userId: user._id,
-      action: "LOGIN",
-      ipAddress: req.ip,
-      details: { method: "local", email },
-    });
+    const token = generateJWT(user._id, sessionToken);
+    await createSession(user, req, sessionToken, "local");
 
-    res.json({
-      token,
-      email: user.email,
-      name: user.name,
-      picture: user.picture,
-      userId: user._id,
-      role: user.role,
-      address: user.address,
-      sessionToken: user.sessionToken,
-    });
+    res.json(buildResponse(user, token));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -116,50 +40,33 @@ export const googleLogin = async (req, res) => {
 
   try {
     let user = await User.findOne({ email });
-
-    const newSessionToken = uuidv4(); // generate unique session token
+    const sessionToken = uuidv4();
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     if (!user) {
       user = new User({
         email,
-        password,
+        password: hashedPassword,
         name,
         picture,
         role,
         address,
-        sessionToken: newSessionToken,
+        sessionToken,
       });
     } else {
-      // Invalidate previous sessions by updating sessionToken
-      user.sessionToken = newSessionToken;
+      user.sessionToken = sessionToken;
     }
 
     await user.save();
 
-    const token = jwt.sign(
-      { userId: user._id, sessionToken: newSessionToken },
-      "your_jwt_secret_key",
-      { expiresIn: "1h" }
-    );
+    // Exclude only the password
+    const { password: _, ...safeUser } = user.toObject();
+    req.user = safeUser;
 
-    // ✅ Log Google login
-    await logAudit({
-      userId: user._id,
-      action: "GOOGLE_LOGIN",
-      ipAddress: req.ip,
-      details: { method: "google", email },
-    });
+    const token = generateJWT(user._id, sessionToken);
+    await createSession(user, req, sessionToken, "google");
 
-    res.json({
-      token,
-      name: user.name,
-      email: user.email,
-      picture: user.picture,
-      userId: user._id,
-      role: user.role,
-      address: user.address,
-      sessionToken: user.sessionToken,
-    });
+    res.json(buildResponse(user, token));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -168,10 +75,21 @@ export const googleLogin = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user._id; 
+    const sessionToken = req.user.sessionToken;
+
+    // 1. Clear sessionToken in user record
     await User.findByIdAndUpdate(userId, { sessionToken: null });
+
+    // 2. Deactivate current session
+    await Session.updateOne(
+      { userId, sessionToken, isActive: true },
+      { $set: { isActive: false } }
+    );
+
     res.json({ message: "Logged out successfully" });
   } catch (error) {
+    console.error("Logout error:", error);
     res.status(500).json({ message: "Logout failed" });
   }
 };
@@ -189,19 +107,20 @@ export const createUser = async (req, res) => {
     } = req.body;
 
     console.log("Create user:", req.body);
-    // Check if user exists
+
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
-    console.log("existingUser:", existingUser);
     if (existingUser) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
+    // Use provided password or fallback to default
     const passwordToUse = rawPassword || "DefaultPass";
 
     // Hash password
     const hashedPassword = await bcrypt.hash(passwordToUse, 10);
 
-    // Create new user
+    // Create and save user
     const newUser = new User({
       email,
       password: hashedPassword,
@@ -212,9 +131,14 @@ export const createUser = async (req, res) => {
     });
 
     const savedUser = await newUser.save();
+
+    // Exclude password
+    const { password, ...safeUser } = savedUser.toObject();
+    req.user = safeUser;
+
     res.status(201).json({
       message: "User created successfully",
-      data: savedUser,
+      data: safeUser,
     });
   } catch (err) {
     console.error("Create User Error:", err);
