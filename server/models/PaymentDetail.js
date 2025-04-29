@@ -35,10 +35,18 @@ const paymentDetailsSchema = new mongoose.Schema(
       type: String, // URL or path to the uploaded proof image
       required: false,
     },
+    referenceNumber: {
+      type: String, 
+      required: false,
+    },
     verificationStatus: {
       type: String,
       enum: ["pending", "verified", "declined"],
       default: "pending",
+    },
+    reason: {
+      type: String, 
+      required: false,
     },
     paymentDate: {
       type: Date,

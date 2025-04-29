@@ -221,7 +221,7 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
 
         <Modal.Footer>
           <Button variant="secondary" onClick={onHide}>
-            Close
+            Cancel
           </Button>
           <Button variant="primary" type="submit">
             Submit

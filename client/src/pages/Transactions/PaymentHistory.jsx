@@ -59,6 +59,7 @@ function PaymentHistory({ user, setUser }) {
       txn.visitorId?.firstName,
       txn.visitorId?.lastName,
       txn.visitorId?.groupName,
+      txn.userId?.name
     ];
     return values.some((val) =>
       val?.toLowerCase().includes(searchTerm.toLowerCase())

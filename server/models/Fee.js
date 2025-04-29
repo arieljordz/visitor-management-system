@@ -11,9 +11,10 @@ const FeeSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    active: {
-      type: Boolean,
-      required: true,
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
     },
   },
   { timestamps: true }

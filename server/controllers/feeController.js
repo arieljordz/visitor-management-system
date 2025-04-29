@@ -3,13 +3,13 @@ import Fee from "../models/Fee.js";
 // Create a new fee
 export const createFee = async (req, res) => {
   try {
-    const { description, fee, active } = req.body;
+    const { description, fee, status } = req.body;
 
-    if (!description || active === undefined) {
-      return res.status(400).json({ message: "Description and active status are required." });
+    if (!description || !["active", "inactive"].includes(status)) {
+      return res.status(400).json({ message: "Description and valid status are required." });
     }
 
-    const newFee = new Fee({ description, fee, active });
+    const newFee = new Fee({ description, fee, status });
     const savedFee = await newFee.save();
 
     res.status(201).json({ message: "Fee created successfully", data: savedFee });
@@ -48,15 +48,15 @@ export const getFeeById = async (req, res) => {
 export const updateFee = async (req, res) => {
   try {
     const { id } = req.params;
-    const { description, fee, active } = req.body;
+    const { description, fee, status } = req.body;
 
-    if (!description || active === undefined) {
-      return res.status(400).json({ message: "Description and active status are required." });
+    if (!description || !["active", "inactive"].includes(status)) {
+      return res.status(400).json({ message: "Description and valid status are required." });
     }
 
     const updatedFee = await Fee.findByIdAndUpdate(
       id,
-      { description, fee, active },
+      { description, fee, status },
       { new: true, runValidators: true }
     );
 
@@ -85,12 +85,12 @@ export const deleteFee = async (req, res) => {
   }
 };
 
-// Active Generate QR Fee
+// Get active "Generate QR" fee
 export const getActiveGenerateQRFee = async (req, res) => {
   try {
     const fee = await Fee.findOne({
       description: { $regex: /generate qr fee/i },
-      active: true,
+      status: "active",
     });
 
     if (!fee) {

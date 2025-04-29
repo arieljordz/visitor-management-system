@@ -7,6 +7,7 @@ const ClassificationTable = ({
   currentData,
   handleEdit,
   handleDelete,
+  getBadgeClass,
 }) => {
   return loading ? (
     <div className="text-center my-4">
@@ -21,6 +22,7 @@ const ClassificationTable = ({
             <th className="text-center">ClassificationID</th>
             <th className="text-center">Description</th>
             <th className="text-center">Date Created</th>
+            <th className="text-center">Status</th>
             <th className="text-center">Action</th>
           </tr>
         </thead>
@@ -37,6 +39,11 @@ const ClassificationTable = ({
                   {row.createdAt
                     ? new Date(row.createdAt).toLocaleString()
                     : "—"}
+                </td>
+                <td className="text-center">
+                  <span className={`badge bg-${getBadgeClass(row.status)}`}>
+                    {row.status}
+                  </span>
                 </td>
                 <td className="text-center">
                   <div className="d-flex justify-content-center">
@@ -64,7 +71,7 @@ const ClassificationTable = ({
             ))
           ) : (
             <tr>
-              <td colSpan="5" className={`text-center text-muted`}>
+              <td colSpan="6" className={`text-center text-muted`}>
                 No records found.
               </td>
             </tr>

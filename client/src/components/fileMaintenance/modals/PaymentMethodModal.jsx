@@ -7,51 +7,53 @@ import {
 } from "../../../services/paymentMethodService.js";
 
 const PaymentMethodModal = ({ show, onHide, selectedRow, refreshList }) => {
-  const initialFormData = {
-    method: "",
-    accountName: "",
-    accountNumber: "",
-    bankName: "",
-  };
-
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState({
+    description: "",
+    status: "active",
+  });
 
   useEffect(() => {
     if (selectedRow) {
       setFormData({
-        method: selectedRow.method || "",
-        accountName: selectedRow.accountName || "",
-        accountNumber: selectedRow.accountNumber || "",
-        bankName: selectedRow.bankName || "",
+        description: selectedRow.description || "",
+        status: selectedRow.status || "active",
       });
     } else {
-      setFormData(initialFormData);
+      resetForm();
     }
   }, [selectedRow]);
 
+  const resetForm = () => {
+    setFormData({
+      description: "",
+      status: "active",
+    });
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? (checked ? "active" : "inactive") : value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const isUpdate = Boolean(selectedRow?._id);
-    const successMessage = isUpdate
-      ? "Payment method updated successfully."
-      : "Payment method created successfully.";
 
     try {
       if (isUpdate) {
         await updatePaymentMethod(selectedRow._id, formData);
+         toast.success("Payment method updated successfully.");
       } else {
         await createPaymentMethod(formData);
+         toast.success("Payment method created successfully.");
       }
 
-      toast.success(successMessage);
       refreshList();
       onHide();
+      resetForm();
     } catch (error) {
       console.error("Submit error:", error);
       toast.error("Error saving payment method.");
@@ -66,68 +68,41 @@ const PaymentMethodModal = ({ show, onHide, selectedRow, refreshList }) => {
 
       <Form onSubmit={handleSubmit}>
         <Modal.Body>
-          <Row>
-            <Col md={12}>
-              <Form.Group className="mb-3">
-                <Form.Label>Method</Form.Label>
-                <Form.Select
-                  name="method"
-                  value={formData.method}
-                  onChange={handleChange}
-                  className="form-control"
-                  required
-                >
-                  <option value="">-- Select Method --</option>
-                  <option value="GCash">GCash</option>
-                  <option value="PayMaya">PayMaya</option>
-                  <option value="Bank">Bank</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-
-            <Col md={12}>
-              <Form.Group className="mb-3">
-                <Form.Label>Account Name</Form.Label>
+          <Row className="g-3">
+            <Col md={12} className="mb-2">
+              <Form.Group>
+                <Form.Label>Description</Form.Label>
                 <Form.Control
                   type="text"
-                  name="accountName"
-                  value={formData.accountName}
+                  name="description"
+                  value={formData.description}
                   onChange={handleChange}
-                  placeholder="Enter account name"
+                  placeholder="Enter description"
                   required
                 />
               </Form.Group>
             </Col>
 
             <Col md={12}>
-              <Form.Group className="mb-3">
-                <Form.Label>Account Number</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="accountNumber"
-                  value={formData.accountNumber}
-                  onChange={handleChange}
-                  placeholder="Enter account number"
-                  required
-                />
-              </Form.Group>
-            </Col>
-
-            {formData.method === "Bank" && (
-              <Col md={12}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Bank Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="bankName"
-                    value={formData.bankName}
+              <div className="form-group">
+                <div className="custom-control custom-switch">
+                  <input
+                    type="checkbox"
+                    className="custom-control-input"
+                    id="payment-status-switch"
+                    name="status"
+                    checked={formData.status === "active"}
                     onChange={handleChange}
-                    placeholder="Enter bank name"
-                    required
                   />
-                </Form.Group>
-              </Col>
-            )}
+                  <label
+                    className="custom-control-label"
+                    htmlFor="payment-status-switch"
+                  >
+                    {formData.status === "active" ? "Active" : "Inactive"}
+                  </label>
+                </div>
+              </div>
+            </Col>
           </Row>
         </Modal.Body>
 

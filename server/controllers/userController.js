@@ -7,43 +7,53 @@ import {
   createSession,
   buildResponse,
 } from "../utils/authUtils.js";
+import { sendEmail } from "../utils/mailer.js";
 
 // User handler
 export const login = async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (
+      !user ||
+      !user.password ||
+      !(await bcrypt.compare(password, user.password))
+    ) {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    if (user.status !== "active") {
+      return res.status(403).json({ message: "Account is inactive" });
     }
 
     const sessionToken = uuidv4();
     user.sessionToken = sessionToken;
     await user.save();
 
-    // Exclude only the password
     const { password: _, ...safeUser } = user.toObject();
-    req.user = safeUser;
-
     const token = generateJWT(user._id, sessionToken);
     await createSession(user, req, sessionToken, "local");
 
-    res.json(buildResponse(user, token));
+    res.json(buildResponse(safeUser, token));
   } catch (error) {
-    console.error(error);
+    console.error("Login Error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
 export const googleLogin = async (req, res) => {
-  const { email, password, name, picture, role, address } = req.body;
+  const { email, password, name, picture, role = "client", address } = req.body;
 
   try {
     let user = await User.findOne({ email });
     const sessionToken = uuidv4();
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = password
+      ? await bcrypt.hash(password, 10)
+      : undefined;
 
-    if (!user) {
+    const isNewUser = !user;
+
+    if (isNewUser) {
       user = new User({
         email,
         password: hashedPassword,
@@ -51,6 +61,8 @@ export const googleLogin = async (req, res) => {
         picture,
         role,
         address,
+        verified: false,
+        status: "active",
         sessionToken,
       });
     } else {
@@ -58,30 +70,74 @@ export const googleLogin = async (req, res) => {
     }
 
     await user.save();
-
-    // Exclude only the password
     const { password: _, ...safeUser } = user.toObject();
-    req.user = safeUser;
-
     const token = generateJWT(user._id, sessionToken);
-    await createSession(user, req, sessionToken, "google");
 
-    res.json(buildResponse(user, token));
+    // Send verification email if new or not yet verified
+    if (isNewUser || !user.verified) {
+      const verificationUrl = `${process.env.BASE_API_URL}/api/google-login-verify-user?email=${encodeURIComponent(
+        email
+      )}`;
+
+      const subject = "Verify Your Email";
+      const message = `
+        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+          <p>Hello ${name},</p>
+          <p>Please verify your email address by clicking the link below:</p>
+          <p>
+            <a href="${verificationUrl}" style="color: #1a73e8; text-decoration: underline;" target="_blank" rel="noopener noreferrer">
+              Verify Email
+            </a>
+          </p>
+          <p>Or copy and paste the link into your browser:</p>
+          <p style="word-break: break-all;">${verificationUrl}</p>
+          <p>If you did not request this, please ignore this email.</p>
+        </div>
+      `;
+
+      await sendEmail({
+        to: email,
+        subject,
+        html: message,
+      });
+    } else {
+      await createSession(user, req, sessionToken, "google");
+    }
+
+    console.log("safeUser:", safeUser);
+    res.json(buildResponse(safeUser, token));
   } catch (error) {
-    console.error(error);
+    console.error("Google Login Error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const verifyEmail = async (req, res) => {
+  const { email } = req.query;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(404).send("User not found.");
+    if (user.verified) return res.redirect(`${process.env.BASE_URL}/api/email-verified`);
+
+    user.verified = true;
+    await user.save();
+
+    // Redirect to frontend after successful verification
+    res.redirect(`${process.env.BASE_URL}/api/email-verified`);
+  } catch (error) {
+    console.error("Email Verification Error:", error);
+    res.status(500).send("Server error.");
   }
 };
 
 export const logout = async (req, res) => {
   try {
-    const userId = req.user._id; 
+    const userId = req.user._id;
     const sessionToken = req.user.sessionToken;
 
-    // 1. Clear sessionToken in user record
     await User.findByIdAndUpdate(userId, { sessionToken: null });
-
-    // 2. Deactivate current session
     await Session.updateOne(
       { userId, sessionToken, isActive: true },
       { $set: { isActive: false } }
@@ -89,7 +145,7 @@ export const logout = async (req, res) => {
 
     res.json({ message: "Logged out successfully" });
   } catch (error) {
-    console.error("Logout error:", error);
+    console.error("Logout Error:", error);
     res.status(500).json({ message: "Logout failed" });
   }
 };
@@ -104,23 +160,18 @@ export const createUser = async (req, res) => {
       picture,
       role,
       address,
+      verified,
+      status,
     } = req.body;
 
-    console.log("Create user:", req.body);
-
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    // Use provided password or fallback to default
-    const passwordToUse = rawPassword || "DefaultPass";
+    const password = rawPassword || "DefaultPass123!";
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(passwordToUse, 10);
-
-    // Create and save user
     const newUser = new User({
       email,
       password: hashedPassword,
@@ -128,31 +179,28 @@ export const createUser = async (req, res) => {
       picture,
       role,
       address,
+      verified,
+      status: status || "active",
     });
 
     const savedUser = await newUser.save();
+    const { password: _, ...safeUser } = savedUser.toObject();
 
-    // Exclude password
-    const { password, ...safeUser } = savedUser.toObject();
-    req.user = safeUser;
-
-    res.status(201).json({
-      message: "User created successfully",
-      data: safeUser,
-    });
+    res
+      .status(201)
+      .json({ message: "User created successfully", data: safeUser });
   } catch (err) {
     console.error("Create User Error:", err);
-    res.status(500).json({
-      message: "Failed to create user",
-      error: err.message,
-    });
+    res
+      .status(500)
+      .json({ message: "Failed to create user", error: err.message });
   }
 };
 
 // Get all users
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.find().sort({ createdAt: -1 });
+    const users = await User.find({}, "-password").sort({ createdAt: -1 });
     res.status(200).json({ data: users });
   } catch (err) {
     console.error("Get Users Error:", err);
@@ -162,13 +210,41 @@ export const getUsers = async (req, res) => {
   }
 };
 
+// Get all active users by Status
+export const getActiveUsers = async (req, res) => {
+  try {
+    const users = await User.find({ status: "active" }).select("-password");
+    res.status(200).json({ data: users });
+  } catch (error) {
+    console.error("Get Active Users Error:", error);
+    res.status(500).json({
+      message: "Failed to retrieve active users",
+      error: error.message,
+    });
+  }
+};
+
+// Get all active users BySession
+export const getActiveUsersBySession = async (req, res) => {
+  try {
+    const activeUsers = await User.find({ sessionToken: { $ne: null } }).select(
+      "-password"
+    );
+    res.status(200).json({ data: activeUsers });
+  } catch (error) {
+    console.error("Get Active Users Error:", error);
+    res.status(500).json({
+      message: "Failed to retrieve active users",
+      error: error.message,
+    });
+  }
+};
+
 // Get a user by ID
 export const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
     res.status(200).json({ data: user });
   } catch (err) {
     console.error("Get User by ID Error:", err);
@@ -181,13 +257,21 @@ export const getUserById = async (req, res) => {
 // Update a user
 export const updateUser = async (req, res) => {
   try {
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
+    const updates = { ...req.body };
+
+    // Only hash password if it's being changed
+    if (updates.password) {
+      updates.password = await bcrypt.hash(updates.password, 10);
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, updates, {
       new: true,
       runValidators: true,
-    });
-    if (!updatedUser) {
+    }).select("-password");
+
+    if (!updatedUser)
       return res.status(404).json({ message: "User not found" });
-    }
+
     res
       .status(200)
       .json({ message: "User updated successfully", data: updatedUser });
@@ -203,9 +287,9 @@ export const updateUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const deletedUser = await User.findByIdAndDelete(req.params.id);
-    if (!deletedUser) {
+    if (!deletedUser)
       return res.status(404).json({ message: "User not found" });
-    }
+
     res.status(200).json({ message: "User deleted successfully" });
   } catch (err) {
     console.error("Delete User Error:", err);

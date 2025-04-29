@@ -1,54 +1,50 @@
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col } from "react-bootstrap";
-import { toast } from "react-toastify";
-import TopUp from "../../components/myWallet/TopUp";
 import Navpath from "../../components/common/Navpath";
-import { getPaymentMethods } from "../../services/paymentMethodService.js";
+import TopUp from "../../components/myWallet/TopUp";
+import { getActivePaymentAccounts } from "../../services/paymentAccountService";
 
 const MyWallet = ({ user, setUser }) => {
-  // State variables for wallet details
-  const [balance, setBalance] = useState(0.0);
+  const [balance, setBalance] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("gcash");
-  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [paymentAccounts, setPaymentAccounts] = useState([]);
   const [proof, setProof] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch payment methods on component mount
   useEffect(() => {
-    fetchPaymentMethods();
-  }, [user]);
+    const fetchPaymentAccounts = async () => {
+      try {
+        const data = await getActivePaymentAccounts();
+        console.log("PaymentAccounts:", data);
+        setPaymentAccounts(data);
+      } catch (error) {
+        console.error("Error fetching payment accounts:", error.message);
+      }
+    };
 
-  const fetchPaymentMethods = async () => {
-    try {
-      const data = await getPaymentMethods();
-      setPaymentMethods(data);
-    } catch (error) {
-      console.error(error.message);
-    }
-  };
+    if (user) fetchPaymentAccounts();
+  }, [user]);
 
   return (
     <div className="content-wrapper">
-      {/* Content Header */}
       <Navpath levelOne="My Wallet" levelTwo="Home" levelThree="My Wallet" />
 
-      {/* Main Content */}
       <section className="content">
         <div className="container-fluid">
           <Row className="justify-content-center">
             <Col md={8} lg={12}>
-              {/* Card with conditional dark mode styling */}
               <Card>
                 <Card.Body className="main-card">
                   <TopUp
                     user={user}
                     paymentMethod={paymentMethod}
                     setPaymentMethod={setPaymentMethod}
-                    paymentMethods={paymentMethods}
+                    paymentAccounts={paymentAccounts}
                     proof={proof}
                     setProof={setProof}
                     setBalance={setBalance}
                     isLoading={isLoading}
+                    setIsLoading={setIsLoading}
                   />
                 </Card.Body>
               </Card>

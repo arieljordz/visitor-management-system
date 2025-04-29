@@ -29,5 +29,6 @@ export const buildResponse = (user, token) => ({
   userId: user._id,
   role: user.role,
   address: user.address,
+  verified: user.verified,
   sessionToken: user.sessionToken,
 });

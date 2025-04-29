@@ -14,6 +14,7 @@ import AdminGeneratedQRCodes from "../pages/AdminTransactions/AdminGeneratedQRCo
 import Verifications from "../pages/Verifications/Verifications";
 import FMProofs from "../pages/FileMaintenance/FMProofs";
 import FMPaymentMethod from "../pages/FileMaintenance/FMPaymentMethod";
+import FMPaymentAccount from "../pages/FileMaintenance/FMPaymentAccount";
 import FMClassification from "../pages/FileMaintenance/FMClassification";
 import FMFees from "../pages/FileMaintenance/FMFees";
 import FMAccounts from "../pages/FileMaintenance/FMAccounts";
@@ -36,6 +37,7 @@ const MainRoutes = ({ user, setUser }) => (
     <Route path="/admin/verifications" element={<Verifications user={user} setUser={setUser} />} />
     <Route path="/admin/file-maintenance/proofs" element={<FMProofs user={user} setUser={setUser} />} />
     <Route path="/admin/file-maintenance/payment-methods" element={<FMPaymentMethod user={user} setUser={setUser} />} />
+    <Route path="/admin/file-maintenance/payment-accounts" element={<FMPaymentAccount user={user} setUser={setUser} />} />
     <Route path="/admin/file-maintenance/classifications" element={<FMClassification user={user} setUser={setUser} />} />
     <Route path="/admin/file-maintenance/fees" element={<FMFees user={user} setUser={setUser} />} />
     <Route path="/admin/file-maintenance/accounts" element={<FMAccounts user={user} setUser={setUser} />} />

@@ -18,6 +18,11 @@ export const getPaymentMethods = async () => {
   return response.data.data || [];
 };
 
+export const getActivePaymentMethods = async () => {
+  const response = await api.get("/api/get-active-payment-methods");
+  return response.data.data || [];
+};
+
 export const getPaymentMethodById = async (id) => {
   const response = await api.get(`/api/get-payment-method/${id}`);
   return response.data.data || [];

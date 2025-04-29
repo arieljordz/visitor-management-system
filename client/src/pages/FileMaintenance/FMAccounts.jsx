@@ -83,6 +83,17 @@ function FMAccounts({ user, setUser }) {
     setSelectedRow(null);
     setShowModal(false);
   };
+    
+  const getBadgeClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+        return "success";
+      case "inactive":
+        return "warning";
+      default:
+        return "dark";
+    }
+  };
 
   const filteredData = accounts.filter((obj) => {
     const values = [
@@ -91,6 +102,7 @@ function FMAccounts({ user, setUser }) {
       obj.name,
       obj.role,
       obj.address,
+      obj.status,
       new Date(obj.createdAt).toLocaleString(),
     ];
 
@@ -153,6 +165,7 @@ function FMAccounts({ user, setUser }) {
                       currentData={currentData}
                       handleEdit={handleEdit}
                       handleDelete={handleDelete}
+                      getBadgeClass={getBadgeClass}
                     />
 
                     <Paginations

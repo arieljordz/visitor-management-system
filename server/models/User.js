@@ -6,9 +6,19 @@ const UserSchema = new mongoose.Schema(
     password: { type: String, required: true },
     name: { type: String, required: false },
     picture: { type: String, required: false },
-    role: { type: String, default: "client" },
+    role: {
+      type: String,
+      enum: ["client", "admin", "staff"],
+      default: "client",
+    },
     address: { type: String, required: true },
-    sessionToken: { type: String, default: null },    
+    verified: { type: Boolean, required: true, default: false },
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
+    },
+    sessionToken: { type: String, default: null },
   },
   { timestamps: true }
 );

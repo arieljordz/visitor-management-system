@@ -7,6 +7,7 @@ const PaymentMethodTable = ({
   currentData,
   handleEdit,
   handleDelete,
+  getBadgeClass,
 }) => {
   return loading ? (
     <div className="text-center my-4">
@@ -18,12 +19,10 @@ const PaymentMethodTable = ({
         <thead>
           <tr>
             <th className="text-center">#</th>
-            <th className="text-center">Method ID</th>
+            <th className="text-center">ID</th>
             <th className="text-center">Payment Method</th>
-            <th className="text-center">Account Name</th>
-            <th className="text-center">Account No.</th>
-            <th className="text-center">Bank</th>
             <th className="text-center">Date Created</th>
+            <th className="text-center">Status</th>
             <th className="text-center">Action</th>
           </tr>
         </thead>
@@ -35,14 +34,16 @@ const PaymentMethodTable = ({
                 <td className="text-center">
                   {row._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">{row.method}</td>
-                <td className="text-center">{row.accountName}</td>
-                <td className="text-center">{row.accountNumber}</td>
-                <td className="text-center">{row.bankName || "—"}</td>
+                <td className="text-center">{row.description}</td>
                 <td className="text-center">
                   {row.createdAt
                     ? new Date(row.createdAt).toLocaleString()
                     : "—"}
+                </td>
+                <td className="text-center">
+                  <span className={`badge bg-${getBadgeClass(row.status)}`}>
+                    {row.status}
+                  </span>
                 </td>
                 <td className="text-center">
                   <div className="d-flex justify-content-center">
@@ -70,7 +71,7 @@ const PaymentMethodTable = ({
             ))
           ) : (
             <tr>
-              <td colSpan="8" className={`text-center text-muted`}>
+              <td colSpan="6" className={`text-center text-muted`}>
                 No records found.
               </td>
             </tr>

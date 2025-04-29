@@ -30,7 +30,7 @@ export const getBalance = async (req, res) => {
 
 export const topUp = async (req, res) => {
   const { userId } = req.params;
-  const { topUpAmount, paymentMethod } = req.body;
+  const { topUpAmount, paymentMethod, referenceNumber } = req.body;
 
   const parsedAmount = parseFloat(topUpAmount);
   if (isNaN(parsedAmount) || parsedAmount <= 0) {
@@ -52,6 +52,7 @@ export const topUp = async (req, res) => {
       paymentMethod: paymentMethod || "e-wallet",
       transaction: "credit",
       proofOfPayment: proofOfPaymentPath,
+      referenceNumber,
       isVerified: false,
       status: "pending",
       paymentDate: new Date(),

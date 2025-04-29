@@ -84,10 +84,31 @@ function FMFees({ user, setUser }) {
     setSelectedRow(null);
     setShowModal(false);
   };
+  
+  const getBadgeClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+        return "success";
+      case "inactive":
+        return "warning";
+      default:
+        return "dark";
+    }
+  };
 
-  const filteredData = fee.filter((obj) =>
-    obj.fee?.toString().toLowerCase().includes(searchTerm.toLowerCase().trim())
-  );
+  const filteredData = fee.filter((obj) => {
+    const values = [
+      obj._id?.slice(-6),
+      obj.description,
+      obj.fee,
+      obj.status,
+      new Date(obj.createdAt).toLocaleString(),
+    ];
+
+    return values.some((val) =>
+      val?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   const itemsPerPageValue =
     itemsPerPage === "All" ? filteredData.length : itemsPerPage;
@@ -145,6 +166,7 @@ function FMFees({ user, setUser }) {
                       currentData={currentData}
                       handleEdit={handleEdit}
                       handleDelete={handleDelete}
+                      getBadgeClass={getBadgeClass}
                     />
 
                     <Paginations

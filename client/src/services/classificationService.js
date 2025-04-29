@@ -14,7 +14,7 @@ export const updateClassification = async (userId, formData) => {
   return response;
 };
 
-export const addClassification = async (formData) => {
+export const createClassification = async (formData) => {
   const response = await api.post(`/api/create-classification`, formData);
 
   return response;

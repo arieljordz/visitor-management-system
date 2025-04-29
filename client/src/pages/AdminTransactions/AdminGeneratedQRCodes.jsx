@@ -66,6 +66,8 @@ function AdminGeneratedQRCodes({ user, setUser }) {
       txn.visitorId?.lastName,
       txn.visitorId?.groupName,
       txn.visitorId?.purpose,
+      txn.visitorId?.visitorType,
+      txn.userId?.name,
     ];
     return values.some((val) =>
       val?.toLowerCase().includes(searchTerm.toLowerCase())

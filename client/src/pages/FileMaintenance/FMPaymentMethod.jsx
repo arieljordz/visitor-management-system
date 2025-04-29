@@ -85,13 +85,23 @@ function FMPaymentMethod({ user, setUser }) {
     setShowModal(false);
   };
 
+    
+  const getBadgeClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+        return "success";
+      case "inactive":
+        return "warning";
+      default:
+        return "dark";
+    }
+  };
+
   const filteredData = paymentMethod.filter((obj) => {
     const values = [
       obj._id?.slice(-6),
-      obj.method,
-      obj.accountName,
-      obj.accountNumber,
-      obj.bankName,
+      obj.description,
+      obj.status,
       new Date(obj.createdAt).toLocaleString(),
     ];
 
@@ -154,6 +164,7 @@ function FMPaymentMethod({ user, setUser }) {
                       currentData={currentData}
                       handleEdit={handleEdit}
                       handleDelete={handleDelete}
+                      getBadgeClass={getBadgeClass}
                     />
 
                     <Paginations

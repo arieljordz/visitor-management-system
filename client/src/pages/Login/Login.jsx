@@ -26,19 +26,24 @@ const Login = ({ user, setUser, setLoading }) => {
     password: "",
     confirmPassword: "",
     address: "",
+    verified: true,
   });
 
   const navigate = useNavigate();
 
-  const navigateByRole = (role) => {
+  const navigateByRole = (data) => {
     setTimeout(() => {
       setLoading(false);
-      if (role === "admin") {
-        navigate("/admin/dashboard");
-      } else if (role === "staff") {
-        navigate("/staff/scan-qr");
+      if (data.verified) {
+        if (data.role === "admin") {
+          navigate("/admin/dashboard");
+        } else if (data.role === "staff") {
+          navigate("/staff/scan-qr");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
-        navigate("/dashboard");
+        navigate("/");
       }
     }, 800);
   };
@@ -51,18 +56,10 @@ const Login = ({ user, setUser, setLoading }) => {
         password,
       });
 
-      const userData = {
-        userId: res.data.userId,
-        email: res.data.email,
-        name: res.data.name,
-        picture: res.data.picture,
-        role: res.data.role,
-      };
-
       localStorage.setItem("user", JSON.stringify(res.data));
       setUser(res.data);
       setMessage("Login successful");
-      navigateByRole(res.data.role);
+      navigateByRole(res.data);
     } catch (error) {
       setMessage("Login failed");
       setLoading(false);
@@ -85,6 +82,7 @@ const Login = ({ user, setUser, setLoading }) => {
         picture: null,
         role: "client",
         address: formData.address,
+        verified: true,
       });
 
       const { data } = res.data; // Your API returns `{ message, data }`
@@ -96,12 +94,14 @@ const Login = ({ user, setUser, setLoading }) => {
         picture: data.picture,
         role: data.role,
         address: data.address,
+        verified: data.verified,
       };
 
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
       setMessage("Registration successful");
-      // navigateByRole(userData.role);
+      // navigateByRole(userData);
+      setLoading(false);
       setIsRegistering(false);
     } catch (error) {
       const msg = error.response?.data?.message || "Registration failed";
@@ -128,12 +128,23 @@ const Login = ({ user, setUser, setLoading }) => {
         address: "N/A",
       };
 
-      const res = await axios.post(`${API_URL}/api/google-login-user`, userData);
+      const res = await axios.post(
+        `${API_URL}/api/google-login-user`,
+        userData
+      );
 
       localStorage.setItem("user", JSON.stringify(res.data));
       setUser(res.data);
-      setMessage("Google login successful");
-      navigateByRole(res.data.role);
+      console.log("user:", res.data);
+      if (res.data.verified) {
+        setMessage("Google login successful.");
+      } else {
+        setMessage(
+          "Google mail registration successful. Please verify it to your email."
+        );
+      }
+      navigateByRole(res.data);
+      setLoading(false);
     } catch (error) {
       setMessage("Google login failed");
       setLoading(false);

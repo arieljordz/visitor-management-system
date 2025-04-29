@@ -2,7 +2,13 @@ import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
-const AccountsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
+const AccountsTable = ({
+  loading,
+  currentData,
+  handleEdit,
+  handleDelete,
+  getBadgeClass,
+}) => {
   return loading ? (
     <div className="text-center my-4">
       <Spinner animation="border" />
@@ -18,6 +24,7 @@ const AccountsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
             <th className="text-center">Address</th>
             <th className="text-center">Role</th>
             <th className="text-center">Date Created</th>
+            <th className="text-center">Status</th>
             <th className="text-center">Action</th>
           </tr>
         </thead>
@@ -34,6 +41,11 @@ const AccountsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
                   {user.createdAt
                     ? new Date(user.createdAt).toLocaleString()
                     : "—"}
+                </td>
+                <td className="text-center">
+                  <span className={`badge bg-${getBadgeClass(user.status)}`}>
+                    {user.status}
+                  </span>
                 </td>
                 <td className="text-center">
                   <div className="d-flex justify-content-center">
@@ -61,7 +73,7 @@ const AccountsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
             ))
           ) : (
             <tr>
-              <td colSpan="7" className={`text-center text-muted`}>
+              <td colSpan="8" className={`text-center text-muted`}>
                 No records found.
               </td>
             </tr>

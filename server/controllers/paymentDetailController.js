@@ -23,7 +23,7 @@ export const processPayment = async (req, res) => {
   try {
     const feeDoc = await Fee.findOne({
       description: { $regex: /generate qr fee/i },
-      active: true,
+      status: "active",
     });
 
     if (!feeDoc) {
@@ -54,6 +54,7 @@ export const processPayment = async (req, res) => {
       transaction: "debit",
       status: "completed",
       proofOfPayment,
+      referenceNumber: null,
       verificationStatus: "verified",
       paymentDate: new Date(),
       completedDate: new Date(),
@@ -158,16 +159,120 @@ export const deletePaymentProofs = async (req, res) => {
 
 export const updateVerificationStatus = async (req, res) => {
   const { id } = req.params;
-  const { verificationStatus } = req.body;
+  const { verificationStatus, reason = "" } = req.body;
+
+  const io = req.app.get("io");
+
+  const allowedStatuses = ["verified", "declined"];
+  if (!allowedStatuses.includes(verificationStatus)) {
+    return res.status(400).json({ message: "Invalid verification status." });
+  }
 
   try {
-    // ✅ Validate verification status
-    const allowedStatuses = ["verified", "declined"];
-    if (!allowedStatuses.includes(verificationStatus)) {
-      return res.status(400).json({ message: "Invalid verification status." });
+    // 🔍 Find payment with credit transaction
+    const payment = await PaymentDetail.findOne({
+      _id: id,
+      transaction: "credit",
+    });
+    if (!payment) {
+      return res.status(404).json({
+        message: "Payment not found or not a credit transaction.",
+      });
     }
 
-    // 🔍 Find the payment
+    if (payment.verificationStatus !== "pending") {
+      return res.status(400).json({
+        message: "Payment has already been verified or declined.",
+      });
+    }
+
+    // ✏️ Update verification status and completion date
+    payment.verificationStatus = verificationStatus;
+    payment.completedDate = new Date();
+
+    if (verificationStatus === "verified") {
+      // ✅ Mark payment as completed
+      payment.status = "completed";
+
+      // 💰 Update or create user balance
+      let userBalance = await Balance.findOne({ userId: payment.userId });
+      if (!userBalance) {
+        userBalance = new Balance({
+          userId: payment.userId,
+          balance: payment.amount,
+        });
+      } else {
+        userBalance.balance += payment.amount;
+      }
+
+      await userBalance.save();
+
+      // 🔔 Emit new balance
+      io.emit("balance-updated", {
+        userId: payment.userId,
+        newBalance: userBalance.balance,
+      });
+    }
+
+    if (verificationStatus === "declined") {
+      // ❌ Mark payment as cancelled and store reason
+      payment.status = "cancelled";
+      payment.reason = reason || "No reason provided.";
+    }
+
+    await payment.save();
+
+    // 🧑 Fetch user's first name
+    const user = await User.findById(payment.userId).lean();
+    const userName = user?.name?.split(" ")[0] || "A user";
+
+    // ✉️ Compose notification messages
+    const clientMessage =
+      verificationStatus === "verified"
+        ? `₱${payment.amount} has been successfully added to your wallet after top-up verification.`
+        : `Your top-up of ₱${payment.amount} was declined. Reason: ${payment.reason}`;
+
+    const adminMessage =
+      verificationStatus === "verified"
+        ? `Top-up of ₱${payment.amount} for ${userName} has been verified and added to the wallet.`
+        : `Top-up of ₱${payment.amount} for ${userName} was declined. Reason: ${payment.reason}`;
+
+    // 🔔 Send notifications
+    await createNotification(
+      payment.userId,
+      "Top-up",
+      "Payment",
+      clientMessage,
+      "client"
+    );
+    emitNotification(io, payment.userId, clientMessage);
+
+    await createNotification(
+      payment.userId,
+      "Top-up",
+      "Payment",
+      adminMessage,
+      "admin"
+    );
+    emitNotification(io, "admin", adminMessage);
+
+    return res.status(200).json({
+      message: `Payment ${verificationStatus} successfully.`,
+      data: payment,
+    });
+  } catch (error) {
+    console.error("Error updating verification status:", error);
+    return res.status(500).json({
+      message: "Server error while updating payment status.",
+      error: error.message,
+    });
+  }
+};
+
+export const verifyPayment = async (req, res) => {
+  const { id } = req.params;
+
+  try {
     const payment = await PaymentDetail.findOne({
       _id: id,
       transaction: "credit",
@@ -185,66 +290,119 @@ export const updateVerificationStatus = async (req, res) => {
         .json({ message: "Payment has already been verified or declined." });
     }
 
-    // 🕐 Update verification status and completion time
-    payment.verificationStatus = verificationStatus;
+    // Update status
+    payment.verificationStatus = "verified";
+    payment.status = "completed";
     payment.completedDate = new Date();
 
-    // 💰 If verified, credit the user’s balance
-    if (verificationStatus === "verified") {
-      payment.status = "completed";
-
-      let userBalance = await Balance.findOne({ userId: payment.userId });
-
-      if (!userBalance) {
-        userBalance = new Balance({
-          userId: payment.userId,
-          balance: payment.amount,
-        });
-      } else {
-        userBalance.balance += payment.amount;
-      }
-
-      await userBalance.save();
-
-      // 🔔 Emit updated balance to the user
-      const io = req.app.get("io");
-      io.emit("balance-updated", {
+    // Update user's balance
+    let userBalance = await Balance.findOne({ userId: payment.userId });
+    if (!userBalance) {
+      userBalance = new Balance({
         userId: payment.userId,
-        newBalance: userBalance.balance,
+        balance: payment.amount,
       });
+    } else {
+      userBalance.balance += payment.amount;
     }
+    await userBalance.save();
 
-    // ❌ If declined, mark payment as cancelled
-    if (verificationStatus === "declined") {
-      payment.status = "cancelled";
-    }
+    // Emit balance update
+    const io = req.app.get("io");
+    io.emit("balance-updated", {
+      userId: payment.userId,
+      newBalance: userBalance.balance,
+    });
 
     await payment.save();
 
-    // 🔍 Get user's name for admin notification
+    // Notify client and admin
     const user = await User.findById(payment.userId).lean();
     const userName = user ? `${user.name.split(" ")[0]}` : "A user";
-
     const clientMessage = `₱${payment.amount} has been successfully added to your wallet after top-up verification.`;
     const adminMessage = `Top-up of ₱${payment.amount} for ${userName} has been verified and added to the wallet.`;
 
-    // Create notification for client
-    await createNotification(payment.userId, "Top-up", "Payment", clientMessage, "client");
-    emitNotification(req.app.get("io"), payment.userId, clientMessage);
-
-    // Create and emit notification for admin
-    await createNotification(payment.userId, "Top-up", "Payment", adminMessage, "admin");
-    emitNotification(req.app.get("io"), "admin", adminMessage);
+    await createNotification(
+      payment.userId,
+      "Top-up",
+      "Payment",
+      clientMessage,
+      "client"
+    );
+    await createNotification(
+      payment.userId,
+      "Top-up",
+      "Payment",
+      adminMessage,
+      "admin"
+    );
+    emitNotification(io, payment.userId, clientMessage);
+    emitNotification(io, "admin", adminMessage);
 
     return res.status(200).json({
-      message: `Payment ${verificationStatus} successfully.`,
+      message: "Payment verified successfully.",
       data: payment,
     });
   } catch (error) {
-    console.error("Error updating verification status:", error);
-    return res.status(500).json({
-      message: "Server error while updating payment status.",
-      error: error.message,
+    console.error("Error verifying payment:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error.", error: error.message });
+  }
+};
+
+export const declinePayment = async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  try {
+    const payment = await PaymentDetail.findOne({
+      _id: id,
+      transaction: "credit",
     });
+
+    if (!payment) {
+      return res
+        .status(404)
+        .json({ message: "Payment not found or not a credit transaction." });
+    }
+
+    if (payment.verificationStatus !== "pending") {
+      return res
+        .status(400)
+        .json({ message: "Payment has already been verified or declined." });
+    }
+
+    // Update status
+    payment.verificationStatus = "declined";
+    payment.status = "cancelled";
+    payment.completedDate = new Date();
+    if (reason) payment.reason = reason;
+
+    await payment.save();
+
+    const clientMessage = `Your top-up of ₱${payment.amount} has been declined${
+      reason ? `: ${reason}` : "."
+    }`;
+    const io = req.app.get("io");
+
+    await createNotification(
+      payment.userId,
+      "Top-up",
+      "Payment",
+      clientMessage,
+      "client"
+    );
+    emitNotification(io, payment.userId, clientMessage);
+
+    return res.status(200).json({
+      message: "Payment declined successfully.",
+      data: payment,
+    });
+  } catch (error) {
+    console.error("Error declining payment:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error.", error: error.message });
   }
 };

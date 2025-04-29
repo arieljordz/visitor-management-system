@@ -1,30 +1,17 @@
+
 import mongoose from "mongoose";
 
 const PaymentMethodSchema = new mongoose.Schema(
   {
-    method: {
+    description: { type: String, required: true, unique: true },
+    status: {
       type: String,
-      enum: ["GCash", "PayMaya", "Bank"],
-      required: true,
-    },
-    accountName: {
-      type: String,
-      required: true,
-    },
-    accountNumber: {
-      type: String,
-      required: true,
-    },
-    bankName: {
-      type: String,
-      required: function () {
-        return this.method === "Bank";
-      },
+      enum: ["active", "inactive"],
+      default: "active",
     },
   },
   { timestamps: true }
 );
 
-const PaymentMethod = mongoose.model("PaymentMethod", PaymentMethodSchema);
+export default mongoose.model("PaymentMethod", PaymentMethodSchema);
 
-export default PaymentMethod;

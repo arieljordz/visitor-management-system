@@ -32,3 +32,8 @@ export const getBalance = async (userId) => {
   const response = await api.get(`/api/check-balance/${userId}`);
   return response.data.data || [];
 };
+
+export const getDashboardStats = async () => {
+  const response = await api.get("/api/get-dashboard-stats");
+  return response.data;
+};

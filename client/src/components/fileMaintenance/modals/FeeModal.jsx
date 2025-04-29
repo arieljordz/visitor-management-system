@@ -7,56 +7,58 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
   const [formData, setFormData] = useState({
     description: "",
     fee: 0,
-    active: true,
+    status: "active",
   });
 
   useEffect(() => {
     if (selectedRow) {
       setFormData({
-        description: selectedRow.description ?? "",
-        fee: selectedRow.fee ?? 0,
-        active: selectedRow.active ?? true,
+        description: selectedRow.description || "",
+        fee: selectedRow.fee || 0,
+        status: selectedRow.status || "active",
       });
     } else {
-      setFormData({
-        description: "",
-        fee: 0,
-        active: true,
-      });
+      resetForm();
     }
   }, [selectedRow]);
+
+  const resetForm = () => {
+    setFormData({
+      description: "",
+      fee: 0,
+      status: "active",
+    });
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? (checked ? "active" : "inactive") : value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const isUpdate = Boolean(selectedRow?._id);
-    const successMessage = isUpdate
-      ? "Fee updated successfully."
-      : "Fee created successfully.";
 
     try {
       if (isUpdate) {
         await updateFee(selectedRow._id, formData);
+        toast.success("Fee updated successfully.");
       } else {
         await createFee(formData);
+        toast.success("Fee created successfully.");
       }
-
-      toast.success(successMessage);
       refreshList();
       onHide();
+      resetForm();
     } catch (error) {
-      console.error("Submit error:", error);
-      toast.error("Error saving fee.");
+      console.error("Submit Error:", error);
+      toast.error("Failed to save fee. Please try again.");
     }
   };
+
   return (
     <Modal show={show} onHide={onHide} size="md" backdrop="static" centered>
       <Modal.Header closeButton>
@@ -65,14 +67,14 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
 
       <Form onSubmit={handleSubmit}>
         <Modal.Body>
-          <Row>
-            <Col md={12}>
-              <Form.Group className="mb-3">
+          <Row className="g-3">
+            <Col md={12} className="mb-2">
+              <Form.Group>
                 <Form.Label>Description</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Enter description"
                   name="description"
+                  placeholder="Enter description"
                   value={formData.description}
                   onChange={handleChange}
                   required
@@ -80,15 +82,15 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
               </Form.Group>
             </Col>
 
-            <Col md={12}>
-              <Form.Group className="mb-3">
-                <Form.Label>Amount Fee</Form.Label>
+            <Col md={12} className="mb-2">
+              <Form.Group>
+                <Form.Label>Fee Amount</Form.Label>
                 <Form.Control
                   type="number"
-                  step="0.01"
+                  name="fee"
                   placeholder="0.00"
                   min="0"
-                  name="fee"
+                  step="0.01"
                   value={formData.fee}
                   onChange={handleChange}
                   required
@@ -97,15 +99,24 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
             </Col>
 
             <Col md={12}>
-              <Form.Group className="mb-3">
-                <Form.Check
-                  type="checkbox"
-                  label="Active"
-                  name="active"
-                  checked={formData.active}
-                  onChange={handleChange}
-                />
-              </Form.Group>
+              <div className="form-group">
+                <div className="custom-control custom-switch">
+                  <input
+                    type="checkbox"
+                    className="custom-control-input"
+                    id="status-switch"
+                    name="status"
+                    checked={formData.status === "active"}
+                    onChange={handleChange}
+                  />
+                  <label
+                    className="custom-control-label"
+                    htmlFor="status-switch"
+                  >
+                    {formData.status === "active" ? "Active" : "Inactive"}
+                  </label>
+                </div>
+              </div>
             </Col>
           </Row>
         </Modal.Body>

@@ -164,6 +164,10 @@ const Sidebar = ({ user, setUser }) => {
           path: "/admin/file-maintenance/payment-methods",
         },
         {
+          label: "Payment Accounts",
+          path: "/admin/file-maintenance/payment-accounts",
+        },
+        {
           label: "Classifications",
           path: "/admin/file-maintenance/classifications",
         },

@@ -30,9 +30,14 @@ export const getPaymentProofs = async () => {
   return response.data.data || [];
 };
 
-export const updateVerificationStatus = async (id, verificationStatus) => {
-  const response = await api.put(`/api/update-verification/${id}`, {
-    verificationStatus,
-  });
+export const updateVerificationStatus = async (id, verificationStatus, reason = "") => {
+  const payload = { verificationStatus };
+
+  if (verificationStatus === "declined" && reason) {
+    payload.reason = reason;
+  }
+
+  const response = await api.put(`/api/update-verification/${id}`, payload);
   return response;
 };
+

@@ -3,12 +3,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import "./App.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import Spinner from "./components/common/Spinner";
 import Login from "./pages/Login/Login";
 import socket from "./utils/socket";
 import AuthenticatedLayout from "./layouts/AuthenticatedLayout";
+import VerifyEmail from "./pages/Login/VerifyEmail";
 
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
@@ -29,7 +30,11 @@ const App = () => {
             userId: parsedUser.userId,
             role: parsedUser.role,
           });
-          console.log("✅ Joined socket room:", parsedUser.userId, parsedUser.role);
+          console.log(
+            "✅ Joined socket room:",
+            parsedUser.userId,
+            parsedUser.role
+          );
         }
       };
 
@@ -57,6 +62,7 @@ const App = () => {
     <ThemeProvider>
       <GoogleOAuthProvider clientId={API_KEY}>
         <BrowserRouter>
+          {loading && <Spinner />}
           <Routes>
             <Route
               path="/"
@@ -64,6 +70,7 @@ const App = () => {
                 <Login user={user} setUser={setUser} setLoading={setLoading} />
               }
             />
+            <Route path="/api/email-verified" element={<VerifyEmail />} />
             <Route
               path="/*"
               element={

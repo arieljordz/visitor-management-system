@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import socket from "../../utils/socket";
 import {
   getNotifications,
@@ -10,8 +11,8 @@ import {
 const Notifications = ({ user }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const navigate = useNavigate();
 
-  // console.log("user:", user);
   const fetchNotifications = async () => {
     try {
       let data = [];
@@ -22,28 +23,23 @@ const Notifications = ({ user }) => {
         data = await getNotificationsById(user?.userId);
       }
 
-      // console.log("response:", data);
       setNotifications(data);
       countUnreadNotifications(data);
     } catch (error) {
       // console.error("Error fetching notifications:", error);
     }
   };
-  // Fetch notifications when the component mounts or when user changes
+
   useEffect(() => {
-    // Fetch notifications on mount and when the user changes
     fetchNotifications();
 
-    // Listen for new notifications via Socket.IO
     socket.on("new-notification", handleNewNotification);
 
-    // Clean up listener when component unmounts
     return () => {
       socket.off("new-notification", handleNewNotification);
     };
   }, [user]);
 
-  // Handle new notifications from Socket.IO
   const handleNewNotification = (data) => {
     const notification = {
       _id: Date.now(),
@@ -52,13 +48,10 @@ const Notifications = ({ user }) => {
       read: false,
     };
 
-    console.log("🔔 Received new notification:", data);
-    // Add the new notification to the top of the list
     setNotifications((prev) => [notification, ...prev]);
     setUnreadCount((prev) => prev + 1);
   };
 
-  // Count unread notifications
   const countUnreadNotifications = (notifications) => {
     const unread = notifications.filter((notification) =>
       user.role === "admin"
@@ -69,13 +62,11 @@ const Notifications = ({ user }) => {
     setUnreadCount(unread);
   };
 
-  // Handle opening the notification dropdown (mark as read)
   const handleOpenDropdown = () => {
     setUnreadCount(0);
     markAllAsRead();
   };
 
-  // Mark all notifications as read
   const markAllAsRead = async () => {
     try {
       if (user.role === "admin") {
@@ -93,6 +84,14 @@ const Notifications = ({ user }) => {
       );
     } catch (error) {
       // console.error("Error marking notifications as read:", error);
+    }
+  };
+
+  const handleNotificationClick = (message) => {
+    if (user.role === "admin" && message.toLowerCase().includes("top-up")) {
+      navigate("/admin/verifications");
+    } else {
+      navigate("/dashboard");
     }
   };
 
@@ -125,9 +124,10 @@ const Notifications = ({ user }) => {
         ) : (
           notifications.map((n) => (
             <div key={n._id} className="d-flex flex-column">
-              <a
-                href="#"
+              <button
                 className="dropdown-item d-flex justify-content-between align-items-start"
+                onClick={() => handleNotificationClick(n.message)}
+                style={{ border: "none", background: "none", textAlign: "left" }}
               >
                 <div className="d-flex align-items-start">
                   <i className="fas fa-wallet mr-2 text-success text-sm" />
@@ -149,7 +149,7 @@ const Notifications = ({ user }) => {
                     hour12: true,
                   })}
                 </span>
-              </a>
+              </button>
               <div className="dropdown-divider" />
             </div>
           ))

@@ -21,11 +21,12 @@ const VerificationsTable = ({
             <th className="text-center">#</th>
             <th className="text-center">TransactionID</th>
             <th className="text-center">Client Name</th>
-            <th className="text-center">Transaction</th>
             <th className="text-center">Proof</th>
+            <th className="text-center">Reference No.</th>
             <th className="text-right">Amount</th>
             <th className="text-center">Payment Method</th>
             <th className="text-center">Payment Date</th>
+            <th className="text-center">Reason</th>
             <th className="text-center">Status</th>
             <th className="text-center">Action</th>
           </tr>
@@ -35,17 +36,10 @@ const VerificationsTable = ({
             currentData.map((txn, index) => (
               <tr key={txn._id}>
                 <td className="text-center">{index + 1}</td>
-                <td className="text-center">{txn._id.slice(-6).toUpperCase()}</td>
-                <td className="text-center">{txn.userId.name}</td>
-                <td
-                  className={`text-center ${
-                    txn.transaction.toLowerCase() === "credit"
-                      ? "text-success"
-                      : "text-danger"
-                  }`}
-                >
-                  {txn.transaction.toUpperCase()}
+                <td className="text-center">
+                  {txn._id.slice(-6).toUpperCase()}
                 </td>
+                <td className="text-center">{txn.userId.name}</td>
                 <td className="text-center">
                   {txn.proofOfPayment ? (
                     <span
@@ -63,6 +57,7 @@ const VerificationsTable = ({
                     "No Proof Image"
                   )}
                 </td>
+                <td className="text-center">{txn.referenceNumber}</td>
                 <td
                   className={`text-right ${
                     txn.transaction.toLowerCase() === "credit"
@@ -80,6 +75,7 @@ const VerificationsTable = ({
                     ? new Date(txn.paymentDate).toLocaleString()
                     : "—"}
                 </td>
+                <td className="text-center">{txn.reason}</td>
                 <td className="text-center">
                   <span
                     className={`badge bg-${getBadgeClass(
@@ -95,7 +91,9 @@ const VerificationsTable = ({
                       size="sm"
                       variant="success"
                       className="d-flex align-items-center"
-                      onClick={() => handleVerification(txn._id, "verified")}
+                      onClick={() =>
+                        handleVerification(txn._id, txn.status, "verified")
+                      }
                     >
                       <FaCheckCircle />
                       <span>Verify</span>
@@ -104,7 +102,9 @@ const VerificationsTable = ({
                       size="sm"
                       variant="danger"
                       className="d-flex align-items-center ml-2"
-                      onClick={() => handleVerification(txn._id, "declined")}
+                      onClick={() =>
+                        handleVerification(txn._id, txn.status, "declined")
+                      }
                     >
                       <FaTimesCircle />
                       <span>Decline</span>
@@ -115,7 +115,7 @@ const VerificationsTable = ({
             ))
           ) : (
             <tr>
-              <td colSpan="9" className={`text-center text-muted`}>
+              <td colSpan="11" className={`text-center text-muted`}>
                 No records found.
               </td>
             </tr>

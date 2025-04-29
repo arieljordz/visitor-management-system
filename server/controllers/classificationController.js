@@ -1,13 +1,19 @@
 import Classification from "../models/Classification.js";
 
 // Add new classification
-export const addClassification = async (req, res) => {
+export const createClassification = async (req, res) => {
   try {
-    const { description } = req.body;
+    const { description, status } = req.body;
 
-    // Check for duplicate
+    if (!description || !description.trim()) {
+      return res.status(400).json({ message: "Description is required." });
+    }
+
+    const trimmedDescription = description.trim();
+
+    // Check for duplicate (case-insensitive)
     const existing = await Classification.findOne({
-      description: description.trim(),
+      description: { $regex: new RegExp(`^${trimmedDescription}$`, "i") },
     });
     if (existing) {
       return res
@@ -16,8 +22,10 @@ export const addClassification = async (req, res) => {
     }
 
     const newClassification = new Classification({
-      description: description.trim(),
+      description: trimmedDescription,
+      status: status?.toLowerCase() === "inactive" ? "inactive" : "active", // defaults to "active"
     });
+
     const saved = await newClassification.save();
 
     res.status(201).json({
@@ -41,17 +49,17 @@ export const getClassifications = async (req, res) => {
   }
 };
 
-// Get all classifications
+// Get classification by ID
 export const getClassificationById = async (req, res) => {
   try {
     const { id } = req.params;
-    const classifications = await Classification.findById(id);
-    if (!classifications) {
-      return res.status(404).json({ message: "Classifications not found." });
+    const classification = await Classification.findById(id);
+    if (!classification) {
+      return res.status(404).json({ message: "Classification not found." });
     }
-    res.status(200).json({ data: classifications });
+    res.status(200).json({ data: classification });
   } catch (error) {
-    console.error("Error fetching classifications:", error);
+    console.error("Error fetching classification:", error);
     res.status(500).json({ message: "Server error." });
   }
 };
@@ -60,7 +68,10 @@ export const getClassificationById = async (req, res) => {
 export const deleteClassification = async (req, res) => {
   try {
     const { id } = req.params;
-    await Classification.findByIdAndDelete(id);
+    const deleted = await Classification.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Classification not found." });
+    }
     res.status(200).json({ message: "Classification deleted successfully." });
   } catch (error) {
     console.error("Error deleting classification:", error);
@@ -72,11 +83,22 @@ export const deleteClassification = async (req, res) => {
 export const updateClassification = async (req, res) => {
   try {
     const { id } = req.params;
-    const { description } = req.body;
+    const { description, status } = req.body;
+
+    const updateFields = {};
+    if (description) updateFields.description = description.trim();
+    if (status) {
+      if (!["active", "inactive"].includes(status.toLowerCase())) {
+        return res
+          .status(400)
+          .json({ message: "Invalid status value." });
+      }
+      updateFields.status = status.toLowerCase();
+    }
 
     const updated = await Classification.findByIdAndUpdate(
       id,
-      { description: description.trim() },
+      updateFields,
       { new: true }
     );
 
@@ -84,9 +106,10 @@ export const updateClassification = async (req, res) => {
       return res.status(404).json({ message: "Classification not found." });
     }
 
-    res
-      .status(200)
-      .json({ message: "Classification updated successfully.", data: updated });
+    res.status(200).json({
+      message: "Classification updated successfully.",
+      data: updated,
+    });
   } catch (error) {
     console.error("Error updating classification:", error);
     res.status(500).json({ message: "Server error." });

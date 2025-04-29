@@ -86,9 +86,30 @@ function FMClassification({ user, setUser }) {
     setSelectedRow(null);
     setShowModal(false);
   };
-  const filteredData = classifications.filter((obj) =>
-    obj.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
+  const getBadgeClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+        return "success";
+      case "inactive":
+        return "warning";
+      default:
+        return "dark";
+    }
+  };
+
+  const filteredData = classifications.filter((obj) => {
+    const values = [
+      obj._id?.slice(-6),
+      obj.description,
+      obj.status,
+      new Date(obj.createdAt).toLocaleString(),
+    ];
+
+    return values.some((val) =>
+      val?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   const itemsPerPageValue =
     itemsPerPage === "All" ? filteredData.length : itemsPerPage;
@@ -144,6 +165,7 @@ function FMClassification({ user, setUser }) {
                       currentData={currentData}
                       handleEdit={handleEdit}
                       handleDelete={handleDelete}
+                      getBadgeClass={getBadgeClass}
                     />
 
                     <Paginations

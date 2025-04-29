@@ -60,8 +60,8 @@ function Verifications({ user, setUser }) {
     setShowModal(true);
   };
 
-  const handleVerification = async (id, verificationStatus) => {
-    const result = await Swal.fire({
+  const handleVerification = async (id, status, verificationStatus) => {
+    if(status === "pending"){    const result = await Swal.fire({
       title: "Verification",
       text: `Are you sure you want to ${verificationStatus} this payment?`,
       icon: "warning",
@@ -70,16 +70,38 @@ function Verifications({ user, setUser }) {
       cancelButtonText: "Cancel",
       reverseButtons: false,
     });
-
+  
     if (result.isConfirmed) {
+      let reason = "";
+      if (verificationStatus === "declined") {
+        const { value: inputReason } = await Swal.fire({
+          title: "Reason for Decline",
+          input: "text",
+          inputLabel: "Please provide a reason for declining",
+          inputPlaceholder: "Enter reason here...",
+          inputValidator: (value) => {
+            if (!value) {
+              return "You must enter a reason!";
+            }
+          },
+        });
+  
+        if (!inputReason) return; 
+  
+        reason = inputReason;
+      }
+  
       try {
-        await updateVerificationStatus(id, verificationStatus);
+        await updateVerificationStatus(id, verificationStatus, reason); 
         toast.success(`Payment ${verificationStatus} successfully.`);
-        fetchProofs(); // Refresh payment list
+        fetchProofs(); 
       } catch (err) {
-        toast.error(err.response.data.message);
+        toast.error(err.response?.data?.message || "Something went wrong.");
         console.error(err);
       }
+    }}
+    else{
+      toast.info(`This Payment is already been ${verificationStatus}.`);
     }
   };
 
@@ -92,6 +114,9 @@ function Verifications({ user, setUser }) {
       txn.proofOfPayment,
       new Date(txn.paymentDate).toLocaleString(),
       txn.status,
+      txn.userId?.name,
+      txn.verificationStatus,
+      txn.referenceNumber,
     ];
     return values.some((val) =>
       val?.toLowerCase().includes(searchTerm.toLowerCase())

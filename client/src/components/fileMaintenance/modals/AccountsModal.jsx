@@ -8,7 +8,8 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
     email: "",
     name: "",
     address: "",
-    role: "client", // Default role is 'client'
+    role: "client",
+    status: "active", 
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -20,34 +21,46 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
         name: selectedRow.name || "",
         address: selectedRow.address || "",
         role: selectedRow.role || "client",
+        status: selectedRow.status || "active",
       });
     } else {
       setFormData(initialFormData);
     }
   }, [selectedRow]);
 
+  const resetForm = () => {
+    setFormData({
+      email: "",
+      name: "",
+      address: "",
+      role: "client",
+      status: "active",
+    });
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? (checked ? "active" : "inactive") : value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const isUpdate = Boolean(selectedRow?._id);
-    const successMessage = isUpdate
-      ? "User updated successfully."
-      : "User created successfully.";
 
     try {
       if (isUpdate) {
         await updateUser(selectedRow._id, formData);
+        toast.success("User updated successfully.");
       } else {
         await createUser(formData);
+        toast.success("User created successfully.");
       }
-      toast.success(successMessage);
       refreshList();
       onHide();
+      resetForm();
     } catch (error) {
       console.error("Error saving user:", error);
       toast.error("Error saving user.");
@@ -86,7 +99,6 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Enter full name"
-                  required
                 />
               </Form.Group>
             </Col>
@@ -120,6 +132,27 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
                   <option value="staff">Staff</option>
                 </Form.Select>
               </Form.Group>
+            </Col>
+
+            <Col md={12}>
+              <div className="form-group">
+                <div className="custom-control custom-switch">
+                  <input
+                    type="checkbox"
+                    className="custom-control-input"
+                    id="status-switch"
+                    name="status"
+                    checked={formData.status === "active"}
+                    onChange={handleChange}
+                  />
+                  <label
+                    className="custom-control-label"
+                    htmlFor="status-switch"
+                  >
+                    {formData.status === "active" ? "Active" : "Inactive"}
+                  </label>
+                </div>
+              </div>
             </Col>
           </Row>
         </Modal.Body>

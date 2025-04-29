@@ -1,42 +1,66 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
-import { updateClassification, addClassification } from "../../../services/classificationService.js";
+import {
+  updateClassification,
+  createClassification,
+} from "../../../services/classificationService.js";
 
 const ClassificationModal = ({ show, onHide, selectedRow, refreshList }) => {
-  const [formData, setFormData] = useState({ description: "" });
+  const initialFormData = {
+    description: "",
+    status: "active",
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
 
   useEffect(() => {
     if (selectedRow) {
-      setFormData({ description: selectedRow.description || "" });
+      setFormData({
+        description: selectedRow.description || "",
+        status: selectedRow.status || "active",
+      });
     } else {
-      setFormData({ description: "" });
+      setFormData(initialFormData);
     }
   }, [selectedRow]);
 
+  
+  const resetForm = () => {
+    setFormData({
+      description: "",
+      status: "active",
+    });
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    if (type === "checkbox" && name === "status") {
+      setFormData((prev) => ({
+        ...prev,
+        status: checked ? "active" : "inactive",
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const isUpdate = Boolean(selectedRow?._id);
-    const successMessage = isUpdate
-      ? "Classification updated successfully."
-      : "Classification created successfully.";
 
     try {
       if (isUpdate) {
-        await updateClassification(user.token, selectedRow._id, formData);
+        await updateClassification(selectedRow._id, formData);
+        toast.success("Classification updated successfully.");
       } else {
-        await addClassification(user.token, formData);
+        await createClassification(formData);
+        toast.success("Classification created successfully.");
       }
 
-      toast.success(successMessage);
       refreshList();
       onHide();
+      resetForm();
     } catch (error) {
       console.error("Submit error:", error);
       toast.error("Error saving classification.");
@@ -64,6 +88,27 @@ const ClassificationModal = ({ show, onHide, selectedRow, refreshList }) => {
                   required
                 />
               </Form.Group>
+            </Col>
+
+            <Col md={12}>
+              <div className="form-group">
+                <div className="custom-control custom-switch">
+                  <input
+                    type="checkbox"
+                    className="custom-control-input"
+                    id="status-switch"
+                    name="status"
+                    checked={formData.status === "active"}
+                    onChange={handleChange}
+                  />
+                  <label
+                    className="custom-control-label"
+                    htmlFor="status-switch"
+                  >
+                    {formData.status === "active" ? "Active" : "Inactive"}
+                  </label>
+                </div>
+              </div>
             </Col>
           </Row>
         </Modal.Body>

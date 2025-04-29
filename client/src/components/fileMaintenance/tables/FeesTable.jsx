@@ -2,7 +2,13 @@ import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
-const FeesTable = ({ loading, currentData, handleEdit, handleDelete }) => {
+const FeesTable = ({
+  loading,
+  currentData,
+  handleEdit,
+  handleDelete,
+  getBadgeClass,
+}) => {
   return loading ? (
     <div className="text-center my-4">
       <Spinner animation="border" />
@@ -39,15 +45,10 @@ const FeesTable = ({ loading, currentData, handleEdit, handleDelete }) => {
                     : "—"}
                 </td>
                 <td className="text-center">
-                  <span
-                    className={`badge ${
-                      row.active ? "bg-success" : "bg-warning"
-                    }`}
-                  >
-                    {row.active ? "Active" : "Inactive"}
+                  <span className={`badge bg-${getBadgeClass(row.status)}`}>
+                    {row.status}
                   </span>
                 </td>
-
                 <td className="text-center">
                   <div className="d-flex justify-content-center">
                     <Button
