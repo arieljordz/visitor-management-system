@@ -12,7 +12,7 @@ import {
   getPaymentAccounts,
   getPaymentAccountById,
   deletePaymentAccount,
-} from "../../services/PaymentAccountService.js";
+} from "../../services/paymentAccountService.js";
 
 function FMPaymentAccount({ user, setUser }) {
   const [paymentAccount, setPaymentAccount] = useState([]);
