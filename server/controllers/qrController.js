@@ -29,7 +29,9 @@ export const generateQRCodeWithPayment = async (req, res) => {
 
     const existingQR = await QRCode.findOne({ visitorId, status: "active" });
     if (existingQR) {
-      return res.status(400).json({ message: "Visitor already has an active QR code." });
+      return res
+        .status(400)
+        .json({ message: "Visitor already has an active QR code." });
     }
 
     const feeDoc = await Fee.findOne({
@@ -37,7 +39,9 @@ export const generateQRCodeWithPayment = async (req, res) => {
       status: "active",
     });
     if (!feeDoc) {
-      return res.status(404).json({ message: "'Generate QR fee' not found or inactive." });
+      return res
+        .status(404)
+        .json({ message: "'Generate QR fee' not found or inactive." });
     }
 
     const feeAmount = feeDoc.fee ?? 0;
@@ -167,14 +171,16 @@ export const scanQRCode = async (req, res) => {
       return res.status(400).json({ message: "QR data is required." });
     }
 
-    const qrCodeDoc = await QRCode.findOne({ qrData }).populate("visitorId");
+    const qrCodeDoc = await QRCode.findOne({ qrData }).populate("visitorId").populate("userId");
 
     if (!qrCodeDoc) {
       return res.status(404).json({ message: "QR code not found." });
     }
 
     if (qrCodeDoc.status === "used") {
-      return res.status(400).json({ message: "QR code has already been used." });
+      return res
+        .status(400)
+        .json({ message: "QR code has already been used." });
     }
 
     if (qrCodeDoc.status === "expired") {
@@ -187,11 +193,15 @@ export const scanQRCode = async (req, res) => {
     if (visitDate.isBefore(today)) {
       qrCodeDoc.status = "expired";
       await qrCodeDoc.save();
-      return res.status(400).json({ message: "QR code is expired. Visit date has passed." });
+      return res
+        .status(400)
+        .json({ message: "QR code is expired. Visit date has passed." });
     }
 
     if (!visitDate.isSame(today)) {
-      return res.status(400).json({ message: "Visit date does not match today's date." });
+      return res
+        .status(400)
+        .json({ message: "Visit date does not match today's date." });
     }
 
     // Mark as used
@@ -204,10 +214,11 @@ export const scanQRCode = async (req, res) => {
         ? `${visitor.firstName} ${visitor.lastName}`
         : visitor.groupName;
 
+    console.log("qrCodeDoc:", qrCodeDoc);
     res.status(200).json({
       message: "QR code scanned successfully.",
       data: {
-        clientName: qrCodeDoc.userId.name, 
+        clientName: qrCodeDoc.userId.name,
         visitorName,
         visitDate: visitor.visitDate,
         purpose: visitor.purpose,
