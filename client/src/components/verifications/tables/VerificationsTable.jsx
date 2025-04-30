@@ -39,7 +39,7 @@ const VerificationsTable = ({
                 <td className="text-center">
                   {txn._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">{txn.userId.name}</td>
+                <td className="text-center">{txn.userId?.name}</td>
                 <td className="text-center">
                   {txn.proofOfPayment ? (
                     <span
@@ -85,7 +85,7 @@ const VerificationsTable = ({
                     {txn.verificationStatus}
                   </span>
                 </td>
-                <td className="text-center align-middle">
+                <td className="text-center">
                   <div className="d-flex justify-content-center">
                     <Button
                       size="sm"

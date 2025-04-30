@@ -27,7 +27,7 @@ const AdminPaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
               <tr key={txn._id}>
                 <td className="text-center">{index + 1}</td>
                 <td className="text-center">{txn._id.slice(-6).toUpperCase()}</td>
-                <td className="text-center">{txn.userId.name}</td>
+                <td className="text-center">{txn.userId?.name}</td>
                 <td
                   className={`text-center ${
                     txn.transaction.toLowerCase() === "credit"
