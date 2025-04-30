@@ -48,14 +48,22 @@ const ProofsModal = ({ show, setShowModal, imageProof, txnId }) => {
   };
 
   return (
-    <Modal show={show} onHide={() => setShowModal(false)} centered>
+    <Modal show={show} backdrop="static" keyboard={false} centered>
       {/* Header */}
-      <Modal.Header closeButton>
-        <Modal.Title className="fw-bold">Proof</Modal.Title>
-      </Modal.Header>
+      <div className="modal-header">
+        <h5 className="modal-title fw-bold">Proof</h5>
+        <button
+          type="button"
+          className="close"
+          onClick={() => setShowModal(false)}
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
 
       {/* Body */}
-      <Modal.Body>
+      <div className="modal-body">
         <div
           className="d-flex flex-column justify-content-center align-items-center"
           style={{ minHeight: "210px", position: "relative" }}
@@ -91,14 +99,14 @@ const ProofsModal = ({ show, setShowModal, imageProof, txnId }) => {
             <p className="text-danger">Proof not available.</p>
           )}
         </div>
-      </Modal.Body>
+      </div>
 
       {/* Footer */}
-      <Modal.Footer className="justify-content-center">
+      <div className="modal-footer justify-content-center">
         <Button onClick={handleDownload} disabled={isLoading || !imageUrl}>
           {isLoading ? "Loading..." : "Download"}
         </Button>
-      </Modal.Footer>
+      </div>
     </Modal>
   );
 };

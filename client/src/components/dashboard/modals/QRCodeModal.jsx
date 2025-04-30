@@ -40,64 +40,67 @@ const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
     }
   };
 
-   return (
-     <Modal
-      //  className="modal-sm"
-       show={show}
-       onHide={() => setShowModal(false)}
-       centered
-     >
-       {/* Header */}
-       <Modal.Header closeButton>
-         <Modal.Title className="fw-bold">QR Code</Modal.Title>
-       </Modal.Header>
- 
-       {/* Body */}
-       <Modal.Body>
-         <div
-           className="d-flex flex-column justify-content-center align-items-center"
-           style={{ minHeight: "210px", position: "relative" }}
-         >
-           {/* Spinner */}
-           {isLoading && (
-             <Spinner animation="border" style={{ position: "absolute" }} />
-           )}
- 
-           {/* QR Code Image and Txn ID */}
-           {qrImageUrl ? (
-             <>
-               <img
-                 src={qrImageUrl}
-                 alt="QR Code"
-                 onLoad={() => setIsLoading(false)}
-                 style={{
-                   visibility: isLoading ? "hidden" : "visible",
-                   maxWidth: "100%",
-                   maxHeight: "400px",
-                   objectFit: "contain",
-                   borderRadius: "8px",
-                 }}
-               />
-               {!isLoading && (
-                 <p className="mt-3 mb-0 text-center">
-                   <strong>{txnId}</strong>
-                 </p>
-               )}
-             </>
-           ) : (
-             <p className="text-danger">QR code not available.</p>
-           )}
-         </div>
-       </Modal.Body>
- 
-       {/* Footer */}
-       <Modal.Footer className="justify-content-center">
-         <Button onClick={handleDownload} disabled={isLoading || !qrImageUrl}>
-           {isLoading ? "Loading..." : "Download"}
-         </Button>
-       </Modal.Footer>
-     </Modal>
-   );
+  return (
+    <Modal show={show} backdrop="static" keyboard={false} centered>
+      {/* Header */}
+      <div className="modal-header">
+        <h5 className="modal-title fw-bold">QR Code</h5>
+        <button
+          type="button"
+          className="close"
+          onClick={() => setShowModal(false)}
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="modal-body">
+        <div
+          className="d-flex flex-column justify-content-center align-items-center"
+          style={{ minHeight: "210px", position: "relative" }}
+        >
+          {/* Spinner */}
+          {isLoading && (
+            <Spinner animation="border" style={{ position: "absolute" }} />
+          )}
+
+          {/* QR Code Image and Txn ID */}
+          {qrImageUrl ? (
+            <>
+              <img
+                src={qrImageUrl}
+                alt="QR Code"
+                onLoad={() => setIsLoading(false)}
+                style={{
+                  visibility: isLoading ? "hidden" : "visible",
+                  maxWidth: "100%",
+                  maxHeight: "400px",
+                  objectFit: "contain",
+                  borderRadius: "8px",
+                }}
+              />
+              {!isLoading && (
+                <p className="mt-3 mb-0 text-center">
+                  <strong>{txnId}</strong>
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-danger">QR code not available.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="modal-footer justify-content-center">
+        <Button onClick={handleDownload} disabled={isLoading || !qrImageUrl}>
+          {isLoading ? "Loading..." : "Download"}
+        </Button>
+      </div>
+    </Modal>
+  );
 };
 
 export default QRCodeModal;

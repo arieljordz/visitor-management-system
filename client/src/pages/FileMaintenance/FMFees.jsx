@@ -104,9 +104,9 @@ function FMFees({ user, setUser }) {
       obj.status,
       new Date(obj.createdAt).toLocaleString(),
     ];
-
+  
     return values.some((val) =>
-      val?.toLowerCase().includes(searchTerm.toLowerCase())
+      String(val).toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 

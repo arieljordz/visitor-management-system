@@ -9,7 +9,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
     name: "",
     address: "",
     role: "client",
-    status: "active", 
+    status: "active",
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -69,12 +69,24 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
 
   return (
     <Modal show={show} onHide={onHide} size="md" backdrop="static" centered>
-      <Modal.Header closeButton>
-        <Modal.Title>{selectedRow ? "Edit" : "Add"} User</Modal.Title>
-      </Modal.Header>
+      {/* Header */}
+      <div className="modal-header">
+        <h5 className="modal-title fw-bold">
+          {selectedRow ? "Edit" : "Add"} User
+        </h5>
+        <button
+          type="button"
+          className="close"
+          onClick={onHide}
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
 
+      {/* Body */}
       <Form onSubmit={handleSubmit}>
-        <Modal.Body>
+        <div className="modal-body">
           <Row>
             <Col md={12}>
               <Form.Group className="mb-3">
@@ -155,16 +167,17 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
               </div>
             </Col>
           </Row>
-        </Modal.Body>
+        </div>
 
-        <Modal.Footer>
+        {/* Footer */}
+        <div className="modal-footer justify-content-end">
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
           <Button variant="primary" type="submit">
             {selectedRow ? "Update" : "Save"}
           </Button>
-        </Modal.Footer>
+        </div>
       </Form>
     </Modal>
   );

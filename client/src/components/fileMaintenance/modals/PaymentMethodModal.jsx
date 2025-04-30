@@ -45,10 +45,10 @@ const PaymentMethodModal = ({ show, onHide, selectedRow, refreshList }) => {
     try {
       if (isUpdate) {
         await updatePaymentMethod(selectedRow._id, formData);
-         toast.success("Payment method updated successfully.");
+        toast.success("Payment method updated successfully.");
       } else {
         await createPaymentMethod(formData);
-         toast.success("Payment method created successfully.");
+        toast.success("Payment method created successfully.");
       }
 
       refreshList();
@@ -62,12 +62,24 @@ const PaymentMethodModal = ({ show, onHide, selectedRow, refreshList }) => {
 
   return (
     <Modal show={show} onHide={onHide} size="md" backdrop="static" centered>
-      <Modal.Header closeButton>
-        <Modal.Title>{selectedRow ? "Edit" : "Add"} Payment Method</Modal.Title>
-      </Modal.Header>
+      {/* Header */}
+      <div className="modal-header">
+        <h5 className="modal-title fw-bold">
+          {selectedRow ? "Edit" : "Add"} Payment Method
+        </h5>
+        <button
+          type="button"
+          className="close"
+          onClick={onHide}
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
 
+      {/* Body */}
       <Form onSubmit={handleSubmit}>
-        <Modal.Body>
+        <div className="modal-body">
           <Row className="g-3">
             <Col md={12} className="mb-2">
               <Form.Group>
@@ -104,16 +116,17 @@ const PaymentMethodModal = ({ show, onHide, selectedRow, refreshList }) => {
               </div>
             </Col>
           </Row>
-        </Modal.Body>
+        </div>
 
-        <Modal.Footer>
+        {/* Footer */}
+        <div className="modal-footer justify-content-end">
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
           <Button variant="primary" type="submit">
             {selectedRow ? "Update" : "Save"}
           </Button>
-        </Modal.Footer>
+        </div>
       </Form>
     </Modal>
   );

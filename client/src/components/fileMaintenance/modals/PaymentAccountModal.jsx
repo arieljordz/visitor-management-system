@@ -86,17 +86,27 @@ const PaymentAccountModal = ({ show, onHide, selectedRow, refreshList }) => {
 
   return (
     <Modal show={show} onHide={onHide} size="md" backdrop="static" centered>
-      <Modal.Header closeButton>
-        <Modal.Title>
+      {/* Header */}
+      <div className="modal-header">
+        <h5 className="modal-title fw-bold">
           {selectedRow ? "Edit" : "Add"} Payment Account
-        </Modal.Title>
-      </Modal.Header>
+        </h5>
+        <button
+          type="button"
+          className="close"
+          onClick={onHide}
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
 
+      {/* Body */}
       <Form onSubmit={handleSubmit}>
-        <Modal.Body>
+        <div className="modal-body">
           <Row>
-            <Col md={12}>
-              <Form.Group className="mb-3">
+            <Col md={12} className="mb-2">
+              <Form.Group>
                 <Form.Label>Method</Form.Label>
                 <Form.Select
                   name="method"
@@ -115,8 +125,8 @@ const PaymentAccountModal = ({ show, onHide, selectedRow, refreshList }) => {
               </Form.Group>
             </Col>
 
-            <Col md={12}>
-              <Form.Group className="mb-3">
+            <Col md={12} className="mb-2">
+              <Form.Group>
                 <Form.Label>Account Name</Form.Label>
                 <Form.Control
                   type="text"
@@ -129,8 +139,8 @@ const PaymentAccountModal = ({ show, onHide, selectedRow, refreshList }) => {
               </Form.Group>
             </Col>
 
-            <Col md={12}>
-              <Form.Group className="mb-3">
+            <Col md={12} className="mb-2">
+              <Form.Group>
                 <Form.Label>Account Number</Form.Label>
                 <Form.Control
                   type="text"
@@ -144,8 +154,8 @@ const PaymentAccountModal = ({ show, onHide, selectedRow, refreshList }) => {
             </Col>
 
             {formData.method.toLowerCase() === "bank" && (
-              <Col md={12}>
-                <Form.Group className="mb-3">
+              <Col md={12} className="mb-2">
+                <Form.Group>
                   <Form.Label>Bank Name</Form.Label>
                   <Form.Control
                     type="text"
@@ -180,16 +190,17 @@ const PaymentAccountModal = ({ show, onHide, selectedRow, refreshList }) => {
               </div>
             </Col>
           </Row>
-        </Modal.Body>
+        </div>
 
-        <Modal.Footer>
+        {/* Footer */}
+        <div className="modal-footer justify-content-end">
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
           <Button variant="primary" type="submit">
             {selectedRow ? "Update" : "Save"}
           </Button>
-        </Modal.Footer>
+        </div>
       </Form>
     </Modal>
   );

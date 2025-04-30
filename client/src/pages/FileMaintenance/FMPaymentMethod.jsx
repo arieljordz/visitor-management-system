@@ -106,7 +106,7 @@ function FMPaymentMethod({ user, setUser }) {
     ];
 
     return values.some((val) =>
-      val?.toLowerCase().includes(searchTerm.toLowerCase())
+      String(val).toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 

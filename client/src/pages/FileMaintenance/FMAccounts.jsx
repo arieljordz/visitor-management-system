@@ -107,7 +107,7 @@ function FMAccounts({ user, setUser }) {
     ];
 
     return values.some((val) =>
-      val?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      String(val).toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 

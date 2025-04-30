@@ -121,7 +121,7 @@ const Login = ({ user, setUser, setLoading }) => {
       const decoded = jwtDecode(credentialResponse.credential);
       const userData = {
         name: decoded.name,
-        password: decoded.name,
+        password: "DefaultPass123!",
         email: decoded.email,
         picture: decoded.picture,
         role: "client",
@@ -135,7 +135,7 @@ const Login = ({ user, setUser, setLoading }) => {
 
       localStorage.setItem("user", JSON.stringify(res.data));
       setUser(res.data);
-      console.log("user:", res.data);
+      // console.log("user:", res.data);
       if (res.data.verified) {
         setMessage("Google login successful.");
       } else {

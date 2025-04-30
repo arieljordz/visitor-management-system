@@ -41,19 +41,22 @@ const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
   };
 
   return (
-    <Modal
-      // className="modal-sm"
-      show={show}
-      onHide={() => setShowModal(false)}
-      centered
-    >
+    <Modal show={show} backdrop="static" keyboard={false} centered>
       {/* Header */}
-      <Modal.Header closeButton>
-        <Modal.Title className="fw-bold">QR Code</Modal.Title>
-      </Modal.Header>
+      <div className="modal-header">
+        <h5 className="modal-title fw-bold">QR Code</h5>
+        <button
+          type="button"
+          className="close"
+          onClick={() => setShowModal(false)}
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
 
       {/* Body */}
-      <Modal.Body>
+      <div className="modal-body">
         <div
           className="d-flex flex-column justify-content-center align-items-center"
           style={{ minHeight: "210px", position: "relative" }}
@@ -88,14 +91,14 @@ const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
             <p className="text-danger">QR code not available.</p>
           )}
         </div>
-      </Modal.Body>
+      </div>
 
       {/* Footer */}
-      <Modal.Footer className="justify-content-center">
+      <div className="modal-footer justify-content-center">
         <Button onClick={handleDownload} disabled={isLoading || !qrImageUrl}>
           {isLoading ? "Loading..." : "Download"}
         </Button>
-      </Modal.Footer>
+      </div>
     </Modal>
   );
 };

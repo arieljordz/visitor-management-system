@@ -1,6 +1,112 @@
 import mongoose from "mongoose";
+import moment from "moment";
 import QRCode from "../models/QRCode.js";
 import Visitor from "../models/Visitor.js";
+import PaymentDetail from "../models/PaymentDetail.js";
+import Balance from "../models/Balance.js";
+import Fee from "../models/Fee.js";
+
+export const generateQRCodeWithPayment = async (req, res) => {
+  const {
+    userId,
+    visitorId,
+    paymentMethod = "e-wallet",
+    proofOfPayment = null,
+  } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Invalid user ID." });
+  }
+  if (!mongoose.Types.ObjectId.isValid(visitorId)) {
+    return res.status(400).json({ message: "Invalid visitor ID." });
+  }
+
+  try {
+    const visitor = await Visitor.findById(visitorId);
+    if (!visitor) {
+      return res.status(404).json({ message: "Visitor not found." });
+    }
+
+    const existingQR = await QRCode.findOne({ visitorId, status: "active" });
+    if (existingQR) {
+      return res.status(400).json({ message: "Visitor already has an active QR code." });
+    }
+
+    const feeDoc = await Fee.findOne({
+      description: { $regex: /generate qr fee/i },
+      status: "active",
+    });
+    if (!feeDoc) {
+      return res.status(404).json({ message: "'Generate QR fee' not found or inactive." });
+    }
+
+    const feeAmount = feeDoc.fee ?? 0;
+
+    const balanceDoc = await Balance.findOne({ userId });
+    if (!balanceDoc) {
+      return res.status(404).json({ message: "Balance record not found." });
+    }
+
+    if (balanceDoc.balance < feeAmount) {
+      return res.status(400).json({ message: "Insufficient balance." });
+    }
+
+    balanceDoc.balance -= feeAmount;
+    await balanceDoc.save();
+
+    const payment = new PaymentDetail({
+      userId,
+      visitorId,
+      amount: feeAmount,
+      paymentMethod,
+      transaction: "debit",
+      status: "completed",
+      proofOfPayment,
+      referenceNumber: null,
+      verificationStatus: "verified",
+      paymentDate: new Date(),
+      completedDate: new Date(),
+    });
+    await payment.save();
+
+    const io = req.app.get("io");
+    io.emit("balance-updated", {
+      userId,
+      newBalance: balanceDoc.balance,
+    });
+
+    const qrData = `visitor-${userId}-${visitorId}-${Date.now()}`;
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+      qrData
+    )}&size=150x150`;
+
+    const qrCodeDoc = new QRCode({
+      userId,
+      visitorId,
+      qrData,
+      qrImageUrl,
+      status: "active",
+    });
+    await qrCodeDoc.save();
+
+    return res.status(200).json({
+      message: "QR code generated and payment processed successfully.",
+      data: {
+        newBalance: balanceDoc.balance,
+        paymentId: payment._id,
+        qrCodeId: qrCodeDoc._id,
+        qrImageUrl,
+        qrData,
+      },
+    });
+  } catch (error) {
+    console.error("QR/payment combined process failed:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
 
 export const generateQRCode = async (req, res) => {
   try {
@@ -53,16 +159,15 @@ export const generateQRCode = async (req, res) => {
 
 export const scanQRCode = async (req, res) => {
   try {
-    const { qrData } = req.params; 
+    const { qrData } = req.params;
 
-    console.log("Received QR Data:", req.params.qrData);
+    console.log("Received QR Data:", qrData);
 
     if (!qrData) {
       return res.status(400).json({ message: "QR data is required." });
     }
 
-    // Find QR code document by qrData
-    const qrCodeDoc = await QRCode.findOne({ qrData });
+    const qrCodeDoc = await QRCode.findOne({ qrData }).populate("visitorId");
 
     if (!qrCodeDoc) {
       return res.status(404).json({ message: "QR code not found." });
@@ -76,15 +181,37 @@ export const scanQRCode = async (req, res) => {
       return res.status(400).json({ message: "QR code has expired." });
     }
 
-    // Update QR code status to "used"
+    const visitDate = moment(qrCodeDoc.visitorId.visitDate).startOf("day");
+    const today = moment().startOf("day");
+
+    if (visitDate.isBefore(today)) {
+      qrCodeDoc.status = "expired";
+      await qrCodeDoc.save();
+      return res.status(400).json({ message: "QR code is expired. Visit date has passed." });
+    }
+
+    if (!visitDate.isSame(today)) {
+      return res.status(400).json({ message: "Visit date does not match today's date." });
+    }
+
+    // Mark as used
     qrCodeDoc.status = "used";
     await qrCodeDoc.save();
 
+    const visitor = qrCodeDoc.visitorId;
+    const visitorName =
+      visitor.visitorType === "Individual"
+        ? `${visitor.firstName} ${visitor.lastName}`
+        : visitor.groupName;
+
     res.status(200).json({
       message: "QR code scanned successfully.",
-      userId: qrCodeDoc.userId,
-      qrData: qrCodeDoc.qrData,
-      scannedAt: new Date(),
+      data: {
+        clientName: qrCodeDoc.userId.name, 
+        visitorName,
+        visitDate: visitor.visitDate,
+        purpose: visitor.purpose,
+      },
     });
   } catch (error) {
     console.error("QR code scan error:", error);

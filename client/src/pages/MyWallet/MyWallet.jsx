@@ -15,7 +15,7 @@ const MyWallet = ({ user, setUser }) => {
     const fetchPaymentAccounts = async () => {
       try {
         const data = await getActivePaymentAccounts();
-        console.log("PaymentAccounts:", data);
+        // console.log("PaymentAccounts:", data);
         setPaymentAccounts(data);
       } catch (error) {
         console.error("Error fetching payment accounts:", error.message);

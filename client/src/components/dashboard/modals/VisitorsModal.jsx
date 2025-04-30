@@ -77,37 +77,41 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" backdrop="static">
-      <Modal.Header closeButton>
-        <Modal.Title>Add Visitor Details</Modal.Title>
-      </Modal.Header>
+    <Modal show={show} backdrop="static" size="lg" keyboard={false} centered>
+      {/* Header */}
+      <div className="modal-header">
+        <h5 className="modal-title fw-bold">Add Visitor Details</h5>
+        <button
+          type="button"
+          className="close"
+          onClick={onHide}
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
 
+      {/* Body */}
       <Form onSubmit={handleSubmit}>
-        <Modal.Body>
-          {/* Visitor Type Selection */}
+        <div className="modal-body">
+          {/* Visitor Type */}
           <Form.Group className="mb-3">
             <Form.Label className="fw-bold">Visitor Type:</Form.Label>
             <div>
-              <Form.Check
-                inline
-                type="radio"
-                id="individual"
-                label="Individual"
-                checked={formData.visitorType === "Individual"}
-                onChange={() => handleTypeChange("Individual")}
-              />
-              <Form.Check
-                inline
-                type="radio"
-                id="group"
-                label="Group"
-                checked={formData.visitorType === "Group"}
-                onChange={() => handleTypeChange("Group")}
-              />
+              {["Individual", "Group"].map((type) => (
+                <Form.Check
+                  key={type}
+                  inline
+                  type="radio"
+                  id={type.toLowerCase()}
+                  label={type}
+                  checked={formData.visitorType === type}
+                  onChange={() => handleTypeChange(type)}
+                />
+              ))}
             </div>
           </Form.Group>
-
-          {/* Conditional Form Fields */}
+          {/* Conditional Fields */}
           <Row>
             {formData.visitorType === "Individual" ? (
               <>
@@ -162,13 +166,13 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
                       value={formData.noOfVisitors}
                       onChange={handleChange}
                       placeholder="Enter number of visitors"
+                      min={1}
                       required
                     />
                   </Form.Group>
                 </Col>
               </>
             )}
-
             {/* Shared Fields */}
             <Col md={6}>
               <Form.Group className="mb-3">
@@ -217,16 +221,17 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
               </Form.Group>
             </Col>
           </Row>
-        </Modal.Body>
+        </div>
 
-        <Modal.Footer>
+        {/* Footer */}
+        <div className="modal-footer justify-content-end">
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
           <Button variant="primary" type="submit">
-            Submit
+            Save
           </Button>
-        </Modal.Footer>
+        </div>
       </Form>
     </Modal>
   );

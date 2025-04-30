@@ -49,6 +49,10 @@ function PaymentHistory({ user, setUser }) {
 
   // Filter transactions by search term
   const filteredData = transactions.filter((txn) => {
+    const fullName = `${txn.visitorId?.firstName || ""} ${
+      txn.visitorId?.lastName || ""
+    }`.trim();
+
     const values = [
       txn._id?.slice(-6),
       txn.transaction,
@@ -58,11 +62,13 @@ function PaymentHistory({ user, setUser }) {
       txn.status,
       txn.visitorId?.firstName,
       txn.visitorId?.lastName,
+      fullName,
       txn.visitorId?.groupName,
-      txn.userId?.name
+      txn.userId?.name,
     ];
+
     return values.some((val) =>
-      val?.toLowerCase().includes(searchTerm.toLowerCase())
+      String(val).toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 

@@ -19,7 +19,6 @@ const paymentDetailsSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["gcash", "paymaya", "bank", "e-wallet"],
       required: true,
     },
     status: {

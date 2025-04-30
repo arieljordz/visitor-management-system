@@ -7,6 +7,14 @@ export const checkActiveQRCodeById = async (user, visitorId) => {
   return response.data.data || [];
 };
 
+export const generateQRCodeWithPayment = async ({ userId, visitorId }) => {
+  const response = await api.post("/api/generate-qr", {
+    userId,
+    visitorId,
+  });
+  return response.data.data || [];
+};
+
 export const generateQRCode = async (user, visitorId) => {
   const response = await api.post(
     `/api/generate-qr/${user.userId}/${visitorId}`

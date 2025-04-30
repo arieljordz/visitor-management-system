@@ -12,6 +12,7 @@ import {
 } from "../controllers/userController.js";
 import {
   generateQRCode,
+  generateQRCodeWithPayment,
   scanQRCode,
   getGeneratedQRCodes,
   getGeneratedQRCodesById,
@@ -98,6 +99,7 @@ router.put("/update-user/:id", authenticate, auditMiddleware("UPDATE_USER"), upd
 router.delete("/delete-user/:id", authenticate, auditMiddleware("DELETE_USER"), deleteUser);
 
 // QRCode Routes
+router.post("/generate-qr", authenticate, auditMiddleware("GENERATE_QR_CODE"), generateQRCodeWithPayment);
 router.post("/generate-qr/:userId/:visitorId", authenticate, auditMiddleware("GENERATE_QR_CODE"), generateQRCode);
 router.get("/scan-qr/:qrData", authenticate, auditMiddleware("SCAN_QR_CODE"), scanQRCode);
 router.get("/get-generated-qr", authenticate, getGeneratedQRCodes);

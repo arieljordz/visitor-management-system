@@ -13,14 +13,15 @@ import QRCodeModal from "../../components/dashboard/modals/QRCodeModal";
 import DashboardStats from "./DashboardStats.jsx";
 
 import { getVisitorByUserId } from "../../services/visitorService.js";
-import { checkActiveQRCodeById, generateQRCode } from "../../services/qrService.js";
-import { processPayment } from "../../services/paymentDetailService.js";
+import {
+  checkActiveQRCodeById,
+  generateQRCodeWithPayment,
+} from "../../services/qrService.js";
 import { getBalance } from "../../services/balanceService.js";
 
 const Dashboard = ({ user }) => {
   const [proofs, setVisitors] = useState([]);
   const [balance, setBalance] = useState(0.0);
-  const [visitorId, setVisitorId] = useState("");
   const [txnId, setTxnId] = useState("");
   const [qrViewImageUrl, setViewQrImageUrl] = useState("");
 
@@ -31,9 +32,6 @@ const Dashboard = ({ user }) => {
   const [showVisitorModal, setShowVisitorModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const [isQRLoading, setQRIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(false);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (user?.userId) {
@@ -56,19 +54,15 @@ const Dashboard = ({ user }) => {
   };
 
   const fetchBalance = async () => {
-    setIsFetching(true);
     try {
       const data = await getBalance(user.userId);
       // console.log("data:", data);
       const parsedBalance = parseFloat(data?.balance);
       const safeBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;
       setBalance(safeBalance);
-      setError(null);
     } catch (err) {
-      setError("Failed to fetch balance.");
+      console.error("Failed to fetch balance:", err);
       setBalance(0.0);
-    } finally {
-      setIsFetching(false);
     }
   };
 
@@ -90,39 +84,6 @@ const Dashboard = ({ user }) => {
     } catch (error) {
       // console.error("Failed to check active QR code:", error);
       return null;
-    }
-  };
-
-  const generateQR = async (visitorId) => {
-    try {
-      const data = await generateQRCode(user, visitorId);
-      if (!data || !data.qrImageUrl) {
-        const message = data?.message || "QR generation failed.";
-        const statusCode = data?.statusCode || 409;
-        statusCode === 409 ? toast.info(message) : toast.error(message);
-        return false;
-      }
-      return true;
-    } catch (error) {
-      toast.error("QR generation failed.");
-      return false;
-    }
-  };
-
-  const payBalance = async (visitorId) => {
-    try {
-      const data = await processPayment(user, visitorId);
-      if (data?.status === 200) {
-        toast.success("Your payment was successful and the QR code is ready.");
-        return true;
-      }
-      const message = data?.message || "Payment failed.";
-      toast.error(`Payment failed: ${message}`);
-      return false;
-    } catch (error) {
-      console.error("Payment error:", error);
-      toast.error("Payment failed. Please try again.");
-      return false;
     }
   };
 
@@ -149,21 +110,18 @@ const Dashboard = ({ user }) => {
 
       if (!result.isConfirmed) return;
 
-      setQRIsLoading(true);
+      const response = await generateQRCodeWithPayment({
+        userId: user.userId,
+        visitorId,
+      });
 
-      const qrGenerated = await generateQR(visitorId);
-      if (!qrGenerated) throw new Error("QR generation failed.");
+      // console.log("response:", response);
 
-      const paid = await payBalance(visitorId);
-      if (!paid) throw new Error("Payment deduction failed.");
-
-      setVisitorId(visitorId);
+      toast.success("Your payment was successful and the QR code is ready.");
       fetchVisitors();
       fetchBalance();
     } catch (error) {
       console.error("QR/Payment process failed:", error);
-    } finally {
-      setQRIsLoading(false);
     }
   };
 
@@ -184,14 +142,20 @@ const Dashboard = ({ user }) => {
       txn.classification,
       txn.visitDate,
     ];
-    return values.some((val) => val?.toLowerCase().includes(searchTerm.toLowerCase()));
+    return values.some((val) =>
+      val?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   });
 
-  const itemsPerPageValue = itemsPerPage === "All" ? filteredData.length : itemsPerPage;
+  const itemsPerPageValue =
+    itemsPerPage === "All" ? filteredData.length : itemsPerPage;
   const indexOfLastItem = currentPage * itemsPerPageValue;
   const indexOfFirstItem = indexOfLastItem - itemsPerPageValue;
   const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = itemsPerPage === "All" ? 1 : Math.ceil(filteredData.length / itemsPerPageValue);
+  const totalPages =
+    itemsPerPage === "All"
+      ? 1
+      : Math.ceil(filteredData.length / itemsPerPageValue);
 
   const handleViewQRCode = (imageUrl, txnId) => {
     setViewQrImageUrl(imageUrl);
@@ -207,14 +171,17 @@ const Dashboard = ({ user }) => {
       {/* Main content */}
       <section className="content">
         <div className="container-fluid">
-          <DashboardStats user={user}/>
+          <DashboardStats user={user} />
 
           <Row className="justify-content-center">
             <Col md={8} lg={12}>
               <Card className="shadow">
                 <Card.Body className="main-card">
                   <div className="mb-4 text-start">
-                    <Button variant="success" onClick={() => setShowVisitorModal(true)}>
+                    <Button
+                      variant="success"
+                      onClick={() => setShowVisitorModal(true)}
+                    >
                       <FaPlus className="mr-1" /> Add Visitor
                     </Button>
                   </div>

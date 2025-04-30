@@ -19,24 +19,26 @@ const ProfileModal = ({ show, onClose, user }) => {
   return (
     <Modal show={show} onHide={onClose} centered>
       {/* Header */}
-      <Modal.Header closeButton>
-        <Modal.Title className="fw-bold">User Profile</Modal.Title>
-      </Modal.Header>
+      <div className="modal-header">
+        <h5 className="modal-title fw-bold">User Profile</h5>
+        <button type="button" className="close" onClick={onClose}>
+          <span>&times;</span>
+        </button>
+      </div>
 
       {/* Body */}
-      <Modal.Body className="text-center">
+      <div className="modal-body text-center">
         <div className="mb-3">
           <img
-            src={profilePicture}
+            src={profilePicture || "https://via.placeholder.com/100"}
             alt="Profile"
-            className={`rounded-circle border border-2 img-fluid`}
-            width="100"
-            height="100"
+            className="rounded-circle img-fluid border border-secondary"
+            style={{ width: "100px", height: "100px", objectFit: "cover" }}
           />
         </div>
 
         <h5 className="fw-bold mb-1">{user?.name || "N/A"}</h5>
-        <p className={`mb-2 small`}>{user?.email || "N/A"}</p>
+        <p className="text-muted mb-2 small">{user?.email || "N/A"}</p>
 
         <div className="border p-3 rounded text-start small">
           <p className="mb-1">
@@ -45,11 +47,11 @@ const ProfileModal = ({ show, onClose, user }) => {
           <p className="mb-1">
             <strong>Date Added:</strong> {formattedDate}
           </p>
-          <p className="mb-1">
-            <strong>Addrress:</strong> {formattedAddress}
+          <p className="mb-0">
+            <strong>Address:</strong> {formattedAddress}
           </p>
         </div>
-      </Modal.Body>
+      </div>
     </Modal>
   );
 };
