@@ -1,9 +1,17 @@
 import jwt from "jsonwebtoken";
 import Session from "../models/Session.js";
 
-export const generateJWT = (userId, sessionToken) => {
+// Access token: short-lived
+export const generateAccessToken = (userId, sessionToken) => {
   return jwt.sign({ userId, sessionToken }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRATION,
+  });
+};
+
+// Refresh token: long-lived
+export const generateRefreshToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: "7d",
   });
 };
 

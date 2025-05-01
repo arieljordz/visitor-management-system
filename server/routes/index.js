@@ -2,6 +2,7 @@ import express from "express";
 import {
   login,
   googleLogin,
+  refreshToken,
   verifyEmail,
   forgotPassword,
   resetPassword,
@@ -92,6 +93,7 @@ const router = express.Router();
 // User Routes
 router.post("/login-user", auditMiddleware("LOGIN_USER"), login);
 router.post("/google-login-user", auditMiddleware("GOOGLE_LOGIN_USER"), googleLogin);
+router.post("/refresh-token", authenticate, refreshToken);
 router.get("/google-login-verify-user", auditMiddleware("GOOGLE_VERIFIY_USER"), verifyEmail);
 router.post("/forgot-password", auditMiddleware("FORGOT_PASSWORD_USER"), forgotPassword);
 router.post("/reset-password/:token", auditMiddleware("RESET_PASSWORD_USER"), resetPassword);

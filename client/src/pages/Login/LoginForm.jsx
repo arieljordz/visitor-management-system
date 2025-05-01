@@ -26,46 +26,72 @@ const LoginForm = ({ setUser, setLoading, setIsRegistering }) => {
     }, 800);
   };
 
-  const login = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.post(`${API_URL}/api/login-user`, {
+const login = async () => {
+  try {
+    setLoading(true);
+    
+    const res = await axios.post(
+      `${API_URL}/api/login-user`,
+      {
         email: username,
         password,
-      });
-      localStorage.setItem("user", JSON.stringify(res.data));
-      setUser(res.data);
-      setMessage("Login successful");
-      navigateByRole(res.data);
-    } catch (error) {
-      setMessage("Login failed");
-      setLoading(false);
-    }
-  };
+      },
+      { withCredentials: true } // Important: allows cookie to be set by backend
+    );
 
-  const handleGoogleLoginSuccess = async (credentialResponse) => {
-    try {
-      setLoading(true);
-      const decoded = jwtDecode(credentialResponse.credential);
-      const userData = {
-        name: decoded.name,
-        password: "DefaultPass123!",
-        email: decoded.email,
-        picture: decoded.picture,
-        role: "client",
-        address: "N/A",
-      };
+    const { accessToken, ...userData } = res.data;
 
-      const res = await axios.post(`${API_URL}/api/google-login-user`, userData);
-      localStorage.setItem("user", JSON.stringify(res.data));
-      setUser(res.data);
-      setMessage(res.data.verified ? "Google login successful." : "Google mail registration successful. Please verify it to your email.");
-      navigateByRole(res.data);
-    } catch (error) {
-      setMessage("Google login failed");
-      setLoading(false);
-    }
-  };
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("user", JSON.stringify(userData));
+
+    setUser(userData);
+    setMessage("Login successful");
+    navigateByRole(userData);
+  } catch (error) {
+    setMessage("Login failed");
+    setLoading(false);
+  }
+};
+
+const handleGoogleLoginSuccess = async (credentialResponse) => {
+  try {
+    setLoading(true);
+
+    const decoded = jwtDecode(credentialResponse.credential);
+
+    const userData = {
+      name: decoded.name,
+      password: "DefaultPass123!", 
+      email: decoded.email,
+      picture: decoded.picture,
+      role: "client",
+      address: "N/A",
+    };
+
+    const res = await axios.post(
+      `${API_URL}/api/google-login-user`,
+      userData,
+      { withCredentials: true } // allows refreshToken to be set in cookie
+    );
+
+    const { accessToken, ...user } = res.data;
+
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("user", JSON.stringify(user));
+    setUser(user);
+
+    setMessage(
+      user.verified
+        ? "Google login successful."
+        : "Google mail registration successful. Please verify it to your email."
+    );
+
+    navigateByRole(user);
+  } catch (error) {
+    setMessage("Google login failed");
+    setLoading(false);
+  }
+};
 
   const handleSubmit = (e) => {
     e.preventDefault();

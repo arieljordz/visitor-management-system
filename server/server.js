@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import path from "path";
+import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
@@ -27,23 +28,26 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "*", // Change to your React app origin in production
+    origin: process.env.BASE_URL,
     methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   },
 });
 
 // --- Middleware Setup ---
 app.use(
   cors({
-    origin: "*", // You can update this to a more restrictive origin in production
+    origin: process.env.BASE_URL, // your Vite frontend dev server
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true, // if you’re using cookies/sessions
+    credentials: true, // enable sending/receiving cookies
   })
 );
 
 // Parse incoming requests with JSON payload
 app.use(express.json());
+
+app.use(cookieParser());
 
 // Serve static files from "uploads" folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

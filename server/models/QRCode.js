@@ -22,7 +22,7 @@ const qrCodeSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["active", "used", "expired"],
+      enum: ["pending", "active", "scanned", "used", "expired", "revoked"],
       default: "active",
     },
     generatedAt: {

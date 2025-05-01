@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import User from "../models/User.js";
 import Session from "../models/Session.js";
 import {
-  generateJWT,
+  generateAccessToken,
+  generateRefreshToken,
   createSession,
   buildResponse,
 } from "../utils/authUtils.js";
@@ -13,6 +14,7 @@ import { sendEmail } from "../utils/mailer.js";
 // User handler
 export const login = async (req, res) => {
   const { email, password } = req.body;
+
   try {
     const user = await User.findOne({ email });
     if (
@@ -28,14 +30,25 @@ export const login = async (req, res) => {
     }
 
     const sessionToken = uuidv4();
+    const accessToken = generateAccessToken(user._id, sessionToken);
+    const refreshToken = generateRefreshToken(user._id);
+
     user.sessionToken = sessionToken;
+    user.refreshToken = refreshToken;
     await user.save();
 
     const { password: _, ...safeUser } = user.toObject();
-    const token = generateJWT(user._id, sessionToken);
     await createSession(user, req, sessionToken, "local");
 
-    res.json(buildResponse(safeUser, token));
+    // Send refresh token via HttpOnly cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.json(buildResponse(safeUser, accessToken));
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -70,17 +83,26 @@ export const googleLogin = async (req, res) => {
       user.sessionToken = sessionToken;
     }
 
+    const accessToken = generateAccessToken(user._id, sessionToken);
+    const refreshToken = generateRefreshToken(user._id);
+
+    user.refreshToken = refreshToken;
     await user.save();
+
     const { password: _, ...safeUser } = user.toObject();
-    const token = generateJWT(user._id, sessionToken);
 
-    // Send verification email if new or not yet verified
+    // Send refresh token as cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     if (isNewUser || !user.verified) {
-      const verificationUrl = `${
-        process.env.BASE_API_URL
-      }/api/google-login-verify-user?email=${encodeURIComponent(email)}`;
-
+      const verificationUrl = `${process.env.BASE_API_URL}/api/google-login-verify-user?email=${encodeURIComponent(email)}`;
       const subject = "Verify Your Email";
+
       const message = `
         <div>
           <p>Hello ${name},</p>
@@ -92,24 +114,43 @@ export const googleLogin = async (req, res) => {
           </p>
           <p>Or copy and paste the link into your browser:</p>
           <p style="word-break: break-all;">${verificationUrl}</p>
+          <p><strong>Note:</strong> Your default password is: <code>DefaultPass123!</code></p>
+          <p>You can change your password after logging in.</p>
           <p>If you did not request this, please ignore this email.</p>
         </div>
       `;
 
-      await sendEmail({
-        to: email,
-        subject,
-        html: message,
-      });
+      await sendEmail({ to: email, subject, html: message });
     } else {
       await createSession(user, req, sessionToken, "google");
     }
 
-    console.log("safeUser:", safeUser);
-    res.json(buildResponse(safeUser, token));
+    res.json(buildResponse(safeUser, accessToken));
   } catch (error) {
     console.error("Google Login Error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const refreshToken = async (req, res) => {
+  const token = req.cookies.refreshToken;
+  if (!token) return res.status(401).json({ message: "No refresh token" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const user = await User.findById(decoded.userId);
+    if (!user || user.refreshToken !== token) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    const sessionToken = uuidv4(); // Optional: rotate session
+    user.sessionToken = sessionToken;
+    await user.save();
+
+    const accessToken = generateAccessToken(user._id, sessionToken);
+    res.json({ token: accessToken });
+  } catch (err) {
+    res.status(403).json({ message: "Token expired or invalid" });
   }
 };
 
@@ -152,8 +193,18 @@ export const forgotPassword = async (req, res) => {
     const resetUrl = `${process.env.BASE_URL}/reset-password/${token}`;
     const subject = "Reset your password";
     const message = `
-    <p>You requested a password reset.</p>
-    <p>Click <a href="${resetUrl}">here</a> to reset your password. This link is valid for 1 hour.</p>
+    <div>
+      <p>You requested a password reset.</p>
+      <p>Click the link below to reset your password. This link is valid for 1 hour:</p>
+      <p>
+        <a href="${resetUrl}" style="color: #1a73e8; text-decoration: underline;" target="_blank" rel="noopener noreferrer">
+          Reset Password
+        </a>
+      </p>
+      <p>Or copy and paste the link into your browser:</p>
+      <p style="word-break: break-all;">${resetUrl}</p>
+      <p>If you did not request this, please ignore this email.</p>
+    </div>
   `;
 
     await sendEmail({
@@ -176,7 +227,7 @@ export const resetPassword = async (req, res) => {
   try {
     const user = await User.findOne({
       resetToken: token,
-      resetTokenExpires: { $gt: Date.now() }, 
+      resetTokenExpires: { $gt: Date.now() },
     });
 
     if (!user) {
