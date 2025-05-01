@@ -19,6 +19,8 @@ const UserSchema = new mongoose.Schema(
       default: "active",
     },
     sessionToken: { type: String, default: null },
+    resetToken: { type: String, default: null },
+    resetTokenExpires: { type: Date, default: null },
   },
   { timestamps: true }
 );

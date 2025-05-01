@@ -3,6 +3,8 @@ import {
   login,
   googleLogin,
   verifyEmail,
+  forgotPassword,
+  resetPassword,
   logout,
   createUser,
   getUsers,
@@ -91,6 +93,8 @@ const router = express.Router();
 router.post("/login-user", auditMiddleware("LOGIN_USER"), login);
 router.post("/google-login-user", auditMiddleware("GOOGLE_LOGIN_USER"), googleLogin);
 router.get("/google-login-verify-user", auditMiddleware("GOOGLE_VERIFIY_USER"), verifyEmail);
+router.post("/forgot-password", auditMiddleware("FORGOT_PASSWORD_USER"), forgotPassword);
+router.post("/reset-password/:token", auditMiddleware("RESET_PASSWORD_USER"), resetPassword);
 router.put("/logout-user", authenticate, auditMiddleware("LOGOUT_USER"), logout);
 router.post("/create-user", auditMiddleware("REGISTER_USER"), createUser);
 router.get("/get-users", authenticate, getUsers);

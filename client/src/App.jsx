@@ -6,10 +6,12 @@ import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import Spinner from "./components/common/Spinner";
-import Login from "./pages/Login/Login";
+import LoginPage from "./pages/Login/LoginPage";
 import socket from "./utils/socket";
 import AuthenticatedLayout from "./layouts/AuthenticatedLayout";
 import VerifyEmail from "./pages/Login/VerifyEmail";
+import ForgotPassword from "./pages/Login/ForgotPassword";
+import ResetPassword from "./pages/Login/ResetPassword";
 
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
@@ -67,10 +69,16 @@ const App = () => {
             <Route
               path="/"
               element={
-                <Login user={user} setUser={setUser} setLoading={setLoading} />
+                <LoginPage
+                  user={user}
+                  setUser={setUser}
+                  setLoading={setLoading}
+                />
               }
             />
-            <Route path="/api/email-verified" element={<VerifyEmail />} />
+            <Route path="/email-verification" element={<VerifyEmail />} />
+            <Route path="/forgot-password" element={<ForgotPassword setLoading={setLoading}/>} />
+            <Route path="/reset-password/:token" element={<ResetPassword setLoading={setLoading}/>} />
             <Route
               path="/*"
               element={

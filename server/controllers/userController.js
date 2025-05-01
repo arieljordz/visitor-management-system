@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import User from "../models/User.js";
 import Session from "../models/Session.js";
@@ -75,13 +76,13 @@ export const googleLogin = async (req, res) => {
 
     // Send verification email if new or not yet verified
     if (isNewUser || !user.verified) {
-      const verificationUrl = `${process.env.BASE_API_URL}/api/google-login-verify-user?email=${encodeURIComponent(
-        email
-      )}`;
+      const verificationUrl = `${
+        process.env.BASE_API_URL
+      }/api/google-login-verify-user?email=${encodeURIComponent(email)}`;
 
       const subject = "Verify Your Email";
       const message = `
-        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+        <div>
           <p>Hello ${name},</p>
           <p>Please verify your email address by clicking the link below:</p>
           <p>
@@ -119,16 +120,82 @@ export const verifyEmail = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) return res.status(404).send("User not found.");
-    if (user.verified) return res.redirect(`${process.env.BASE_URL}/api/email-verified`);
+    if (user.verified)
+      return res.redirect(`${process.env.BASE_URL}/email-verification`);
 
     user.verified = true;
     await user.save();
 
     // Redirect to frontend after successful verification
-    res.redirect(`${process.env.BASE_URL}/api/email-verified`);
+    res.redirect(`${process.env.BASE_URL}/email-verification`);
   } catch (error) {
     console.error("Email Verification Error:", error);
     res.status(500).send("Server error.");
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user)
+      return res
+        .status(404)
+        .json({ message: "No user found with that email." });
+
+    const token = crypto.randomBytes(32).toString("hex");
+    user.resetToken = token;
+    user.resetTokenExpires = Date.now() + 1000 * 60 * 60; // 1 hour
+    await user.save();
+
+    const resetUrl = `${process.env.BASE_URL}/reset-password/${token}`;
+    const subject = "Reset your password";
+    const message = `
+    <p>You requested a password reset.</p>
+    <p>Click <a href="${resetUrl}">here</a> to reset your password. This link is valid for 1 hour.</p>
+  `;
+
+    await sendEmail({
+      to: email,
+      subject,
+      html: message,
+    });
+
+    res.json({ message: "Password reset email sent successfully." });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  try {
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpires: { $gt: Date.now() }, 
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token." });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    user.password = hashedPassword;
+    user.resetToken = null;
+    user.resetTokenExpires = null;
+
+    await user.save();
+
+    res.json({ message: "Password reset successful. You can now log in." });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 };
 
