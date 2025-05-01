@@ -55,12 +55,14 @@ import {
   updateClassification,
 } from "../controllers/classificationController.js";
 import {
-  createVisitor,
   getAllVisitors,
   getVisitorById,
   getVisitorByUserId,
   deleteVisitorById,
   updateVisitorById,
+  searchVisitor,
+  getVisitorNames,
+  createVisitorDetail,
 } from "../controllers/visitorController.js";
 import {
   createFee,
@@ -150,12 +152,15 @@ router.delete("/delete-classification/:id", authenticate, auditMiddleware("DELET
 router.put("/update-classification/:id", authenticate, auditMiddleware("UPDATE_CLASSIFICATION"), updateClassification);
 
 // Visitor Routes
-router.post("/create-visitor", authenticate, auditMiddleware("CREATE_VISITOR"), createVisitor);
 router.get("/get-visitors", authenticate, getAllVisitors);
 router.get("/get-visitor/:id", authenticate, getVisitorById);
 router.get("/get-visitor-by-user/:userId", authenticate, getVisitorByUserId);
 router.delete("/delete-visitor/:id", authenticate, auditMiddleware("DELETE_VISITOR"), deleteVisitorById);
 router.put("/update-visitor/:id", authenticate, auditMiddleware("UPDATE_VISITOR"), updateVisitorById);
+
+router.get("/search-visitor", authenticate, searchVisitor);
+router.get("/visitors-names", authenticate, getVisitorNames);
+router.post("/create-visitors-detail", authenticate, auditMiddleware("CREATE_VISITOR_DETAIL"), createVisitorDetail);
 
 // Fee Routes
 router.post("/create-fee", authenticate, auditMiddleware("CREATE_FEE"), createFee);

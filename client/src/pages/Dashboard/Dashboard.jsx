@@ -44,7 +44,7 @@ const Dashboard = ({ user }) => {
     setTableLoading(true);
     try {
       const data = await getVisitorByUserId(user.userId);
-      // console.log("Fetch visitors", data);
+      console.log("Fetch visitors", data);
       setVisitors(data);
     } catch (err) {
       // console.error("Failed to fetch visitor:", err);

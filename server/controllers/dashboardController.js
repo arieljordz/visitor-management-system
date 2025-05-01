@@ -7,7 +7,7 @@ export const getDashboardStats = async (req, res) => {
   try {
     const user = req.user;
 
-    console.log("user:", user);
+    // console.log("user:", user);
     if (!user) {
       return res.status(401).json({ message: "Unauthorized" });
     }

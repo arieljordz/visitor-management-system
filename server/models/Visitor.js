@@ -2,11 +2,6 @@ import mongoose from "mongoose";
 
 const VisitorSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User", 
-      required: true,
-    },
     visitorType: {
       type: String,
       enum: ["Individual", "Group"],
@@ -15,38 +10,20 @@ const VisitorSchema = new mongoose.Schema(
     firstName: {
       type: String,
       required: function () {
-        return this.VisitorType === "Individual";
+        return this.visitorType === "Individual";
       },
     },
     lastName: {
       type: String,
       required: function () {
-        return this.VisitorType === "Individual";
+        return this.visitorType === "Individual";
       },
     },
     groupName: {
       type: String,
       required: function () {
-        return this.VisitorType === "Group";
+        return this.visitorType === "Group";
       },
-    },
-    noOfVisitors: {
-      type: Number,
-      required: function () {
-        return this.VisitorType === "Group";
-      },
-    },
-    visitDate: {
-      type: Date,
-      required: true,
-    },
-    purpose: {
-      type: String,
-      required: true,
-    },
-    classification: {
-      type: String,
-      required: true,
     },
   },
   { timestamps: true }

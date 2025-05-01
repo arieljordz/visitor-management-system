@@ -45,10 +45,10 @@ const VisitorsTable = ({
                 </td>
                 <td className="text-center">{visitor.groupName || "—"}</td>
                 <td className="text-center">{visitor.noOfVisitors || "—"}</td>
-                <td className="text-center">{visitor.purpose}</td>
-                <td className="text-center">{visitor.classification}</td>
+                <td className="text-center">{visitor.visitDetail.purpose}</td>
+                <td className="text-center">{visitor.visitDetail.classification}</td>
                 <td className="text-center">
-                  {visitor.visitDate
+                  {visitor.visitDetail.visitDate
                     ? new Date(visitor.visitDate).toLocaleString()
                     : "—"}
                 </td>

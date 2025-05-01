@@ -5,7 +5,43 @@ export const getVisitorByUserId = async (userId) => {
   return response.data.data || [];
 };
 
-export const createVisitor = async (dataToSubmit) => {
-  const response = await api.post("/api/create-visitor", dataToSubmit);
+export const searchVisitor = async (query) => {
+  const params = new URLSearchParams(query).toString();
+  const response = await api.get(`/api/search-visitor?${params}`);
+  return response.data || [];
+};
+
+export const createVisitor = async (formData) => {
+  const response = await api.post("/api/create-visitor", formData);
   return response.data.data || [];
+};
+
+export const getVisitorNames = async (visitorType) => {
+  try {
+    const response = await api.get(`/api/visitors-names?type=${visitorType}`);
+    const data = response.data;
+
+    if (visitorType === "Individual") {
+      return data.map((visitor) => ({
+        value: `${visitor.firstName}-${visitor.lastName}`,
+        label: `${visitor.firstName} ${visitor.lastName}`,
+        firstName: visitor.firstName,
+        lastName: visitor.lastName,
+      }));
+    } else {
+      return data.map((group) => ({
+        value: group.groupName,
+        label: group.groupName,
+        groupName: group.groupName,
+      }));
+    }
+  } catch (error) {
+    console.error("Error fetching visitor names:", error);
+    return [];
+  }
+};
+
+export const createVisitorDetail = async (formData) => {
+  const response = await api.post("/api/create-visitors-detail", formData);
+  return response;
 };
