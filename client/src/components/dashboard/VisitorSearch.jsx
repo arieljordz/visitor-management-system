@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Form } from "react-bootstrap";
 import VisitorTypeSelector from "./VisitorTypeSelector";
 import VisitorDropdown from "./VisitorDropdown";
-import {
-  searchVisitor,
-  getVisitorNames,
-  createVisitor,
-} from "../../services/visitorService";
+import { searchVisitor, getVisitorNames } from "../../services/visitorService";
 
-const VisitorSearch = ({ onSearchComplete, onClearSearch }) => {
+const VisitorSearch = ({
+  formData,
+  onSearchComplete,
+  onClearSearch,
+  onChange,
+}) => {
   const [searchType, setSearchType] = useState("Individual");
   const [options, setOptions] = useState([]);
   const [selectedVisitor, setSelectedVisitor] = useState(null);
@@ -28,7 +29,6 @@ const VisitorSearch = ({ onSearchComplete, onClearSearch }) => {
       console.error("Failed to fetch visitor options:", error);
       setOptions([]);
     } finally {
-      setSelectedVisitor(null);
       setLoading(false);
     }
   };
@@ -64,30 +64,6 @@ const VisitorSearch = ({ onSearchComplete, onClearSearch }) => {
     }
   };
 
-  const handleSaveVisitor = async () => {
-    if (!selectedVisitor) return;
-
-    const newVisitor =
-      searchType === "Individual"
-        ? {
-            visitorType: "Individual",
-            firstName: selectedVisitor.firstName,
-            lastName: selectedVisitor.lastName,
-          }
-        : {
-            visitorType: "Group",
-            groupName: selectedVisitor.groupName,
-          };
-
-    try {
-      await createVisitor(newVisitor);
-      await loadVisitorOptions(); // Refresh dropdown
-      console.log("Visitor saved successfully.");
-    } catch (error) {
-      console.error("Failed to save visitor:", error);
-    }
-  };
-
   return (
     <Form>
       <VisitorTypeSelector
@@ -95,7 +71,7 @@ const VisitorSearch = ({ onSearchComplete, onClearSearch }) => {
         onChange={(type) => {
           setSearchType(type);
           setSelectedVisitor(null);
-          onSearchComplete({ type, results: [] }); // Notify reset
+          onSearchComplete({ type, results: [] });
         }}
       />
 

@@ -36,7 +36,7 @@ const GeneratedQRCodeTable = ({
                 <td className="text-center">
                   {txn._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">{txn.visitorId?.visitorType}</td>
+                <td className="text-center">{txn.visitorId?.visitorType.toUpperCase()}</td>
                 <td className="text-center">{txn.userId.name.toUpperCase()}</td>
                 <td className="text-center">
                   {txn.visitorId?.visitorType === "Individual"
@@ -45,7 +45,7 @@ const GeneratedQRCodeTable = ({
                       }`
                     : txn.visitorId?.groupName.toUpperCase()}
                 </td>
-                <td className="text-center">{txn.visitorId?.purpose}</td>
+                <td className="text-center">{txn.visitdetailsId?.purpose.toUpperCase()}</td>
                 <td className="text-center">
                   {/* Check if qrImageUrl exists and render the image */}
                   {txn.qrImageUrl ? (

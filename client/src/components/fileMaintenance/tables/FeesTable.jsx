@@ -35,7 +35,7 @@ const FeesTable = ({
                 <td className="text-center">
                   {row._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">{row.description}</td>
+                <td className="text-center">{row.description.toUpperCase()}</td>
                 <td className="text-center">
                   ₱{Number(row.fee || 0).toFixed(2)}
                 </td>

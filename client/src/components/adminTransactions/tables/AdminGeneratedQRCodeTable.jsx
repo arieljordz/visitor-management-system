@@ -7,6 +7,7 @@ const AdminGeneratedQRCodeTable = ({
   handleViewQRCode,
   getBadgeClass,
 }) => {
+  console.log("currentData:", currentData);
   return loading ? (
     <div className="text-center my-4">
       <Spinner animation="border" />
@@ -19,7 +20,7 @@ const AdminGeneratedQRCodeTable = ({
             <th className="text-center">#</th>
             <th className="text-center">TransactionID</th>
             <th className="text-center">Visitor Type</th>
-            <th className="text-center">Client Name</th>
+            <th className="text-center">Owner Name</th>
             <th className="text-center">Name/Group</th>
             <th className="text-center">Purpose</th>
             <th className="text-center">QR Code</th>
@@ -35,8 +36,8 @@ const AdminGeneratedQRCodeTable = ({
                 <td className="text-center">
                   {txn._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">{txn.visitorId?.visitorType}</td>
-                <td className="text-center">{txn.userId.name}</td>
+                <td className="text-center">{txn.visitorId?.visitorType.toUpperCase()}</td>
+                <td className="text-center">{txn.userId.name.toUpperCase()}</td>
                 <td className="text-center">
                   {txn.visitorId?.visitorType === "Individual"
                     ? `${txn.visitorId?.firstName.toUpperCase() || ""} ${
@@ -44,7 +45,7 @@ const AdminGeneratedQRCodeTable = ({
                       }`
                     : txn.visitorId?.groupName.toUpperCase()}
                 </td>
-                <td className="text-center">{txn.visitorId?.purpose}</td>
+                <td className="text-center">{txn.visitdetailsId?.purpose.toUpperCase()}</td>
                 <td className="text-center">
                   {/* Check if qrImageUrl exists and render the image */}
                   {txn.qrImageUrl ? (

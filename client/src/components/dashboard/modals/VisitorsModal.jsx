@@ -52,7 +52,17 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
     setVisitorType(type);
 
     if (results.length > 0) {
-      setSelectedVisitor(results[0]);
+      const visitor = results[0];
+      setSelectedVisitor(visitor);
+
+      // Also populate formData for clarity
+      setFormData((prev) => ({
+        ...prev,
+        firstName: type === "Individual" ? visitor.firstName : "",
+        lastName: type === "Individual" ? visitor.lastName : "",
+        groupName: type === "Group" ? visitor.groupName : "",
+        noOfVisitors: type === "Group" ? visitor.noOfVisitors : "",
+      }));
     } else {
       setSelectedVisitor(null);
     }
@@ -74,31 +84,39 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
         userId: user.userId,
         visitorType,
         firstName:
-          visitorType === "Individual" ? formData.firstName : undefined,
-        lastName: visitorType === "Individual" ? formData.lastName : undefined,
-        groupName: visitorType === "Group" ? formData.groupName : undefined,
+          visitorType === "Individual"
+            ? selectedVisitor?.firstName || formData.firstName
+            : undefined,
+        lastName:
+          visitorType === "Individual"
+            ? selectedVisitor?.lastName || formData.lastName
+            : undefined,
+        groupName:
+          visitorType === "Group"
+            ? selectedVisitor?.groupName || formData.groupName
+            : undefined,
         visitDate: formData.visitDate,
         purpose: formData.purpose,
         classification: formData.classification,
         noOfVisitors:
-          visitorType === "Group" ? formData.noOfVisitors : undefined,
+          visitorType === "Group"
+            ? selectedVisitor?.noOfVisitors || formData.noOfVisitors
+            : 1,
       };
 
-      // Call the unified handler to create visitor and visit in one go
       const response = await createVisitorDetail(visitPayload);
-      console.log("response", response);
       if (response?.status === 201) {
         toast.success("Visitor and visit record created.");
         refreshList();
         onHide();
       } else {
         toast.error(
-          response?.message || "Failed to save visitor and visit record."
+          response?.data?.message || "Failed to save visitor and visit record."
         );
       }
     } catch (err) {
-      toast.error("Failed to save visitor and visit record.");
-      console.error(err);
+      toast.error(err?.response?.data?.message);
+      console.error("Error:", err);
     }
   };
 
@@ -119,6 +137,8 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
         <VisitorSearch
           onSearchComplete={handleSearchComplete}
           onClearSearch={handleClearSearch}
+          formData={formData} 
+          onChange={handleChange} 
         />
         <hr />
         <VisitorForm

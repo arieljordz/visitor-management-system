@@ -5,21 +5,6 @@ const VisitorDetailsForm = ({ visitorType, formData, classifications, onChange }
   return (
     <>
       <Row className="mt-2 mb-2">
-        {visitorType === "Group" && (
-          <Col md={6}>
-            <Form.Group>
-              <Form.Label>No. of Visitors</Form.Label>
-              <Form.Control
-                type="number"
-                name="noOfVisitors"
-                value={formData.noOfVisitors}
-                onChange={onChange}
-                min={1}
-                required
-              />
-            </Form.Group>
-          </Col>
-        )}
         <Col md={6}>
           <Form.Group>
             <Form.Label>Visit Date</Form.Label>
@@ -40,7 +25,7 @@ const VisitorDetailsForm = ({ visitorType, formData, classifications, onChange }
               name="purpose"
               value={formData.purpose}
               onChange={onChange}
-              placeholder="Enter pupose"
+              placeholder="Enter purpose"
               required
             />
           </Form.Group>

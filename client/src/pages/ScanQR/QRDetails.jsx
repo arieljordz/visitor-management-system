@@ -3,6 +3,7 @@ import moment from "moment";
 import { Form, Row, Col, Card } from "react-bootstrap";
 
 const QRDetails = ({ responseMessage }) => {
+  console.log("responseMessage:", responseMessage);
   const { clientName, visitorName, visitDate, purpose } = responseMessage.data;
 
   return (

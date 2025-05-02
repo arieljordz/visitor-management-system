@@ -14,8 +14,8 @@ import DashboardStats from "./DashboardStats.jsx";
 
 import { getVisitorByUserId } from "../../services/visitorService.js";
 import {
-  checkActiveQRCodeById,
   generateQRCodeWithPayment,
+  checkActiveQRCodeForVisit,
 } from "../../services/qrService.js";
 import { getBalance } from "../../services/balanceService.js";
 
@@ -44,7 +44,7 @@ const Dashboard = ({ user }) => {
     setTableLoading(true);
     try {
       const data = await getVisitorByUserId(user.userId);
-      console.log("Fetch visitors", data);
+      // console.log("Fetch visitors", data);
       setVisitors(data);
     } catch (err) {
       // console.error("Failed to fetch visitor:", err);
@@ -77,26 +77,16 @@ const Dashboard = ({ user }) => {
     );
   };
 
-  const checkActiveQR = async (visitorId) => {
-    try {
-      const data = await checkActiveQRCodeById(user, visitorId);
-      return data ?? null;
-    } catch (error) {
-      // console.error("Failed to check active QR code:", error);
-      return null;
-    }
-  };
-
-  const handleGenerateQR = async (visitorId) => {
+  const handleGenerateQR = async (visitorId, visitdetailsId) => {
     try {
       if (balance < 20) {
         toast.warning("Your balance is insufficient to generate a QR code.");
         return;
       }
 
-      const hasActiveQR = await checkActiveQR(visitorId);
+      const hasActiveQR = await checkActiveQRCodeForVisit(user, visitorId, visitdetailsId);
       if (hasActiveQR) {
-        toast.warning("This visitor currently has an active QR code.");
+        toast.warning("This visitor currently has an active QR code for that date.");
         return;
       }
 
@@ -110,9 +100,11 @@ const Dashboard = ({ user }) => {
 
       if (!result.isConfirmed) return;
 
+      // console.log("visitdetailsId:", visitdetailsId);
       const response = await generateQRCodeWithPayment({
         userId: user.userId,
         visitorId,
+        visitdetailsId,
       });
 
       // console.log("response:", response);

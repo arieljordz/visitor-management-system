@@ -1,16 +1,25 @@
 import api from "../api/api.js";
 
-export const checkActiveQRCodeById = async (user, visitorId) => {
-  const response = await api.get(
-    `/api/check-active-qr/${user.userId}/${visitorId}`
-  );
-  return response.data.data || [];
+export const checkActiveQRCodeForVisit = async (user, visitorId, visitdetailsId) => {
+  try {
+    const response = await api.get(
+      `/api/check-active-qr/${user.userId}/${visitorId}/${visitdetailsId}`
+    );
+    return false; 
+  } catch (error) {
+    if (error.response && error.response.status === 409) {
+      return true; 
+    }
+    console.error("Error checking active QR:", error);
+    throw error; 
+  }
 };
 
-export const generateQRCodeWithPayment = async ({ userId, visitorId }) => {
+export const generateQRCodeWithPayment = async ({ userId, visitorId, visitdetailsId }) => {
   const response = await api.post("/api/generate-qr", {
     userId,
     visitorId,
+    visitdetailsId,
   });
   return response.data.data || [];
 };

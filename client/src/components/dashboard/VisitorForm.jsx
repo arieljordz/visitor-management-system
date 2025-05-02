@@ -56,7 +56,7 @@ const VisitorForm = ({ onChange, visitor, type, formData }) => {
     <FormInput
       label="No. of Visitors"
       name="noOfVisitors"
-      value={isReadOnly ? visitor?.noOfVisitors : formData.noOfVisitors}
+      value={formData.noOfVisitors}
       onChange={onChange}
       type="number"
       placeholder="Enter no. of visitors"

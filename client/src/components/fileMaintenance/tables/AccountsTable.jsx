@@ -34,9 +34,9 @@ const AccountsTable = ({
               <tr key={user._id}>
                 <td className="text-center">{index + 1}</td>
                 <td className="text-center">{user.email}</td>
-                <td className="text-center">{user.name ? user.name : "N/A"}</td>
-                <td className="text-center">{user.address}</td>
-                <td className="text-center">{user.role}</td>
+                <td className="text-center">{user.name.toUpperCase()}</td>
+                <td className="text-center">{user.address.toUpperCase()}</td>
+                <td className="text-center">{user.role.toUpperCase()}</td>
                 <td className="text-center">
                   {user.createdAt
                     ? new Date(user.createdAt).toLocaleString()

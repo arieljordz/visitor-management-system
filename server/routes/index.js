@@ -14,12 +14,12 @@ import {
   deleteUser,
 } from "../controllers/userController.js";
 import {
-  generateQRCode,
   generateQRCodeWithPayment,
   scanQRCode,
   getGeneratedQRCodes,
   getGeneratedQRCodesById,
   checkActiveQRCodeById,
+  checkActiveQRCodeForVisit,
 } from "../controllers/qrController.js";
 import { getBalance, topUp } from "../controllers/balanceController.js";
 import {
@@ -108,11 +108,10 @@ router.delete("/delete-user/:id", authenticate, auditMiddleware("DELETE_USER"), 
 
 // QRCode Routes
 router.post("/generate-qr", authenticate, auditMiddleware("GENERATE_QR_CODE"), generateQRCodeWithPayment);
-router.post("/generate-qr/:userId/:visitorId", authenticate, auditMiddleware("GENERATE_QR_CODE"), generateQRCode);
 router.get("/scan-qr/:qrData", authenticate, auditMiddleware("SCAN_QR_CODE"), scanQRCode);
 router.get("/get-generated-qr", authenticate, getGeneratedQRCodes);
 router.get("/get-generated-qr/:userId", authenticate, getGeneratedQRCodesById);
-router.get("/check-active-qr/:userId/:visitorId", authenticate, checkActiveQRCodeById);
+router.get("/check-active-qr/:userId/:visitorId/:visitdetailsId", authenticate, checkActiveQRCodeForVisit);
 
 // Balance Routes
 router.get("/check-balance/:userId", authenticate, getBalance);

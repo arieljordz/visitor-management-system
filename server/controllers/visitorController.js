@@ -110,93 +110,108 @@ export const createVisitorDetail = async (req, res) => {
       noOfVisitors,
     } = req.body;
 
+    // Check for required fields
     if (!userId || !visitorType || !visitDate || !purpose || !classification) {
       return res.status(400).json({ message: "Missing required fields." });
     }
 
     let finalVisitorId = visitorId;
 
-    // If visitorId is not provided, create a new visitor
-    if (!visitorId) {
-      const newVisitorPayload = {
-        userId,
-        visitorType,
-        firstName: visitorType === "Individual" ? firstName : undefined,
-        lastName: visitorType === "Individual" ? lastName : undefined,
-        groupName: visitorType === "Group" ? groupName : undefined,
-      };
-
-      // Validate based on type
-      if (
-        visitorType === "Individual" &&
-        (!firstName?.trim() || !lastName?.trim())
-      ) {
-        return res.status(400).json({
-          message: "First name and last name are required for individual type.",
-        });
-      }
-
-      if (visitorType === "Group" && !groupName?.trim()) {
-        return res.status(400).json({
-          message: "Group name is required for group type.",
-        });
-      }
-
-      // Check if the visitor already exists
-      const existingVisitor = await Visitor.findOne({
-        $or: [
-          { firstName, lastName, visitorType: "Individual" },
-          { groupName, visitorType: "Group" },
-        ],
+    // Validate based on visitor type
+    if (
+      visitorType === "Individual" &&
+      (!firstName?.trim() || !lastName?.trim())
+    ) {
+      return res.status(400).json({
+        message: "First name and last name are required for individual type.",
       });
-
-      if (existingVisitor) {
-        return res.status(400).json({
-          message: "Visitor already exists with the same name or group name.",
-        });
-      }
-
-      const newVisitor = new Visitor(newVisitorPayload);
-      const savedVisitor = await newVisitor.save();
-      finalVisitorId = savedVisitor._id;
     }
 
-    // Check if the visitor already has a visit record for the same visit date
-    const existingVisit = await VisitDetail.findOne({
-      visitorId: finalVisitorId,
-      visitDate,
+    if (visitorType === "Group" && !groupName?.trim()) {
+      return res
+        .status(400)
+        .json({ message: "Group name is required for group type." });
+    }
+
+    // Step 1: Check if a visitor with matching name/group exists
+    const existingVisitor = await Visitor.findOne({
+      $or: [
+        { firstName, lastName, visitorType: "Individual" },
+        { groupName, visitorType: "Group" },
+      ],
     });
 
-    if (existingVisit) {
-      return res.status(400).json({
-        message: "Visit already exists for this visitor on the given date.",
+    if (existingVisitor) {
+      // Step 2: Check if a visit already exists on the same date (ignoring time)
+      const visitStart = new Date(visitDate);
+      visitStart.setHours(0, 0, 0, 0);
+
+      const visitEnd = new Date(visitDate);
+      visitEnd.setHours(23, 59, 59, 999);
+
+      const sameDateVisit = await VisitDetail.findOne({
+        visitorId: existingVisitor._id,
+        visitDate: {
+          $gte: visitStart,
+          $lte: visitEnd,
+        },
+      });
+
+      if (sameDateVisit) {
+        return res.status(400).json({
+          message: "Visit already exists for this visitor on the given date.",
+        });
+      }
+
+      // Save visit detail only
+      const newVisit = new VisitDetail({
+        visitorId: existingVisitor._id,
+        userId,
+        visitDate,
+        purpose,
+        classification,
+        noOfVisitors: visitorType === "Group" ? noOfVisitors : undefined,
+      });
+
+      const savedVisit = await newVisit.save();
+
+      return res.status(201).json({
+        message: "Visit detail saved for existing visitor.",
+        visitorId: existingVisitor._id,
+        visitDetail: savedVisit,
       });
     }
 
-    // Create the visit detail
-    const visitPayload = {
+    // Step 3: If no existing visitor, create visitor and visit detail
+    const newVisitor = new Visitor({
+      userId,
+      visitorType,
+      firstName: visitorType === "Individual" ? firstName : undefined,
+      lastName: visitorType === "Individual" ? lastName : undefined,
+      groupName: visitorType === "Group" ? groupName : undefined,
+    });
+
+    const savedVisitor = await newVisitor.save();
+    finalVisitorId = savedVisitor._id;
+
+    const newVisit = new VisitDetail({
       visitorId: finalVisitorId,
       userId,
       visitDate,
       purpose,
       classification,
       noOfVisitors: visitorType === "Group" ? noOfVisitors : undefined,
-      qrCode: {
-        qrData: uuidv4(),
-        status: "pending",
-      },
-    };
+    });
 
-    const newVisit = new VisitDetail(visitPayload);
     const savedVisit = await newVisit.save();
 
-    res.status(201).json({
-      message: "Visitor and visit detail saved successfully.",
+    return res.status(201).json({
+      message: "New visitor and visit detail saved successfully.",
       visitorId: finalVisitorId,
       visitDetail: savedVisit,
     });
   } catch (error) {
-    console.error("Error handling visitor with details:", error);
+    console.error("Error creating visitor detail:", error);
 
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map((e) => e.message);
@@ -234,47 +249,70 @@ export const getVisitorNames = async (req, res) => {
 export const getVisitorByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log("userId:", userId);
+    console.log("getVisitorByUserId:", userId);
 
-    // Step 1: Find all visit details for the user, sorted by visitDate descending
-    const visitDetails = await VisitDetail.find({ userId })
-      .sort({ visitDate: -1 }) // descending order of visitDate
-      .lean(); // lean for performance
+    // Step 1: Find all visitors associated with the user
+    const visitors = await Visitor.find({ userId }).lean();
 
-    if (!visitDetails || visitDetails.length === 0) {
+    if (!visitors.length) {
+      return res
+        .status(404)
+        .json({ message: "No visitors found for the user." });
+    }
+
+    const visitorIds = visitors.map((v) => v._id);
+
+    // Step 2: Fetch all visit details for these visitors
+    const visitDetails = await VisitDetail.find({
+      visitorId: { $in: visitorIds },
+    })
+      .sort({ visitDate: -1 })
+      .lean();
+
+    if (!visitDetails.length) {
       return res
         .status(404)
         .json({ message: "No visit details found for the user." });
     }
 
-    // Step 2: For each visit, find the corresponding visitor and their active QR code
-    const visitorsWithDetails = await Promise.all(
-      visitDetails.map(async (visitDetail) => {
-        // Fetch the corresponding visitor
-        const visitor = await Visitor.findById(visitDetail.visitorId).lean();
+    const visitDetailIds = visitDetails.map((v) => v._id);
 
-        // Fetch the active QR code for this visitor
-        const activeQRCode = await QRCode.findOne({
-          visitorId: visitor._id,
-          status: "active",
-        }).lean();
+    // Step 3: Fetch all active QR codes associated with visit details
+    const activeQRCodes = await QRCode.find({
+      visitdetailsId: { $in: visitDetailIds },
+      status: "active",
+    }).lean();
 
-        // Enrich visitor data with visit details and QR code
-        return {
-          ...visitor,
-          visitDetail: visitDetail,
-          activeQRCode: activeQRCode || null,
-          // Include the 'noOfVisitors' from visitDetail if visitor type is 'Group'
-          noOfVisitors:
-            visitor.visitorType === "Group" ? visitDetail.noOfVisitors : null,
-        };
-      })
+    const qrCodeMap = new Map(
+      activeQRCodes.map((qr) => [qr.visitdetailsId.toString(), qr])
     );
 
-    console.log("visitorsWithDetails:", visitorsWithDetails);
+    // Step 4: Map visit details with corresponding visitor and QR code
+    const enrichedVisitors = visitDetails.map((visit) => {
+      const visitor = visitors.find(
+        (v) => v._id.toString() === visit.visitorId.toString()
+      );
 
-    // Step 3: Respond with enriched data
-    res.status(200).json({ data: visitorsWithDetails });
+      return {
+        _id: visitor._id,
+        visitorType: visitor.visitorType,
+        firstName: visitor.firstName || null,
+        lastName: visitor.lastName || null,
+        groupName: visitor.groupName || null,
+        visitDetail: {
+          _id: visit._id,
+          visitDate: visit.visitDate,
+          purpose: visit.purpose,
+          classification: visit.classification,
+          noOfVisitors:
+            visitor.visitorType === "Group" ? visit.noOfVisitors : null,
+        },
+        activeQRCode: qrCodeMap.get(visit._id.toString()) || null,
+      };
+    });
+
+    console.log("enrichedVisitors:", enrichedVisitors);
+    res.status(200).json({ data: enrichedVisitors });
   } catch (error) {
     console.error("Error fetching visitors:", error);
     res.status(500).json({ message: "Server error while fetching visitors." });

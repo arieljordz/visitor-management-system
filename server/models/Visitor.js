@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const VisitorSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     visitorType: {
       type: String,
       enum: ["Individual", "Group"],

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Spinner } from "react-bootstrap";
+import { toast } from "react-toastify";
 
 const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -11,28 +12,36 @@ const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
     }
   }, [qrImageUrl, show]);
 
+  // console.log("QR:", qrImageUrl);
   // Download handler
-  const handleDownload = async (qrCodeUrl) => {
+  const handleDownload = async () => {
     try {
-      const response = await fetch(qrCodeUrl);
+      // console.log("Downloading QR from:", qrImageUrl);
+      const response = await fetch(qrImageUrl);
+      if (!response.ok) {
+        throw new Error(`Fetch failed: ${response.statusText}`);
+      }
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("image")) {
+        throw new Error("Invalid content type received. Not an image.");
+      }
+  
       const blob = await response.blob();
-
       const blobUrl = window.URL.createObjectURL(blob);
-
-      // Format date as MM-DD-YYYY
+  
       const now = new Date();
       const mm = String(now.getMonth() + 1).padStart(2, "0");
       const dd = String(now.getDate()).padStart(2, "0");
       const yyyy = now.getFullYear();
       const formattedDate = `${mm}-${dd}-${yyyy}`;
-
+  
       const link = document.createElement("a");
       link.href = blobUrl;
       link.download = `${txnId}-${formattedDate}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
+  
       window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error("QR code download failed:", error);
@@ -95,7 +104,7 @@ const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
 
       {/* Footer */}
       <div className="modal-footer justify-content-center">
-        <Button onClick={handleDownload} disabled={isLoading || !qrImageUrl}>
+        <Button onClick={handleDownload} disabled={isLoading}>
           {isLoading ? "Loading..." : "Download"}
         </Button>
       </div>

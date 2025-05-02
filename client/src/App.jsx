@@ -32,11 +32,11 @@ const App = () => {
             userId: parsedUser.userId,
             role: parsedUser.role,
           });
-          console.log(
-            "✅ Joined socket room:",
-            parsedUser.userId,
-            parsedUser.role
-          );
+          // console.log(
+          //   "✅ Joined socket room:",
+          //   parsedUser.userId,
+          //   parsedUser.role
+          // );
         }
       };
 

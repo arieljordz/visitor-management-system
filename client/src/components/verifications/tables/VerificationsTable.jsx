@@ -20,7 +20,7 @@ const VerificationsTable = ({
           <tr>
             <th className="text-center">#</th>
             <th className="text-center">TransactionID</th>
-            <th className="text-center">Client Name</th>
+            <th className="text-center">Owner Name</th>
             <th className="text-center">Proof</th>
             <th className="text-center">Reference No.</th>
             <th className="text-right">Amount</th>
@@ -39,7 +39,7 @@ const VerificationsTable = ({
                 <td className="text-center">
                   {txn._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">{txn.userId?.name}</td>
+                <td className="text-center">{txn.userId?.name.toUpperCase()}</td>
                 <td className="text-center">
                   {txn.proofOfPayment ? (
                     <span

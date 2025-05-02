@@ -37,10 +37,10 @@ const PaymentAccountTable = ({
                 <td className="text-center">
                   {row._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">{row.method}</td>
-                <td className="text-center">{row.accountName}</td>
-                <td className="text-center">{row.accountNumber}</td>
-                <td className="text-center">{row.bankName || "—"}</td>
+                <td className="text-center">{row.method.toUpperCase()}</td>
+                <td className="text-center">{row.accountName.toUpperCase()}</td>
+                <td className="text-center">{row.accountNumber.toUpperCase()}</td>
+                <td className="text-center">{row.bankName.toUpperCase() || "—"}</td>
                 <td className="text-center">
                   {row.createdAt
                     ? new Date(row.createdAt).toLocaleString()
