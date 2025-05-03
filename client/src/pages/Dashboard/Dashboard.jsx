@@ -67,14 +67,18 @@ const Dashboard = ({ user }) => {
   };
 
   const getBadgeClass = (status) => {
-    const s = status?.toLowerCase();
-    return (
-      {
-        verified: "success",
-        pending: "warning",
-        declined: "danger",
-      }[s] || "dark"
-    );
+    switch (status?.toLowerCase()) {
+      case "pending":
+        return "warning";
+      case "active":
+        return "success";
+      case "used":
+        return "primary";
+      case "expired":
+        return "danger";
+      default:
+        return "dark";
+    }
   };
 
   const handleGenerateQR = async (visitorId, visitdetailsId) => {

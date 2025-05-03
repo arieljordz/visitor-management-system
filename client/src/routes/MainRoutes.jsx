@@ -18,6 +18,7 @@ import FMPaymentAccount from "../pages/FileMaintenance/FMPaymentAccount";
 import FMClassification from "../pages/FileMaintenance/FMClassification";
 import FMFees from "../pages/FileMaintenance/FMFees";
 import FMAccounts from "../pages/FileMaintenance/FMAccounts";
+import GenerateReports from "../pages/Reports/GenerateReports";
 
 // Staff page
 import ScanQR from "../pages/ScanQR/ScanQR";
@@ -41,6 +42,7 @@ const MainRoutes = ({ user, setUser }) => (
     <Route path="/admin/file-maintenance/classifications" element={<FMClassification user={user} setUser={setUser} />} />
     <Route path="/admin/file-maintenance/fees" element={<FMFees user={user} setUser={setUser} />} />
     <Route path="/admin/file-maintenance/accounts" element={<FMAccounts user={user} setUser={setUser} />} />
+    <Route path="/admin/generate-reports" element={<GenerateReports user={user} setUser={setUser} />} />
 
     {/* Staff */}
     <Route path="/staff/scan-qr" element={<ScanQR user={user} setUser={setUser} />} />

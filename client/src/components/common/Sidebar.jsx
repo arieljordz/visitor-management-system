@@ -176,6 +176,13 @@ const Sidebar = ({ user, setUser }) => {
       ],
       "admin-file-maintenance"
     ),
+    renderNavItem(
+      "Reports",
+      "fas fa-file-alt",
+      [],
+      "admin-reports",
+      "/admin/generate-reports"
+    ),
     renderNavItem("Logout", "fas fa-sign-out-alt", [], "admin-logout", "/"),
   ];
 

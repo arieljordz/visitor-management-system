@@ -13,7 +13,7 @@ const AdminPaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
           <tr>
             <th className="text-center">#</th>
             <th className="text-center">TransactionID</th>
-            <th className="text-center">Client Name</th>
+            <th className="text-center">Owner Name</th>
             <th className="text-center">Transaction</th>
             <th className="text-right">Amount</th>
             <th className="text-center">Payment Method</th>
@@ -27,7 +27,7 @@ const AdminPaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
               <tr key={txn._id}>
                 <td className="text-center">{index + 1}</td>
                 <td className="text-center">{txn._id.slice(-6).toUpperCase()}</td>
-                <td className="text-center">{txn.userId?.name}</td>
+                <td className="text-center">{txn.userId?.name.toUpperCase()}</td>
                 <td
                   className={`text-center ${
                     txn.transaction.toLowerCase() === "credit"

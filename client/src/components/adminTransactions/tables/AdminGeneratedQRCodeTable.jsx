@@ -7,7 +7,7 @@ const AdminGeneratedQRCodeTable = ({
   handleViewQRCode,
   getBadgeClass,
 }) => {
-  console.log("currentData:", currentData);
+  // console.log("currentData:", currentData);
   return loading ? (
     <div className="text-center my-4">
       <Spinner animation="border" />

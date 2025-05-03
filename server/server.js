@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
 import routes from "./routes/index.js";
+import { startQRStatusJob } from "./schedulers/qrStatusUpdater.js";
 
 // Load environment variables
 dotenv.config();
@@ -67,7 +68,7 @@ io.on("connection", (socket) => {
     socket.join(userId);
     if (role === "admin") {
       socket.join("admin");
-    } 
+    }
     console.log(
       `${role} joined room: ${userId}${role === "admin" ? " and admin" : ""}`
     );
@@ -93,6 +94,8 @@ mongoose
     // Start the server after successful DB connection
     server.listen(PORT, () => {
       console.log(`🚀 Server running at http://localhost:${PORT}`);
+      // 🔁 Start the scheduled job for QR status updates
+      startQRStatusJob();
     });
   })
   .catch((err) => {

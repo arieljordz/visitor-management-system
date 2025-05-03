@@ -28,7 +28,7 @@ export const deleteUser = async (id) => {
 };
 
 export const logout = async () => {
-  const response = await api.put(`/api/logout-user`);
+  const response = await api.put(`/api/logout-user`, {});
   return response;
 };
 

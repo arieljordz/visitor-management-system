@@ -101,7 +101,7 @@ function Verifications({ user, setUser }) {
       }
     }}
     else{
-      toast.info(`This Payment is already been ${verificationStatus}.`);
+      toast.info(`This Payment is already been ${status}.`);
     }
   };
 

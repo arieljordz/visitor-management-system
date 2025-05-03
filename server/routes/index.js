@@ -86,6 +86,11 @@ import {
   getAuditLogs,
   getAuditLogById,
 } from "../controllers/auditLogController.js";
+import {
+  getVisitorsByDateRange,
+  getPaymentDetailsByDateRange,
+  getAuditLogsByDateRange,
+} from "../controllers/reportController.js";
 import upload from "../middlewares/uploadMiddleware.js";
 import authenticate from "../middlewares/authMiddleware.js";
 import auditMiddleware from "../middlewares/auditMiddleware.js";
@@ -182,5 +187,11 @@ router.get("/get-dashboard-stats", authenticate, getDashboardStats);
 router.post("/create-auditlog", authenticate, createAuditLog);
 router.get("/get-auditlogs", authenticate, getAuditLogs);
 router.get("/get-auditlog/:id", authenticate, getAuditLogById);
+
+// Report Routes
+router.get("/get-visitors-report", getVisitorsByDateRange);
+router.get("/get-payment-details-report", getPaymentDetailsByDateRange);
+router.get("/get-auditlogs-report", getAuditLogsByDateRange);
+
 
 export default router;

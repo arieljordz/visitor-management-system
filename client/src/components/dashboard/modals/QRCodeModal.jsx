@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
+import { formatDateNow } from "../../../utils/globalUtils";
 
 const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -25,23 +26,19 @@ const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
       if (!contentType || !contentType.includes("image")) {
         throw new Error("Invalid content type received. Not an image.");
       }
-  
+
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
-  
-      const now = new Date();
-      const mm = String(now.getMonth() + 1).padStart(2, "0");
-      const dd = String(now.getDate()).padStart(2, "0");
-      const yyyy = now.getFullYear();
-      const formattedDate = `${mm}-${dd}-${yyyy}`;
-  
+
+      const formattedDate = formatDateNow();
+
       const link = document.createElement("a");
       link.href = blobUrl;
       link.download = `${txnId}-${formattedDate}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-  
+
       window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error("QR code download failed:", error);

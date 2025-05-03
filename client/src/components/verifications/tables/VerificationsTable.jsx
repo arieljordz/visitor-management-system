@@ -22,9 +22,9 @@ const VerificationsTable = ({
             <th className="text-center">TransactionID</th>
             <th className="text-center">Owner Name</th>
             <th className="text-center">Proof</th>
-            <th className="text-center">Reference No.</th>
-            <th className="text-right">Amount</th>
             <th className="text-center">Payment Method</th>
+            <th className="text-right">Amount</th>
+            <th className="text-center">Reference No.</th>
             <th className="text-center">Payment Date</th>
             <th className="text-center">Reason</th>
             <th className="text-center">Status</th>
@@ -39,7 +39,9 @@ const VerificationsTable = ({
                 <td className="text-center">
                   {txn._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">{txn.userId?.name.toUpperCase()}</td>
+                <td className="text-center">
+                  {txn.userId?.name.toUpperCase()}
+                </td>
                 <td className="text-center">
                   {txn.proofOfPayment ? (
                     <span
@@ -57,7 +59,9 @@ const VerificationsTable = ({
                     "No Proof Image"
                   )}
                 </td>
-                <td className="text-center">{txn.referenceNumber}</td>
+                <td className="text-center">
+                  {txn.paymentMethod.toUpperCase()}
+                </td>
                 <td
                   className={`text-right ${
                     txn.transaction.toLowerCase() === "credit"
@@ -68,7 +72,7 @@ const VerificationsTable = ({
                   ₱{txn.amount?.toFixed(2)}
                 </td>
                 <td className="text-center">
-                  {txn.paymentMethod.toUpperCase()}
+                  {txn.referenceNumber.toUpperCase()}
                 </td>
                 <td className="text-center">
                   {txn.paymentDate

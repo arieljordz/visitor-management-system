@@ -19,8 +19,9 @@ async function clearCollections() {
       'paymentdetails',
       'qrcodes',
       'sessions',
-      'users',
-      'visitors'
+      // 'users',
+      'visitors',
+      'visitdetails'
     ];
 
     for (const name of collectionsToClear) {

@@ -40,10 +40,12 @@ function GeneratedQRCodes({ user, setUser }) {
 
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
+      case "pending":
+        return "warning";
       case "active":
         return "success";
       case "used":
-        return "warning";
+        return "primary";
       case "expired":
         return "danger";
       default:

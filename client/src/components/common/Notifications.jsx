@@ -31,10 +31,12 @@ const Notifications = ({ user }) => {
   };
 
   useEffect(() => {
+    if (!user) return;
+  
     fetchNotifications();
-
+  
     socket.on("new-notification", handleNewNotification);
-
+  
     return () => {
       socket.off("new-notification", handleNewNotification);
     };

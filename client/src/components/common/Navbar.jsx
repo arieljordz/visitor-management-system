@@ -10,7 +10,7 @@ const Navbar = ({ user, setUser }) => {
 
   return (
     <nav
-      className={`main-header navbar navbar-expand ${
+      className={`main-header navbar navbar-expand fixed-top ${
         darkMode ? "navbar-dark bg-dark" : "navbar-white navbar-light"
       }`}
     >

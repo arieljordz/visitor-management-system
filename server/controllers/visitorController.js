@@ -1,7 +1,7 @@
+import moment from "moment";
 import Visitor from "../models/Visitor.js";
 import QRCode from "../models/QRCode.js";
 import VisitDetail from "../models/VisitDetail.js";
-import { v4 as uuidv4 } from "uuid";
 
 // GET all visitors
 export const getAllVisitors = async (req, res) => {
@@ -98,7 +98,7 @@ export const searchVisitor = async (req, res) => {
 export const createVisitorDetail = async (req, res) => {
   try {
     const {
-      visitorId, // Optional (if visitor already exists)
+      visitorId,
       userId,
       visitorType,
       firstName,
@@ -110,14 +110,22 @@ export const createVisitorDetail = async (req, res) => {
       noOfVisitors,
     } = req.body;
 
-    // Check for required fields
+    // Validate required fields
     if (!userId || !visitorType || !visitDate || !purpose || !classification) {
       return res.status(400).json({ message: "Missing required fields." });
     }
 
-    let finalVisitorId = visitorId;
+    // Check if visitDate is today or in the future
+    const visitDateOnly = moment(visitDate).startOf("day");
+    const today = moment().startOf("day");
 
-    // Validate based on visitor type
+    if (visitDateOnly.isBefore(today)) {
+      return res
+        .status(400)
+        .json({ message: "Visit date cannot be earlier than today." });
+    }
+
+    // Additional validation based on visitorType
     if (
       visitorType === "Individual" &&
       (!firstName?.trim() || !lastName?.trim())
@@ -133,28 +141,29 @@ export const createVisitorDetail = async (req, res) => {
         .json({ message: "Group name is required for group type." });
     }
 
-    // Step 1: Check if a visitor with matching name/group exists
+    // Step 1: Check for existing visitor by name or group
     const existingVisitor = await Visitor.findOne({
       $or: [
-        { firstName, lastName, visitorType: "Individual" },
-        { groupName, visitorType: "Group" },
+        {
+          firstName: firstName?.trim(),
+          lastName: lastName?.trim(),
+          visitorType: "Individual",
+        },
+        {
+          groupName: groupName?.trim(),
+          visitorType: "Group",
+        },
       ],
     });
 
     if (existingVisitor) {
-      // Step 2: Check if a visit already exists on the same date (ignoring time)
-      const visitStart = new Date(visitDate);
-      visitStart.setHours(0, 0, 0, 0);
-
-      const visitEnd = new Date(visitDate);
-      visitEnd.setHours(23, 59, 59, 999);
+      // Step 2: Check if visit already exists for this visitor on that date
+      const visitStart = visitDateOnly.toDate();
+      const visitEnd = moment(visitDate).endOf("day").toDate();
 
       const sameDateVisit = await VisitDetail.findOne({
         visitorId: existingVisitor._id,
-        visitDate: {
-          $gte: visitStart,
-          $lte: visitEnd,
-        },
+        visitDate: { $gte: visitStart, $lte: visitEnd },
       });
 
       if (sameDateVisit) {
@@ -163,7 +172,7 @@ export const createVisitorDetail = async (req, res) => {
         });
       }
 
-      // Save visit detail only
+      // Step 3: Save visit detail
       const newVisit = new VisitDetail({
         visitorId: existingVisitor._id,
         userId,
@@ -182,20 +191,19 @@ export const createVisitorDetail = async (req, res) => {
       });
     }
 
-    // Step 3: If no existing visitor, create visitor and visit detail
+    // Step 4: Create new visitor and visit detail
     const newVisitor = new Visitor({
       userId,
       visitorType,
-      firstName: visitorType === "Individual" ? firstName : undefined,
-      lastName: visitorType === "Individual" ? lastName : undefined,
-      groupName: visitorType === "Group" ? groupName : undefined,
+      firstName: visitorType === "Individual" ? firstName?.trim() : undefined,
+      lastName: visitorType === "Individual" ? lastName?.trim() : undefined,
+      groupName: visitorType === "Group" ? groupName?.trim() : undefined,
     });
 
     const savedVisitor = await newVisitor.save();
-    finalVisitorId = savedVisitor._id;
 
     const newVisit = new VisitDetail({
-      visitorId: finalVisitorId,
+      visitorId: savedVisitor._id,
       userId,
       visitDate,
       purpose,
@@ -207,7 +215,7 @@ export const createVisitorDetail = async (req, res) => {
 
     return res.status(201).json({
       message: "New visitor and visit detail saved successfully.",
-      visitorId: finalVisitorId,
+      visitorId: savedVisitor._id,
       visitDetail: savedVisit,
     });
   } catch (error) {
@@ -277,37 +285,40 @@ export const getVisitorByUserId = async (req, res) => {
 
     const visitDetailIds = visitDetails.map((v) => v._id);
 
-    // Step 3: Fetch all active QR codes associated with visit details
-    const activeQRCodes = await QRCode.find({
+    // Step 3: Fetch all QR codes associated with these visit details
+    const qrCodes = await QRCode.find({
       visitdetailsId: { $in: visitDetailIds },
-      status: "active",
     }).lean();
 
     const qrCodeMap = new Map(
-      activeQRCodes.map((qr) => [qr.visitdetailsId.toString(), qr])
+      qrCodes.map((qr) => [qr.visitdetailsId.toString(), qr])
     );
 
     // Step 4: Map visit details with corresponding visitor and QR code
-    const enrichedVisitors = visitDetails.map((visit) => {
-      const visitor = visitors.find(
-        (v) => v._id.toString() === visit.visitorId.toString()
+    const enrichedVisitors = visitors.map((visitor) => {
+      const visitorVisitDetails = visitDetails.filter(
+        (visit) => visit.visitorId.toString() === visitor._id.toString()
       );
 
-      return {
-        _id: visitor._id,
-        visitorType: visitor.visitorType,
-        firstName: visitor.firstName || null,
-        lastName: visitor.lastName || null,
-        groupName: visitor.groupName || null,
-        visitDetail: {
+      const enrichedVisitDetails = visitorVisitDetails.map((visit) => {
+        return {
           _id: visit._id,
           visitDate: visit.visitDate,
           purpose: visit.purpose,
           classification: visit.classification,
           noOfVisitors:
             visitor.visitorType === "Group" ? visit.noOfVisitors : null,
-        },
-        activeQRCode: qrCodeMap.get(visit._id.toString()) || null,
+          activeQRCode: qrCodeMap.get(visit._id.toString()) || null,
+        };
+      });
+
+      return {
+        _id: visitor._id,
+        userId: visitor.userId,
+        visitorType: visitor.visitorType,
+        firstName: visitor.firstName || null,
+        lastName: visitor.lastName || null,
+        visitDetails: enrichedVisitDetails,
       };
     });
 
@@ -318,3 +329,4 @@ export const getVisitorByUserId = async (req, res) => {
     res.status(500).json({ message: "Server error while fetching visitors." });
   }
 };
+

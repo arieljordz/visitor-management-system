@@ -39,6 +39,12 @@ export const generateQRCodeWithPayment = async (req, res) => {
     }
 
     const targetVisitDate = moment(visitDetail.visitDate).startOf("day");
+    const today = moment().startOf("day");
+
+    // ❌ Prevent QR generation for past visit dates
+    if (targetVisitDate.isBefore(today)) {
+      return res.status(400).json({ message: "Cannot generate QR code for a past visit date." });
+    }
 
     // Find all active QR codes for this visitor and user
     const activeQRCodes = await QRCode.find({
@@ -151,8 +157,6 @@ export const scanQRCode = async (req, res) => {
   try {
     const { qrData } = req.params;
 
-    console.log("Received QR Data:", qrData);
-
     if (!qrData) {
       return res.status(400).json({ message: "QR data is required." });
     }
@@ -166,15 +170,10 @@ export const scanQRCode = async (req, res) => {
       return res.status(404).json({ message: "QR code not found." });
     }
 
-    if (qrCodeDoc.status === "used") {
-      return res.status(400).json({ message: "QR code has already been used." });
+    if (["used", "expired"].includes(qrCodeDoc.status)) {
+      return res.status(400).json({ message: `QR code has already been ${qrCodeDoc.status}.` });
     }
 
-    if (qrCodeDoc.status === "expired") {
-      return res.status(400).json({ message: "QR code has expired." });
-    }
-
-    // ✅ Fix: Get visit date from visitdetailsId
     const visitDate = moment(qrCodeDoc.visitdetailsId.visitDate).startOf("day");
     const today = moment().startOf("day");
 
@@ -188,7 +187,6 @@ export const scanQRCode = async (req, res) => {
       return res.status(400).json({ message: "Visit date does not match today's date." });
     }
 
-    // ✅ Mark QR code as used
     qrCodeDoc.status = "used";
     await qrCodeDoc.save();
 
@@ -201,9 +199,9 @@ export const scanQRCode = async (req, res) => {
     res.status(200).json({
       message: "QR code scanned successfully.",
       data: {
-        clientName: `${qrCodeDoc.userId.firstName} ${qrCodeDoc.userId.lastName}`,
+        clientName: qrCodeDoc.userId.name,
         visitorName,
-        visitDate: qrCodeDoc.visitdetailsId.visitDate,
+        visitDate: moment(qrCodeDoc.visitdetailsId.visitDate).format("YYYY-MM-DD"),
         purpose: qrCodeDoc.visitdetailsId.purpose,
       },
     });
