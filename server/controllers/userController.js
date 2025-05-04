@@ -10,6 +10,7 @@ import {
   buildResponse,
 } from "../utils/authUtils.js";
 import { sendEmail } from "../utils/mailer.js";
+import { StatusEnum, UserRoleEnum, PasswordEnum } from "../enums/enums.js";
 
 // User handler
 export const login = async (req, res) => {
@@ -25,7 +26,7 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    if (user.status !== "active") {
+    if (user.status !== StatusEnum.ACTIVE) {
       return res.status(403).json({ message: "Account is inactive" });
     }
 
@@ -56,7 +57,7 @@ export const login = async (req, res) => {
 };
 
 export const googleLogin = async (req, res) => {
-  const { email, password, name, picture, role = "client", address } = req.body;
+  const { email, password, name, picture, role = UserRoleEnum.CLIENT, address } = req.body;
 
   try {
     let user = await User.findOne({ email });
@@ -76,7 +77,7 @@ export const googleLogin = async (req, res) => {
         role,
         address,
         verified: false,
-        status: "active",
+        status: StatusEnum.ACTIVE,
         sessionToken,
       });
     } else {
@@ -287,7 +288,7 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    const password = rawPassword || "DefaultPass123!";
+    const password = rawPassword || PasswordEnum.DEFAULT_PASS;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
@@ -298,7 +299,7 @@ export const createUser = async (req, res) => {
       role,
       address,
       verified,
-      status: status || "active",
+      status: status || StatusEnum.ACTIVE,
     });
 
     const savedUser = await newUser.save();
@@ -331,7 +332,7 @@ export const getUsers = async (req, res) => {
 // Get all active users by Status
 export const getActiveUsers = async (req, res) => {
   try {
-    const users = await User.find({ status: "active" }).select("-password");
+    const users = await User.find({ status: StatusEnum.ACTIVE }).select("-password");
     res.status(200).json({ data: users });
   } catch (error) {
     console.error("Get Active Users Error:", error);

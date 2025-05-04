@@ -1,4 +1,5 @@
 import PaymentAccount from "../models/PaymentAccount.js";
+import { StatusEnum } from "../enums/enums.js";
 
 // Create a new Payment account
 export const createPaymentAccount = async (req, res) => {
@@ -10,12 +11,10 @@ export const createPaymentAccount = async (req, res) => {
       .json({ message: "Payment account created", data: savedMethod });
   } catch (err) {
     console.error("Create error:", err);
-    res
-      .status(500)
-      .json({
-        message: "Failed to create Payment account",
-        error: err.message,
-      });
+    res.status(500).json({
+      message: "Failed to create Payment account",
+      error: err.message,
+    });
   }
 };
 
@@ -26,28 +25,24 @@ export const getPaymentAccounts = async (req, res) => {
     res.status(200).json({ data: methods });
   } catch (err) {
     console.error("Get all error:", err);
-    res
-      .status(500)
-      .json({
-        message: "Failed to fetch Payment accounts",
-        error: err.message,
-      });
+    res.status(500).json({
+      message: "Failed to fetch Payment accounts",
+      error: err.message,
+    });
   }
 };
 
 // Get all active Payment accounts
 export const getActivePaymentAccountsGroup = async (req, res) => {
   try {
-    const methods = await PaymentAccount.find({ status: "active" });
+    const methods = await PaymentAccount.find({ status: StatusEnum.ACTIVE });
     res.status(200).json({ data: methods });
   } catch (err) {
     console.error("Get all error:", err);
-    res
-      .status(500)
-      .json({
-        message: "Failed to fetch Payment accounts",
-        error: err.message,
-      });
+    res.status(500).json({
+      message: "Failed to fetch Payment accounts",
+      error: err.message,
+    });
   }
 };
 
@@ -55,7 +50,7 @@ export const getActivePaymentAccountsGroup = async (req, res) => {
 export const getActivePaymentAccounts = async (req, res) => {
   try {
     const groupedMethods = await PaymentAccount.aggregate([
-      { $match: { status: "active" } },
+      { $match: { status: StatusEnum.ACTIVE } },
       {
         $group: {
           _id: "$method",
@@ -71,7 +66,7 @@ export const getActivePaymentAccounts = async (req, res) => {
           },
         },
       },
-      { $sort: { _id: 1 } } // Optional: sort methods alphabetically
+      { $sort: { _id: 1 } }, // Optional: sort methods alphabetically
     ]);
 
     res.status(200).json({ data: groupedMethods });
@@ -110,12 +105,10 @@ export const deletePaymentAccount = async (req, res) => {
     res.status(200).json({ message: "Payment account deleted" });
   } catch (err) {
     console.error("Delete error:", err);
-    res
-      .status(500)
-      .json({
-        message: "Failed to delete Payment account",
-        error: err.message,
-      });
+    res.status(500).json({
+      message: "Failed to delete Payment account",
+      error: err.message,
+    });
   }
 };
 
@@ -133,11 +126,9 @@ export const updatePaymentAccount = async (req, res) => {
     res.status(200).json({ message: "Payment account updated", data: updated });
   } catch (err) {
     console.error("Update error:", err);
-    res
-      .status(500)
-      .json({
-        message: "Failed to update Payment account",
-        error: err.message,
-      });
+    res.status(500).json({
+      message: "Failed to update Payment account",
+      error: err.message,
+    });
   }
 };

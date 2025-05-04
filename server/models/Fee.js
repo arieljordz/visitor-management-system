@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { StatusEnum } from "../enums/enums.js";
 
 const FeeSchema = new mongoose.Schema(
   {
@@ -17,8 +18,8 @@ const FeeSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active",
+      enum: Object.values(StatusEnum),
+      default: StatusEnum.ACTIVE,
     },
   },
   { timestamps: true }

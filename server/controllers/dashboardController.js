@@ -2,6 +2,7 @@ import QRCode from "../models/QRCode.js";
 import User from "../models/User.js";
 import Visitor from "../models/Visitor.js";
 import PaymentDetail from "../models/PaymentDetail.js";
+import { UserRoleEnum } from "../enums/enums.js"
 
 export const getDashboardStats = async (req, res) => {
   try {
@@ -12,28 +13,28 @@ export const getDashboardStats = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const isClient = user.role === "client";
+    const isClient = user.role === UserRoleEnum.CLIENT;
     const matchCondition = isClient ? { userId: user._id } : {};
 
     // Prepare async operations
     const qrStatsPromise = QRCode.aggregate([
       { $match: matchCondition },
-      { $group: { _id: "$status", count: { $sum: 1 } } }
+      { $group: { _id: "$status", count: { $sum: 1 } } },
     ]);
 
     const paymentStatusPromise = PaymentDetail.aggregate([
       { $match: matchCondition },
-      { $group: { _id: "$status", count: { $sum: 1 } } }
+      { $group: { _id: "$status", count: { $sum: 1 } } },
     ]);
 
     const transactionTypePromise = PaymentDetail.aggregate([
       { $match: matchCondition },
-      { $group: { _id: "$transaction", count: { $sum: 1 } } }
+      { $group: { _id: "$transaction", count: { $sum: 1 } } },
     ]);
 
     const verificationStatusPromise = PaymentDetail.aggregate([
       { $match: matchCondition },
-      { $group: { _id: "$verificationStatus", count: { $sum: 1 } } }
+      { $group: { _id: "$verificationStatus", count: { $sum: 1 } } },
     ]);
 
     const visitorCountPromise = isClient
@@ -42,7 +43,7 @@ export const getDashboardStats = async (req, res) => {
 
     const clientCountPromise = isClient
       ? Promise.resolve(null)
-      : User.countDocuments({ role: "client" });
+      : User.countDocuments({ role: UserRoleEnum.CLIENT });
 
     // Wait for all promises
     const [
@@ -51,14 +52,14 @@ export const getDashboardStats = async (req, res) => {
       transactionType,
       verificationStatus,
       visitorCount,
-      clientCount
+      clientCount,
     ] = await Promise.all([
       qrStatsPromise,
       paymentStatusPromise,
       transactionTypePromise,
       verificationStatusPromise,
       visitorCountPromise,
-      clientCountPromise
+      clientCountPromise,
     ]);
 
     // Format QR stats
@@ -66,7 +67,7 @@ export const getDashboardStats = async (req, res) => {
       total: 0,
       active: 0,
       used: 0,
-      expired: 0
+      expired: 0,
     };
     qrStats.forEach(({ _id, count }) => {
       formattedQrStats[_id] = count;
@@ -79,7 +80,7 @@ export const getDashboardStats = async (req, res) => {
       pending: 0,
       completed: 0,
       failed: 0,
-      cancelled: 0
+      cancelled: 0,
     };
     paymentStatus.forEach(({ _id, count }) => {
       formattedStatusStats[_id] = count;
@@ -90,7 +91,7 @@ export const getDashboardStats = async (req, res) => {
     const formattedTransactionStats = {
       total: 0,
       debit: 0,
-      credit: 0
+      credit: 0,
     };
     transactionType.forEach(({ _id, count }) => {
       formattedTransactionStats[_id] = count;
@@ -102,7 +103,7 @@ export const getDashboardStats = async (req, res) => {
       total: 0,
       pending: 0,
       verified: 0,
-      declined: 0
+      declined: 0,
     };
     verificationStatus.forEach(({ _id, count }) => {
       formattedVerificationStats[_id] = count;
@@ -116,8 +117,8 @@ export const getDashboardStats = async (req, res) => {
       paymentStats: {
         status: formattedStatusStats,
         transactionType: formattedTransactionStats,
-        verificationStatus: formattedVerificationStats
-      }
+        verificationStatus: formattedVerificationStats,
+      },
     });
   } catch (error) {
     console.error("Error in dashboard stats:", error);

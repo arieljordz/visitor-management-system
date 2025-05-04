@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import socket from "../../utils/socket";
 import { getBalance } from "../../services/balanceService.js";
+import { UserRoleEnum } from "../../enums/enums.js";
 
 const DisplayBalance = ({ user }) => {
   const [balance, setBalance] = useState(0.0);
@@ -43,7 +44,7 @@ const DisplayBalance = ({ user }) => {
 
   return (
     <>
-      {user?.role === "client" && (
+      {user?.role === UserRoleEnum.CLIENT && (
         <span
           className="fw-bold me-3 d-flex align-items-center gap-2"
           style={{ transition: "opacity 0.3s ease" }}

@@ -1,6 +1,7 @@
 import AuditLog from "../models/AuditLog.js";
 import VisitDetail from "../models/VisitDetail.js";
 import PaymentDetail from "../models/PaymentDetail.js";
+import { TransactionEnum } from "../enums/enums.js";
 
 export const getVisitorsByDateRange = async (req, res) => {
   const { dateFrom, dateTo } = req.query;
@@ -15,14 +16,13 @@ export const getVisitorsByDateRange = async (req, res) => {
         $gte: new Date(dateFrom),
         $lte: new Date(dateTo),
       },
-    })
-      .populate({
-        path: "visitorId",
-        populate: {
-          path: "userId",
-          select: "-password", 
-        },
-      });
+    }).populate({
+      path: "visitorId",
+      populate: {
+        path: "userId",
+        select: "-password",
+      },
+    });
 
     res.status(200).json(visits);
   } catch (error) {
@@ -44,7 +44,7 @@ export const getPaymentDetailsByDateRange = async (req, res) => {
     end.setHours(23, 59, 59, 999); // extend end date to end-of-day
 
     const payments = await PaymentDetail.find({
-      transaction: "debit",
+      transaction: TransactionEnum.DEBIT,
       paymentDate: {
         $gte: start,
         $lte: end,
@@ -88,4 +88,3 @@ export const getAuditLogsByDateRange = async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 };
-

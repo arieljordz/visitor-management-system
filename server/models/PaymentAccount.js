@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { PaymentMethodEnum, StatusEnum } from "../enums/enums.js";
 
 const PaymentAccountSchema = new mongoose.Schema(
   {
@@ -17,13 +18,13 @@ const PaymentAccountSchema = new mongoose.Schema(
     bankName: {
       type: String,
       required: function () {
-        return this.method === "Bank";
+        return this.method === PaymentMethodEnum.BANK;
       },
     },
     status: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active",
+      enum: Object.values(StatusEnum),
+      default: StatusEnum.ACTIVE,
     },
   },
   { timestamps: true }

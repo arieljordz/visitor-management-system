@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { QRStatusEnum } from "../enums/enums.js"
 
 const qrCodeSchema = new mongoose.Schema(
   {
@@ -27,8 +28,8 @@ const qrCodeSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "active", "scanned", "used", "expired", "revoked"],
-      default: "active",
+      enum: Object.values(QRStatusEnum),
+      default: QRStatusEnum.ACTIVE,
     },
     generatedAt: {
       type: Date,
@@ -38,5 +39,4 @@ const qrCodeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const QRCode = mongoose.model("QRCode", qrCodeSchema);
-export default QRCode;
+export default mongoose.model("QRCode", qrCodeSchema);

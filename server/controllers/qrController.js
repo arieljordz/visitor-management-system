@@ -6,13 +6,21 @@ import VisitDetail from "../models/VisitDetail.js";
 import PaymentDetail from "../models/PaymentDetail.js";
 import Balance from "../models/Balance.js";
 import { fetchFeeByCodeAndStatus } from "../utils/feeUtils.js";
+import {
+  TransactionEnum,
+  QRStatusEnum,
+  FeeCodeEnum,
+  PaymentStatusEnum,
+  VerificationStatusEnum,
+  VisitorTypeEnum,
+} from "../enums/enums.js";
 
 export const generateQRCodeWithPayment = async (req, res) => {
   const {
     userId,
     visitorId,
     visitdetailsId,
-    paymentMethod = "e-wallet",
+    paymentMethod = TransactionEnum.E_WALLET,
     proofOfPayment = null,
   } = req.body;
 
@@ -35,7 +43,9 @@ export const generateQRCodeWithPayment = async (req, res) => {
     // Fetch visit date from visitdetailsId
     const visitDetail = await VisitDetail.findById(visitdetailsId);
     if (!visitDetail || !visitDetail.visitDate) {
-      return res.status(404).json({ message: "Visit details not found or missing visit date." });
+      return res
+        .status(404)
+        .json({ message: "Visit details not found or missing visit date." });
     }
 
     const targetVisitDate = moment(visitDetail.visitDate).startOf("day");
@@ -43,14 +53,16 @@ export const generateQRCodeWithPayment = async (req, res) => {
 
     // ❌ Prevent QR generation for past visit dates
     if (targetVisitDate.isBefore(today)) {
-      return res.status(400).json({ message: "Cannot generate QR code for a past visit date." });
+      return res
+        .status(400)
+        .json({ message: "Cannot generate QR code for a past visit date." });
     }
 
     // Find all active QR codes for this visitor and user
     const activeQRCodes = await QRCode.find({
       visitorId,
       userId,
-      status: { $in: ["active", "used"] },
+      status: { $in: [QRStatusEnum.ACTIVE, QRStatusEnum.USED] },
     }).populate("visitdetailsId");
 
     // Check if any QR already exists for the same visit date
@@ -61,11 +73,13 @@ export const generateQRCodeWithPayment = async (req, res) => {
     });
 
     if (duplicateQR) {
-      return res.status(409).json({ message: "Active or Used QR code already exists for this visit date." });
+      return res.status(409).json({
+        message: "Active or Used QR code already exists for this visit date.",
+      });
     }
 
     // Get the active 'generate qr fee'
-    const feeDoc = await fetchFeeByCodeAndStatus("GENQR01");
+    const feeDoc = await fetchFeeByCodeAndStatus(FeeCodeEnum.GENQR01);
     const feeAmount = feeDoc.fee ?? 0;
 
     // Fetch and validate balance
@@ -88,11 +102,11 @@ export const generateQRCodeWithPayment = async (req, res) => {
       visitorId,
       amount: feeAmount,
       paymentMethod,
-      transaction: "debit",
-      status: "completed",
+      transaction: TransactionEnum.DEBIT,
+      status: PaymentStatusEnum.COMPLETED,
       proofOfPayment,
       referenceNumber: null,
-      verificationStatus: "verified",
+      verificationStatus: VerificationStatusEnum.VERIFIED,
       paymentDate: new Date(),
       completedDate: new Date(),
     });
@@ -120,7 +134,7 @@ export const generateQRCodeWithPayment = async (req, res) => {
       visitdetailsId,
       qrData,
       qrImageUrl,
-      status: "active",
+      status: QRStatusEnum.ACTIVE,
       generatedAt: new Date(),
     });
     await qrCodeDoc.save();
@@ -135,7 +149,6 @@ export const generateQRCodeWithPayment = async (req, res) => {
         qrData,
       },
     });
-
   } catch (error) {
     console.error("QR/payment combined process failed:", error);
     return res.status(500).json({
@@ -162,29 +175,35 @@ export const scanQRCode = async (req, res) => {
       return res.status(404).json({ message: "QR code not found." });
     }
 
-    if (["used", "expired"].includes(qrCodeDoc.status)) {
-      return res.status(400).json({ message: `QR code has already been ${qrCodeDoc.status}.` });
+    if ([QRStatusEnum.USED, QRStatusEnum.EXPIRED].includes(qrCodeDoc.status)) {
+      return res
+        .status(400)
+        .json({ message: `QR code has already been ${qrCodeDoc.status}.` });
     }
 
     const visitDate = moment(qrCodeDoc.visitdetailsId.visitDate).startOf("day");
     const today = moment().startOf("day");
 
     if (visitDate.isBefore(today)) {
-      qrCodeDoc.status = "expired";
+      qrCodeDoc.status = QRStatusEnum.EXPIRED;
       await qrCodeDoc.save();
-      return res.status(400).json({ message: "QR code is expired. Visit date has passed." });
+      return res
+        .status(400)
+        .json({ message: "QR code is expired. Visit date has passed." });
     }
 
     if (!visitDate.isSame(today)) {
-      return res.status(400).json({ message: "Visit date does not match today's date." });
+      return res
+        .status(400)
+        .json({ message: "Visit date does not match today's date." });
     }
 
-    qrCodeDoc.status = "used";
+    qrCodeDoc.status = QRStatusEnum.USED;
     await qrCodeDoc.save();
 
     const visitor = qrCodeDoc.visitorId;
     const visitorName =
-      visitor.visitorType === "Individual"
+      visitor.visitorType === VisitorTypeEnum.INDIVIDUAL
         ? `${visitor.firstName} ${visitor.lastName}`
         : visitor.groupName;
 
@@ -193,7 +212,9 @@ export const scanQRCode = async (req, res) => {
       data: {
         clientName: qrCodeDoc.userId.name,
         visitorName,
-        visitDate: moment(qrCodeDoc.visitdetailsId.visitDate).format("YYYY-MM-DD"),
+        visitDate: moment(qrCodeDoc.visitdetailsId.visitDate).format(
+          "YYYY-MM-DD"
+        ),
         purpose: qrCodeDoc.visitdetailsId.purpose,
       },
     });
@@ -207,8 +228,8 @@ export const getGeneratedQRCodes = async (req, res) => {
   try {
     const generatedQRCodes = await QRCode.find()
       .populate("userId", "name email")
-      .populate("visitorId") 
-      .populate("visitdetailsId") 
+      .populate("visitorId")
+      .populate("visitdetailsId")
       .sort({ generatedAt: -1 })
       .lean();
 
@@ -299,7 +320,9 @@ export const checkActiveQRCodeForVisit = async (req, res) => {
 
     const visitDetail = await VisitDetail.findById(visitdetailsId);
     if (!visitDetail || !visitDetail.visitDate) {
-      return res.status(404).json({ message: "Visit details not found or missing visit date." });
+      return res
+        .status(404)
+        .json({ message: "Visit details not found or missing visit date." });
     }
 
     const targetVisitDate = moment(visitDetail.visitDate).startOf("day");
@@ -307,7 +330,7 @@ export const checkActiveQRCodeForVisit = async (req, res) => {
     const qrCodes = await QRCode.find({
       visitorId,
       userId,
-      status: { $in: ["active", "used"] },
+      status: { $in: [QRStatusEnum.ACTIVE, QRStatusEnum.USED] },
     }).populate("visitdetailsId");
 
     const conflict = qrCodes.find((qr) => {
@@ -318,7 +341,7 @@ export const checkActiveQRCodeForVisit = async (req, res) => {
 
     if (conflict) {
       const message =
-        conflict.status === "active"
+        conflict.status === QRStatusEnum.ACTIVE
           ? "An *active* QR code already exists for this visit date."
           : "A QR code has already been *used* for this visit date.";
 
@@ -333,5 +356,3 @@ export const checkActiveQRCodeForVisit = async (req, res) => {
     return res.status(500).json({ message: "Internal server error." });
   }
 };
-
-

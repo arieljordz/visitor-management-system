@@ -13,6 +13,7 @@ import {
   getPaymentMethodById,
   deletePaymentMethod,
 } from "../../services/paymentMethodService.js";
+import { StatusEnum } from "../../enums/enums.js";
 
 function FMPaymentMethod({ user, setUser }) {
   const [paymentMethod, setPaymentMethod] = useState([]);
@@ -88,9 +89,9 @@ function FMPaymentMethod({ user, setUser }) {
     
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
-      case "active":
+      case StatusEnum.ACTIVE:
         return "success";
-      case "inactive":
+      case StatusEnum.INACTIVE:
         return "warning";
       default:
         return "dark";

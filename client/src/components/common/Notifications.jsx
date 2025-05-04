@@ -7,6 +7,7 @@ import {
   markAsRead,
   markAsReadById,
 } from "../../services/notificationService.js";
+import { UserRoleEnum } from "../../enums/enums.js";
 
 const Notifications = ({ user }) => {
   const [notifications, setNotifications] = useState([]);
@@ -17,7 +18,7 @@ const Notifications = ({ user }) => {
     try {
       let data = [];
 
-      if (user?.role === "admin") {
+      if (user?.role === UserRoleEnum.ADMIN) {
         data = await getNotifications();
       } else {
         data = await getNotificationsById(user?.userId);
@@ -56,7 +57,7 @@ const Notifications = ({ user }) => {
 
   const countUnreadNotifications = (notifications) => {
     const unread = notifications.filter((notification) =>
-      user.role === "admin"
+      user.role === UserRoleEnum.ADMIN
         ? !notification.isAdminRead
         : !notification.isClientRead
     ).length;
@@ -71,7 +72,7 @@ const Notifications = ({ user }) => {
 
   const markAllAsRead = async () => {
     try {
-      if (user.role === "admin") {
+      if (user.role === UserRoleEnum.ADMIN) {
         await markAsRead();
       } else {
         await markAsReadById(user.userId);
@@ -79,9 +80,9 @@ const Notifications = ({ user }) => {
       setNotifications((prev) =>
         prev.map((notification) => ({
           ...notification,
-          isAdminRead: user.role === "admin" ? true : notification.isAdminRead,
+          isAdminRead: user.role === UserRoleEnum.ADMIN ? true : notification.isAdminRead,
           isClientRead:
-            user.role !== "admin" ? true : notification.isClientRead,
+            user.role !== UserRoleEnum.ADMIN ? true : notification.isClientRead,
         }))
       );
     } catch (error) {
@@ -90,7 +91,7 @@ const Notifications = ({ user }) => {
   };
 
   const handleNotificationClick = (message) => {
-    if (user.role === "admin" && message.toLowerCase().includes("top-up")) {
+    if (user.role === UserRoleEnum.ADMIN && message.toLowerCase().includes("top-up")) {
       navigate("/admin/verifications");
     } else {
       navigate("/dashboard");

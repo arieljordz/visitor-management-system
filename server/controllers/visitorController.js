@@ -2,6 +2,7 @@ import moment from "moment";
 import Visitor from "../models/Visitor.js";
 import QRCode from "../models/QRCode.js";
 import VisitDetail from "../models/VisitDetail.js";
+import { VisitorTypeEnum } from "../enums/enums.js";
 
 // GET all visitors
 export const getAllVisitors = async (req, res) => {
@@ -74,13 +75,13 @@ export const searchVisitor = async (req, res) => {
 
     if (firstName && lastName) {
       query = {
-        visitorType: "Individual",
+        visitorType: VisitorTypeEnum.INDIVIDUAL,
         firstName: new RegExp(`^${firstName}$`, "i"),
         lastName: new RegExp(`^${lastName}$`, "i"),
       };
     } else if (groupName) {
       query = {
-        visitorType: "Group",
+        visitorType: VisitorTypeEnum.GROUP,
         groupName: new RegExp(`^${groupName}$`, "i"),
       };
     } else {
@@ -111,7 +112,7 @@ export const createVisitorDetail = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!userId || !visitorType || !visitDate || !purpose || !classification) {
+    if (!userId || !visitorType || !visitDate || !purpose || !classification || !noOfVisitors) {
       return res.status(400).json({ message: "Missing required fields." });
     }
 
@@ -127,7 +128,7 @@ export const createVisitorDetail = async (req, res) => {
 
     // Additional validation based on visitorType
     if (
-      visitorType === "Individual" &&
+      visitorType === VisitorTypeEnum.INDIVIDUAL &&
       (!firstName?.trim() || !lastName?.trim())
     ) {
       return res.status(400).json({
@@ -135,7 +136,7 @@ export const createVisitorDetail = async (req, res) => {
       });
     }
 
-    if (visitorType === "Group" && !groupName?.trim()) {
+    if (visitorType === VisitorTypeEnum.GROUP && !groupName?.trim()) {
       return res
         .status(400)
         .json({ message: "Group name is required for group type." });
@@ -147,11 +148,11 @@ export const createVisitorDetail = async (req, res) => {
         {
           firstName: firstName?.trim(),
           lastName: lastName?.trim(),
-          visitorType: "Individual",
+          visitorType: VisitorTypeEnum.INDIVIDUAL,
         },
         {
           groupName: groupName?.trim(),
-          visitorType: "Group",
+          visitorType: VisitorTypeEnum.GROUP,
         },
       ],
     });
@@ -179,7 +180,7 @@ export const createVisitorDetail = async (req, res) => {
         visitDate,
         purpose,
         classification,
-        noOfVisitors: visitorType === "Group" ? noOfVisitors : undefined,
+        noOfVisitors: visitorType === VisitorTypeEnum.GROUP ? noOfVisitors : undefined,
       });
 
       const savedVisit = await newVisit.save();
@@ -195,9 +196,9 @@ export const createVisitorDetail = async (req, res) => {
     const newVisitor = new Visitor({
       userId,
       visitorType,
-      firstName: visitorType === "Individual" ? firstName?.trim() : undefined,
-      lastName: visitorType === "Individual" ? lastName?.trim() : undefined,
-      groupName: visitorType === "Group" ? groupName?.trim() : undefined,
+      firstName: visitorType === VisitorTypeEnum.INDIVIDUAL ? firstName?.trim() : undefined,
+      lastName: visitorType === VisitorTypeEnum.INDIVIDUAL ? lastName?.trim() : undefined,
+      groupName: visitorType === VisitorTypeEnum.GROUP ? groupName?.trim() : undefined,
     });
 
     const savedVisitor = await newVisitor.save();
@@ -208,7 +209,7 @@ export const createVisitorDetail = async (req, res) => {
       visitDate,
       purpose,
       classification,
-      noOfVisitors: visitorType === "Group" ? noOfVisitors : undefined,
+      noOfVisitors: visitorType === VisitorTypeEnum.GROUP ? noOfVisitors : undefined,
     });
 
     const savedVisit = await newVisit.save();
@@ -236,13 +237,13 @@ export const getVisitorNames = async (req, res) => {
   const { type } = req.query;
 
   try {
-    if (type === "Individual") {
-      const visitors = await Visitor.find({ visitorType: "Individual" }).select(
+    if (type === VisitorTypeEnum.INDIVIDUAL) {
+      const visitors = await Visitor.find({ visitorType: VisitorTypeEnum.INDIVIDUAL }).select(
         "firstName lastName"
       );
       return res.json(visitors);
-    } else if (type === "Group") {
-      const groups = await Visitor.find({ visitorType: "Group" }).select(
+    } else if (type === VisitorTypeEnum.GROUP) {
+      const groups = await Visitor.find({ visitorType: VisitorTypeEnum.GROUP }).select(
         "groupName"
       );
       return res.json(groups);
@@ -257,7 +258,7 @@ export const getVisitorNames = async (req, res) => {
 export const getVisitorByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log("getVisitorByUserId:", userId);
+    // console.log("getVisitorByUserId:", userId);
 
     // Step 1: Find all visitors associated with the user
     const visitors = await Visitor.find({ userId }).lean();
@@ -307,7 +308,7 @@ export const getVisitorByUserId = async (req, res) => {
           purpose: visit.purpose,
           classification: visit.classification,
           noOfVisitors:
-            visitor.visitorType === "Group" ? visit.noOfVisitors : null,
+            visitor.visitorType === VisitorTypeEnum.GROUP ? visit.noOfVisitors : null,
           activeQRCode: qrCodeMap.get(visit._id.toString()) || null,
         };
       });
@@ -316,8 +317,9 @@ export const getVisitorByUserId = async (req, res) => {
         _id: visitor._id,
         userId: visitor.userId,
         visitorType: visitor.visitorType,
-        firstName: visitor.firstName || null,
-        lastName: visitor.lastName || null,
+        firstName: visitor.visitorType === VisitorTypeEnum.INDIVIDUAL ? visitor.firstName : null,
+        lastName: visitor.visitorType === VisitorTypeEnum.INDIVIDUAL ? visitor.lastName : null,
+        groupName: visitor.visitorType === VisitorTypeEnum.GROUP ? visitor.groupName : null,
         visitDetails: enrichedVisitDetails,
       };
     });

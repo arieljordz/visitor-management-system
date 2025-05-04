@@ -6,6 +6,7 @@ import Navpath from "../../components/common/Navpath";
 import QRCodeModal from "../../components/transactions/modals/QRCodeModal";
 import GeneratedQRCodeTable from "../../components/transactions/tables/GeneratedQRCodeTable";
 import { getGeneratedQRCodesById } from "../../services/qrService.js";
+import { QRStatusEnum } from "../../enums/enums.js";
 
 function GeneratedQRCodes({ user, setUser }) {
   const [generatedQRs, setGeneratedQRs] = useState([]);
@@ -40,13 +41,13 @@ function GeneratedQRCodes({ user, setUser }) {
 
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
-      case "pending":
+      case QRStatusEnum.PENDING:
         return "warning";
-      case "active":
+      case QRStatusEnum.ACTIVE:
         return "success";
-      case "used":
+      case QRStatusEnum.USED:
         return "primary";
-      case "expired":
+      case QRStatusEnum.EXPIRED:
         return "danger";
       default:
         return "dark";

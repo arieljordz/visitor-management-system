@@ -1,5 +1,12 @@
 import mongoose from "mongoose";
 import path from "path";
+import {
+  TransactionEnum,
+  PaymentMethodEnum,
+  PaymentStatusEnum,
+  UserRoleEnum,
+  NotificationEnum,
+} from "../enums/enums.js";
 import User from "../models/User.js";
 import Balance from "../models/Balance.js";
 import PaymentDetail from "../models/PaymentDetail.js";
@@ -49,12 +56,12 @@ export const topUp = async (req, res) => {
       userId: userObjectId,
       visitorId: null,
       amount: parsedAmount,
-      paymentMethod: paymentMethod || "e-wallet",
-      transaction: "credit",
+      paymentMethod: paymentMethod || PaymentMethodEnum.E_WALLET,
+      transaction: TransactionEnum.CREDIT,
       proofOfPayment: proofOfPaymentPath,
       referenceNumber,
       isVerified: false,
-      status: "pending",
+      status: PaymentStatusEnum.PENDING,
       paymentDate: new Date(),
       completedDate: null,
     });
@@ -69,12 +76,24 @@ export const topUp = async (req, res) => {
     const adminMessage = `${userName} has requested a top-up of ₱${parsedAmount} using ${transaction.paymentMethod}. Verify now.`;
 
     // Create notification for client
-    await createNotification(userId, "Top-up", "Payment", clientMessage, "client");
+    await createNotification(
+      userId,
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
+      clientMessage,
+      UserRoleEnum.CLIENT
+    );
     emitNotification(req.app.get("io"), userId, clientMessage);
 
     // Create and emit notification for admin
-    await createNotification(userId, "Top-up", "Payment", adminMessage, "admin");
-    emitNotification(req.app.get("io"), "admin", adminMessage);
+    await createNotification(
+      userId,
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
+      adminMessage,
+      UserRoleEnum.ADMIN
+    );
+    emitNotification(req.app.get("io"), UserRoleEnum.ADMIN, adminMessage);
 
     return res.status(200).json({
       message:
@@ -89,4 +108,3 @@ export const topUp = async (req, res) => {
     });
   }
 };
-

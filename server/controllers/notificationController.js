@@ -68,7 +68,7 @@ export const markAsReadById = async (req, res) => {
   try {
     // Update all notifications for this user
     const result = await Notification.updateMany(
-      { userId }, // Match notifications by userId
+      { userId },
       { isClientRead: true }
     );
 

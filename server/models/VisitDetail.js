@@ -12,7 +12,8 @@ const VisitDetailSchema = new mongoose.Schema(
     classification: { type: String, required: true },
     noOfVisitors: {
       type: Number,
-      required: false,
+      required: true,
+      default: 1,
     },
   },
   { timestamps: true }

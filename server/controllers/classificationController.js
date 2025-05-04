@@ -1,4 +1,5 @@
 import Classification from "../models/Classification.js";
+import { StatusEnum } from "../enums/enums.js";
 
 // Add new classification
 export const createClassification = async (req, res) => {
@@ -23,7 +24,10 @@ export const createClassification = async (req, res) => {
 
     const newClassification = new Classification({
       description: trimmedDescription,
-      status: status?.toLowerCase() === "inactive" ? "inactive" : "active", // defaults to "active"
+      status:
+        status?.toLowerCase() === StatusEnum.INACTIVE
+          ? StatusEnum.INACTIVE
+          : StatusEnum.ACTIVE, // defaults to "active"
     });
 
     const saved = await newClassification.save();
@@ -88,19 +92,17 @@ export const updateClassification = async (req, res) => {
     const updateFields = {};
     if (description) updateFields.description = description.trim();
     if (status) {
-      if (!["active", "inactive"].includes(status.toLowerCase())) {
-        return res
-          .status(400)
-          .json({ message: "Invalid status value." });
+      if (
+        ![StatusEnum.ACTIVE, StatusEnum.INACTIVE].includes(status.toLowerCase())
+      ) {
+        return res.status(400).json({ message: "Invalid status value." });
       }
       updateFields.status = status.toLowerCase();
     }
 
-    const updated = await Classification.findByIdAndUpdate(
-      id,
-      updateFields,
-      { new: true }
-    );
+    const updated = await Classification.findByIdAndUpdate(id, updateFields, {
+      new: true,
+    });
 
     if (!updated) {
       return res.status(404).json({ message: "Classification not found." });

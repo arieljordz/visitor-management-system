@@ -1,5 +1,6 @@
 import Fee from "../models/Fee.js";
 import { fetchFeeByCodeAndStatus } from "../utils/feeUtils.js";
+import { StatusEnum } from "../enums/enums.js";
 
 // Create a new fee
 export const createFee = async (req, res) => {
@@ -7,19 +8,36 @@ export const createFee = async (req, res) => {
     const { description, fee, feeCode, status } = req.body;
 
     // Validate required fields
-    if (!description || !feeCode || !status || fee === undefined || fee === null) {
-      return res.status(400).json({ message: "All fields (description, fee, feeCode, status) are required." });
+    if (
+      !description ||
+      !feeCode ||
+      !status ||
+      fee === undefined ||
+      fee === null
+    ) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "All fields (description, fee, feeCode, status) are required.",
+        });
     }
 
     // Validate fee is a number and non-negative
     const parsedFee = parseFloat(fee);
     if (isNaN(parsedFee) || parsedFee < 0) {
-      return res.status(400).json({ message: "Fee must be a valid non-negative number." });
+      return res
+        .status(400)
+        .json({ message: "Fee must be a valid non-negative number." });
     }
 
     // Validate status
-    if (!["active", "inactive"].includes(status.toLowerCase())) {
-      return res.status(400).json({ message: "Status must be either 'active' or 'inactive'." });
+    if (
+      ![StatusEnum.ACTIVE, StatusEnum.INACTIVE].includes(status.toLowerCase())
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Status must be either 'active' or 'inactive'." });
     }
 
     const newFee = new Fee({
@@ -30,10 +48,14 @@ export const createFee = async (req, res) => {
     });
 
     const savedFee = await newFee.save();
-    res.status(201).json({ message: "Fee created successfully", data: savedFee });
+    res
+      .status(201)
+      .json({ message: "Fee created successfully", data: savedFee });
   } catch (err) {
     console.error("Create Fee Error:", err);
-    res.status(500).json({ message: "Failed to create fee", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to create fee", error: err.message });
   }
 };
 
@@ -44,7 +66,9 @@ export const getFees = async (req, res) => {
     res.status(200).json({ data: fees });
   } catch (err) {
     console.error("Get Fees Error:", err);
-    res.status(500).json({ message: "Failed to retrieve fees", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to retrieve fees", error: err.message });
   }
 };
 
@@ -58,7 +82,9 @@ export const getFeeById = async (req, res) => {
     res.status(200).json({ data: fee });
   } catch (err) {
     console.error("Get Fee by ID Error:", err);
-    res.status(500).json({ message: "Failed to retrieve fee", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to retrieve fee", error: err.message });
   }
 };
 
@@ -69,19 +95,36 @@ export const updateFee = async (req, res) => {
     const { description, fee, feeCode, status } = req.body;
 
     // Validate required fields
-    if (!description || !feeCode || !status || fee === undefined || fee === null) {
-      return res.status(400).json({ message: "All fields (description, fee, feeCode, status) are required." });
+    if (
+      !description ||
+      !feeCode ||
+      !status ||
+      fee === undefined ||
+      fee === null
+    ) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "All fields (description, fee, feeCode, status) are required.",
+        });
     }
 
     // Validate fee
     const parsedFee = parseFloat(fee);
     if (isNaN(parsedFee) || parsedFee < 0) {
-      return res.status(400).json({ message: "Fee must be a valid non-negative number." });
+      return res
+        .status(400)
+        .json({ message: "Fee must be a valid non-negative number." });
     }
 
     // Validate status
-    if (!["active", "inactive"].includes(status.toLowerCase())) {
-      return res.status(400).json({ message: "Status must be either 'active' or 'inactive'." });
+    if (
+      ![StatusEnum.ACTIVE, StatusEnum.INACTIVE].includes(status.toLowerCase())
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Status must be either 'active' or 'inactive'." });
     }
 
     const updatedFee = await Fee.findByIdAndUpdate(
@@ -99,10 +142,14 @@ export const updateFee = async (req, res) => {
       return res.status(404).json({ message: "Fee not found." });
     }
 
-    res.status(200).json({ message: "Fee updated successfully", data: updatedFee });
+    res
+      .status(200)
+      .json({ message: "Fee updated successfully", data: updatedFee });
   } catch (err) {
     console.error("Update Fee Error:", err);
-    res.status(500).json({ message: "Failed to update fee", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to update fee", error: err.message });
   }
 };
 
@@ -116,7 +163,9 @@ export const deleteFee = async (req, res) => {
     res.status(200).json({ message: "Fee deleted" });
   } catch (err) {
     console.error("Delete Fee Error:", err);
-    res.status(500).json({ message: "Failed to delete fee", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to delete fee", error: err.message });
   }
 };
 

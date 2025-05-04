@@ -5,6 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useSpinner } from "../../context/SpinnerContext";
+import { UserRoleEnum, PasswordEnum } from "../../enums/enums.js";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
@@ -19,8 +20,8 @@ const LoginForm = ({ setUser, setIsRegistering }) => {
     setTimeout(() => {
       setLoading(false);
       if (data.verified) {
-        if (data.role === "admin") navigate("/admin/dashboard");
-        else if (data.role === "staff") navigate("/staff/scan-qr");
+        if (data.role === UserRoleEnum.ADMIN) navigate("/admin/dashboard");
+        else if (data.role === UserRoleEnum.STAFF) navigate("/staff/scan-qr");
         else navigate("/dashboard");
       } else {
         navigate("/");
@@ -28,72 +29,72 @@ const LoginForm = ({ setUser, setIsRegistering }) => {
     }, 800);
   };
 
-const login = async () => {
-  try {
-    setLoading(true);
-    
-    const res = await axios.post(
-      `${API_URL}/api/login-user`,
-      {
-        email: username,
-        password,
-      },
-      { withCredentials: true } // Important: allows cookie to be set by backend
-    );
+  const login = async () => {
+    try {
+      setLoading(true);
 
-    const { accessToken, ...userData } = res.data;
+      const res = await axios.post(
+        `${API_URL}/api/login-user`,
+        {
+          email: username,
+          password,
+        },
+        { withCredentials: true } // Important: allows cookie to be set by backend
+      );
 
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("user", JSON.stringify(userData));
+      const { accessToken, ...userData } = res.data;
 
-    setUser(userData);
-    setMessage("Login successful");
-    navigateByRole(userData);
-  } catch (error) {
-    setMessage("Login failed");
-    setLoading(false);
-  }
-};
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("user", JSON.stringify(userData));
 
-const handleGoogleLoginSuccess = async (credentialResponse) => {
-  try {
-    setLoading(true);
+      setUser(userData);
+      setMessage("Login successful");
+      navigateByRole(userData);
+    } catch (error) {
+      setMessage("Login failed");
+      setLoading(false);
+    }
+  };
 
-    const decoded = jwtDecode(credentialResponse.credential);
+  const handleGoogleLoginSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
 
-    const userData = {
-      name: decoded.name,
-      password: "DefaultPass123!", 
-      email: decoded.email,
-      picture: decoded.picture,
-      role: "client",
-      address: "N/A",
-    };
+      const decoded = jwtDecode(credentialResponse.credential);
 
-    const res = await axios.post(
-      `${API_URL}/api/google-login-user`,
-      userData,
-      { withCredentials: true } // allows refreshToken to be set in cookie
-    );
+      const userData = {
+        name: decoded.name,
+        password: PasswordEnum.DEFAULT_PASS,
+        email: decoded.email,
+        picture: decoded.picture,
+        role: UserRoleEnum.CLIENT,
+        address: "N/A",
+      };
 
-    const { accessToken, ...user } = res.data;
+      const res = await axios.post(
+        `${API_URL}/api/google-login-user`,
+        userData,
+        { withCredentials: true } // allows refreshToken to be set in cookie
+      );
 
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("user", JSON.stringify(user));
-    setUser(user);
+      const { accessToken, ...user } = res.data;
 
-    setMessage(
-      user.verified
-        ? "Google login successful."
-        : "Google mail registration successful. Please verify it to your email."
-    );
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
 
-    navigateByRole(user);
-  } catch (error) {
-    setMessage("Google login failed");
-    setLoading(false);
-  }
-};
+      setMessage(
+        user.verified
+          ? "Google login successful."
+          : "Google mail registration successful. Please verify it to your email."
+      );
+
+      navigateByRole(user);
+    } catch (error) {
+      setMessage("Google login failed");
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();

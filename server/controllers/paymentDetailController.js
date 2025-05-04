@@ -6,8 +6,13 @@ import {
   createNotification,
   emitNotification,
 } from "../services/notificationService.js";
-import { fetchFeeByCodeAndStatus } from "../utils/feeUtils.js";
-
+import {
+  TransactionEnum,
+  VerificationStatusEnum,
+  PaymentStatusEnum,
+  NotificationEnum,
+  UserRoleEnum,
+} from "../enums/enums.js";
 
 export const getPaymentDetails = async (req, res) => {
   try {
@@ -54,12 +59,12 @@ export const getPaymentDetailsById = async (req, res) => {
 export const getPaymentProofs = async (req, res) => {
   try {
     const paymentProofs = await PaymentDetail.find({
-      transaction: "credit",
+      transaction: TransactionEnum.CREDIT,
     })
       .populate("userId", "name email")
       .sort({ paymentDate: -1 });
 
-    console.log("paymentProofs:", paymentProofs);
+    // console.log("paymentProofs:", paymentProofs);
 
     res.status(200).json({
       data: paymentProofs,
@@ -73,7 +78,7 @@ export const getPaymentProofs = async (req, res) => {
 };
 
 export const deletePaymentProofs = async (req, res) => {
-  const { selectedRows } = req.body; // Expecting an array of IDs
+  const { selectedRows } = req.body;
 
   try {
     // Delete the records from the database
@@ -91,7 +96,10 @@ export const updateVerificationStatus = async (req, res) => {
 
   const io = req.app.get("io");
 
-  const allowedStatuses = ["verified", "declined"];
+  const allowedStatuses = [
+    VerificationStatusEnum.VERIFIED,
+    VerificationStatusEnum.DECLINED,
+  ];
   if (!allowedStatuses.includes(verificationStatus)) {
     return res.status(400).json({ message: "Invalid verification status." });
   }
@@ -100,7 +108,7 @@ export const updateVerificationStatus = async (req, res) => {
     // 🔍 Find payment with credit transaction
     const payment = await PaymentDetail.findOne({
       _id: id,
-      transaction: "credit",
+      transaction: TransactionEnum.CREDIT,
     });
     if (!payment) {
       return res.status(404).json({
@@ -108,7 +116,7 @@ export const updateVerificationStatus = async (req, res) => {
       });
     }
 
-    if (payment.verificationStatus !== "pending") {
+    if (payment.verificationStatus !== VerificationStatusEnum.PENDING) {
       return res.status(400).json({
         message: "Payment has already been verified or declined.",
       });
@@ -118,9 +126,9 @@ export const updateVerificationStatus = async (req, res) => {
     payment.verificationStatus = verificationStatus;
     payment.completedDate = new Date();
 
-    if (verificationStatus === "verified") {
+    if (verificationStatus === VerificationStatusEnum.VERIFIED) {
       // ✅ Mark payment as completed
-      payment.status = "completed";
+      payment.status = PaymentStatusEnum.COMPLETED;
 
       // 💰 Update or create user balance
       let userBalance = await Balance.findOne({ userId: payment.userId });
@@ -142,9 +150,9 @@ export const updateVerificationStatus = async (req, res) => {
       });
     }
 
-    if (verificationStatus === "declined") {
+    if (verificationStatus === VerificationStatusEnum.DECLINED) {
       // ❌ Mark payment as cancelled and store reason
-      payment.status = "cancelled";
+      payment.status = PaymentStatusEnum.CANCELLED;
       payment.reason = reason || "No reason provided.";
     }
 
@@ -156,33 +164,33 @@ export const updateVerificationStatus = async (req, res) => {
 
     // ✉️ Compose notification messages
     const clientMessage =
-      verificationStatus === "verified"
+      verificationStatus === VerificationStatusEnum.VERIFIED
         ? `₱${payment.amount} has been successfully added to your wallet after top-up verification.`
         : `Your top-up of ₱${payment.amount} was declined. Reason: ${payment.reason}`;
 
     const adminMessage =
-      verificationStatus === "verified"
+      verificationStatus === VerificationStatusEnum.VERIFIED
         ? `Top-up of ₱${payment.amount} for ${userName} has been verified and added to the wallet.`
         : `Top-up of ₱${payment.amount} for ${userName} was declined. Reason: ${payment.reason}`;
 
     // 🔔 Send notifications
     await createNotification(
       payment.userId,
-      "Top-up",
-      "Payment",
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
       clientMessage,
-      "client"
+      UserRoleEnum.CLIENT
     );
     emitNotification(io, payment.userId, clientMessage);
 
     await createNotification(
       payment.userId,
-      "Top-up",
-      "Payment",
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
       adminMessage,
-      "admin"
+      UserRoleEnum.ADMIN
     );
-    emitNotification(io, "admin", adminMessage);
+    emitNotification(io, UserRoleEnum.ADMIN, adminMessage);
 
     return res.status(200).json({
       message: `Payment ${verificationStatus} successfully.`,
@@ -203,7 +211,7 @@ export const verifyPayment = async (req, res) => {
   try {
     const payment = await PaymentDetail.findOne({
       _id: id,
-      transaction: "credit",
+      transaction: TransactionEnum.CREDIT,
     });
 
     if (!payment) {
@@ -212,15 +220,15 @@ export const verifyPayment = async (req, res) => {
         .json({ message: "Payment not found or not a credit transaction." });
     }
 
-    if (payment.verificationStatus !== "pending") {
+    if (payment.verificationStatus !== VerificationStatusEnum.PENDING) {
       return res
         .status(400)
         .json({ message: "Payment has already been verified or declined." });
     }
 
     // Update status
-    payment.verificationStatus = "verified";
-    payment.status = "completed";
+    payment.verificationStatus = VerificationStatusEnum.VERIFIED;
+    payment.status = PaymentStatusEnum.COMPLETED;
     payment.completedDate = new Date();
 
     // Update user's balance
@@ -252,20 +260,20 @@ export const verifyPayment = async (req, res) => {
 
     await createNotification(
       payment.userId,
-      "Top-up",
-      "Payment",
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
       clientMessage,
-      "client"
+      UserRoleEnum.CLIENT
     );
     await createNotification(
       payment.userId,
-      "Top-up",
-      "Payment",
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
       adminMessage,
-      "admin"
+      UserRoleEnum.ADMIN
     );
     emitNotification(io, payment.userId, clientMessage);
-    emitNotification(io, "admin", adminMessage);
+    emitNotification(io, UserRoleEnum.ADMIN, adminMessage);
 
     return res.status(200).json({
       message: "Payment verified successfully.",
@@ -286,7 +294,7 @@ export const declinePayment = async (req, res) => {
   try {
     const payment = await PaymentDetail.findOne({
       _id: id,
-      transaction: "credit",
+      transaction: TransactionEnum.CREDIT,
     });
 
     if (!payment) {
@@ -295,15 +303,15 @@ export const declinePayment = async (req, res) => {
         .json({ message: "Payment not found or not a credit transaction." });
     }
 
-    if (payment.verificationStatus !== "pending") {
+    if (payment.verificationStatus !== VerificationStatusEnum.PENDING) {
       return res
         .status(400)
         .json({ message: "Payment has already been verified or declined." });
     }
 
     // Update status
-    payment.verificationStatus = "declined";
-    payment.status = "cancelled";
+    payment.verificationStatus = VerificationStatusEnum.DECLINED;
+    payment.status = PaymentStatusEnum.CANCELLED;
     payment.completedDate = new Date();
     if (reason) payment.reason = reason;
 
@@ -316,10 +324,10 @@ export const declinePayment = async (req, res) => {
 
     await createNotification(
       payment.userId,
-      "Top-up",
-      "Payment",
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
       clientMessage,
-      "client"
+      UserRoleEnum.CLIENT
     );
     emitNotification(io, payment.userId, clientMessage);
 

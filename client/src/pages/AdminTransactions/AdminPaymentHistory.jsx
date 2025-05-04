@@ -5,6 +5,7 @@ import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import AdminPaymentHistoryTable from "../../components/adminTransactions/tables/AdminPaymentHistoryTable";
 import { getPaymentDetails } from "../../services/paymentDetailService.js";
+import { PaymentStatusEnum } from "../../enums/enums.js";
 
 function AdminPaymentHistory({ user, setUser }) {
   const [transactions, setTransactions] = useState([]);
@@ -34,13 +35,13 @@ function AdminPaymentHistory({ user, setUser }) {
 
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
-      case "completed":
+      case PaymentStatusEnum.COMPLETED:
         return "success";
-      case "pending":
+      case PaymentStatusEnum.PENDING:
         return "warning";
-      case "failed":
+      case PaymentStatusEnum.FAILED:
         return "danger";
-      case "cancelled":
+      case PaymentStatusEnum.CANCELLED:
         return "secondary";
       default:
         return "dark";

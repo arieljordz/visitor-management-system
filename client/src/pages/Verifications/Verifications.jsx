@@ -11,6 +11,7 @@ import {
   getPaymentProofs,
   updateVerificationStatus,
 } from "../../services/paymentDetailService.js";
+import { VerificationStatusEnum } from "../../enums/enums.js";
 
 function Verifications({ user, setUser }) {
   const [proofs, setProofs] = useState([]);
@@ -43,11 +44,11 @@ function Verifications({ user, setUser }) {
 
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
-      case "verified":
+      case VerificationStatusEnum.VERIFIED:
         return "success";
-      case "pending":
+      case VerificationStatusEnum.PENDING:
         return "warning";
-      case "declined":
+      case VerificationStatusEnum.DECLINED:
         return "danger";
       default:
         return "dark";

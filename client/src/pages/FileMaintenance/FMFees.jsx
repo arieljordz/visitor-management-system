@@ -13,6 +13,7 @@ import {
   getFeeById,
   deleteFee,
 } from "../../services/feeService.js";
+import { StatusEnum } from "../../enums/enums.js";
 
 function FMFees({ user, setUser }) {
   const [fee, setFees] = useState([]);
@@ -87,9 +88,9 @@ function FMFees({ user, setUser }) {
   
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
-      case "active":
+      case StatusEnum.ACTIVE:
         return "success";
-      case "inactive":
+      case StatusEnum.INACTIVE:
         return "warning";
       default:
         return "dark";

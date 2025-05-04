@@ -1,5 +1,6 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
+import { VisitorTypeEnum, QRStatusEnum } from "../../../enums/enums.js";
 
 const VisitorsTable = ({
   loading,
@@ -44,7 +45,7 @@ const VisitorsTable = ({
                     {visitor.visitorType?.toUpperCase()}
                   </td>
                   <td className="text-center">
-                    {visitor.visitorType === "Group"
+                    {visitor.visitorType === VisitorTypeEnum.GROUP
                       ? visitor.groupName?.toUpperCase()
                       : `${visitor.firstName?.toUpperCase()} ${visitor.lastName?.toUpperCase()}`}
                   </td>
@@ -67,12 +68,12 @@ const VisitorsTable = ({
                       className={`badge bg-${getBadgeClass(
                         visitDetail.activeQRCode
                           ? visitDetail.activeQRCode.status
-                          : "pending"
+                          : QRStatusEnum.PENDING
                       )}`}
                     >
                       {visitDetail.activeQRCode
                         ? visitDetail.activeQRCode.status
-                        : "pending"}
+                        : QRStatusEnum.PENDING}
                     </span>
                   </td>
                   <td className="text-center">

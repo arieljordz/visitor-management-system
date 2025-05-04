@@ -8,6 +8,7 @@ import Paginations from "../../components/common/Paginations";
 import AdminGeneratedQRCodeTable from "../../components/adminTransactions/tables/AdminGeneratedQRCodeTable";
 import QRCodeModal from "../../components/adminTransactions/modals/QRCodeModal";
 import { getGeneratedQRCodes } from "../../services/qrService.js";
+import { QRStatusEnum } from "../../enums/enums.js";
 
 function AdminGeneratedQRCodes({ user, setUser }) {
   const [qRCodes, setQRCodes] = useState([]);
@@ -42,13 +43,13 @@ function AdminGeneratedQRCodes({ user, setUser }) {
 
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
-      case "pending":
+      case QRStatusEnum.PENDING:
         return "warning";
-      case "active":
+      case QRStatusEnum.ACTIVE:
         return "success";
-      case "used":
+      case QRStatusEnum.USED:
         return "primary";
-      case "expired":
+      case QRStatusEnum.EXPIRED:
         return "danger";
       default:
         return "dark";
@@ -57,8 +58,10 @@ function AdminGeneratedQRCodes({ user, setUser }) {
 
   // Filter qRCodes by search term
   const filteredData = qRCodes.filter((txn) => {
-    const fullName = `${txn.visitorId?.firstName || ""} ${txn.visitorId?.lastName || ""}`.trim();
-  
+    const fullName = `${txn.visitorId?.firstName || ""} ${
+      txn.visitorId?.lastName || ""
+    }`.trim();
+
     const values = [
       txn._id?.slice(-6),
       txn.transaction,
@@ -74,7 +77,7 @@ function AdminGeneratedQRCodes({ user, setUser }) {
       txn.visitorId?.visitorType,
       txn.userId?.name,
     ];
-  
+
     return values.some((val) =>
       String(val).toLowerCase().includes(searchTerm.toLowerCase())
     );

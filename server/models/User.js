@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { UserRoleEnum, StatusEnum } from "../enums/enums.js"
 
 const UserSchema = new mongoose.Schema(
   {
@@ -8,15 +9,15 @@ const UserSchema = new mongoose.Schema(
     picture: { type: String, required: false },
     role: {
       type: String,
-      enum: ["client", "admin", "staff"],
+      enum: Object.values(UserRoleEnum),
       default: "client",
     },
     address: { type: String, required: true },
     verified: { type: Boolean, required: true, default: false },
     status: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active",
+      enum: Object.values(StatusEnum),
+      default: StatusEnum.ACTIVE,
     },
     sessionToken: { type: String, default: null },
     refreshToken: { type: String, default: null },

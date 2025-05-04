@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { UserRoleEnum } from "../enums/enums.js"
 
 const notificationSchema = new mongoose.Schema(
   {
@@ -9,7 +10,7 @@ const notificationSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["client", "admin", "staff"],
+      enum: Object.values(UserRoleEnum),
       required: true,
     },
     transaction: { type: String, required: true },
@@ -22,5 +23,4 @@ const notificationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Notification = mongoose.model("Notification", notificationSchema);
-export default Notification;
+export default mongoose.model("Notification", notificationSchema);

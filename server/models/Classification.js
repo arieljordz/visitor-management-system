@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
+import { StatusEnum } from "../enums/enums.js";  
 
 const ClassificationSchema = new mongoose.Schema(
   {
     description: { type: String, required: true, unique: true },
     status: {
       type: String,
-      enum: ["active", "inactive"],
-      default: "active",
+      enum: Object.values(StatusEnum),
+      default: StatusEnum.ACTIVE,
     },
   },
   { timestamps: true }

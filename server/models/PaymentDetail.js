@@ -1,10 +1,11 @@
 import mongoose from "mongoose";
+import { PaymentStatusEnum, VerificationStatusEnum } from "../enums/enums.js";
 
 const paymentDetailsSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", 
+      ref: "User",
       required: true,
     },
     visitorId: {
@@ -23,8 +24,8 @@ const paymentDetailsSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "completed", "failed", "cancelled"],
-      default: "pending",
+      enum: Object.values(PaymentStatusEnum),
+      default: PaymentStatusEnum.PENDING,
     },
     transaction: {
       type: String,
@@ -35,16 +36,16 @@ const paymentDetailsSchema = new mongoose.Schema(
       required: false,
     },
     referenceNumber: {
-      type: String, 
+      type: String,
       required: false,
     },
     verificationStatus: {
       type: String,
-      enum: ["pending", "verified", "declined"],
-      default: "pending",
+      enum: Object.values(VerificationStatusEnum),
+      default: VerificationStatusEnum.PENDING,
     },
     reason: {
-      type: String, 
+      type: String,
       required: false,
     },
     paymentDate: {
@@ -56,9 +57,8 @@ const paymentDetailsSchema = new mongoose.Schema(
       required: false,
     },
   },
-  { timestamps: true } // Automatically adds createdAt and updatedAt fields
+  { timestamps: true }
 );
 
-const PaymentDetails = mongoose.model("PaymentDetail", paymentDetailsSchema);
+export default mongoose.model("PaymentDetail", paymentDetailsSchema);
 
-export default PaymentDetails;

@@ -5,6 +5,7 @@ import Paginations from "../../components/common/Paginations";
 import { Card, Row, Col } from "react-bootstrap";
 import PaymentHistoryTable from "../../components/transactions/tables/PaymentHistoryTable";
 import { getPaymentDetailsById } from "../../services/paymentDetailService.js";
+import { PaymentStatusEnum } from "../../enums/enums.js";
 
 function PaymentHistory({ user, setUser }) {
   const [transactions, setTransactions] = useState([]);
@@ -34,13 +35,13 @@ function PaymentHistory({ user, setUser }) {
 
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
-      case "completed":
+      case PaymentStatusEnum.COMPLETED:
         return "success";
-      case "pending":
+      case PaymentStatusEnum.PENDING:
         return "warning";
-      case "failed":
+      case PaymentStatusEnum.FAILED:
         return "danger";
-      case "cancelled":
+      case PaymentStatusEnum.CANCELLED:
         return "secondary";
       default:
         return "dark";

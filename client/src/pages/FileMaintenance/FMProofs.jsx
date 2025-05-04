@@ -6,6 +6,7 @@ import Paginations from "../../components/common/Paginations";
 import ProofsTable from "../../components/fileMaintenance/tables/ProofsTable";
 import ProofsModal from "../../components/verifications/modals/ProofsModal";
 import { getPaymentProofs } from "../../services/paymentDetailService.js";
+import { PaymentStatusEnum } from "../../enums/enums.js";
 
 function FMProofs({ user, setUser }) {
   const [proofs, setProofs] = useState([]);
@@ -40,13 +41,13 @@ function FMProofs({ user, setUser }) {
 
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
-      case "completed":
+      case PaymentStatusEnum.COMPLETED:
         return "success";
-      case "pending":
+      case PaymentStatusEnum.PENDING:
         return "warning";
-      case "failed":
+      case PaymentStatusEnum.FAILED:
         return "danger";
-      case "cancelled":
+      case PaymentStatusEnum.CANCELLED:
         return "secondary";
       default:
         return "dark";

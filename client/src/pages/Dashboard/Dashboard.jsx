@@ -20,6 +20,7 @@ import {
 } from "../../services/qrService.js";
 import { getBalance } from "../../services/balanceService.js";
 import { getFeeByCodeAndStatus } from "../../services/feeService.js";
+import { FeeCodeEnum, QRStatusEnum } from "../../enums/enums.js";
 
 const Dashboard = ({ user }) => {
   const { setLoading } = useSpinner();
@@ -57,13 +58,13 @@ const Dashboard = ({ user }) => {
 
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
-      case "pending":
+      case QRStatusEnum.PENDING:
         return "warning";
-      case "active":
+      case QRStatusEnum.ACTIVE:
         return "success";
-      case "used":
+      case QRStatusEnum.USED:
         return "primary";
-      case "expired":
+      case QRStatusEnum.EXPIRED:
         return "danger";
       default:
         return "dark";
@@ -72,7 +73,7 @@ const Dashboard = ({ user }) => {
 
   const handleGenerateQR = async (visitorId, visitdetailsId) => {
     try {
-      const fee = await getFeeByCodeAndStatus("GENQR01");
+      const fee = await getFeeByCodeAndStatus(FeeCodeEnum.GENQR01);
       const data = await getBalance(user.userId);
       const parsedBalance = parseFloat(data?.balance);
       const currentBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;

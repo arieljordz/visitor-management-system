@@ -14,8 +14,7 @@ import {
   getClassificationById,
   deleteClassification,
 } from "../../services/classificationService.js";
-
-const API_URL = import.meta.env.VITE_BASE_API_URL;
+import { StatusEnum } from "../../enums/enums.js";
 
 function FMClassification({ user, setUser }) {
   const [classifications, setClassifications] = useState([]);
@@ -89,9 +88,9 @@ function FMClassification({ user, setUser }) {
 
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
-      case "active":
+      case StatusEnum.ACTIVE:
         return "success";
-      case "inactive":
+      case StatusEnum.INACTIVE:
         return "warning";
       default:
         return "dark";

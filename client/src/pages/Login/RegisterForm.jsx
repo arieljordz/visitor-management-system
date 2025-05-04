@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Form, Row, Col, Button, Alert } from "react-bootstrap";
 import axios from "axios";
+import { UserRoleEnum } from "../../enums/enums.js";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
@@ -28,7 +29,7 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
         name: formData.name,
         password: formData.password,
         picture: null,
-        role: "client",
+        role: UserRoleEnum.CLIENT,
         address: formData.address,
         verified: true,
       });

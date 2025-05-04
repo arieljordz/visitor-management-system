@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { VisitorTypeEnum } from "../enums/enums.js";  
 
 const VisitorSchema = new mongoose.Schema(
   {
@@ -9,25 +10,25 @@ const VisitorSchema = new mongoose.Schema(
     },
     visitorType: {
       type: String,
-      enum: ["Individual", "Group"],
+      enum: Object.values(VisitorTypeEnum), 
       required: true,
     },
     firstName: {
       type: String,
       required: function () {
-        return this.visitorType === "Individual";
+        return this.visitorType === VisitorTypeEnum.INDIVIDUAL; 
       },
     },
     lastName: {
       type: String,
       required: function () {
-        return this.visitorType === "Individual";
+        return this.visitorType === VisitorTypeEnum.INDIVIDUAL;  
       },
     },
     groupName: {
       type: String,
       required: function () {
-        return this.visitorType === "Group";
+        return this.visitorType === VisitorTypeEnum.GROUP; 
       },
     },
   },

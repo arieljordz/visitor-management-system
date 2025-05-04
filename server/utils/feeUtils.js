@@ -1,6 +1,7 @@
 import Fee from "../models/Fee.js"; 
+import { StatusEnum } from "../enums/enums.js";
 
-export const fetchFeeByCodeAndStatus = async (feeCode, status = "active") => {
+export const fetchFeeByCodeAndStatus = async (feeCode, status = StatusEnum.ACTIVE) => {
   try {
     const fee = await Fee.findOne({ feeCode, status });
 
