@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Row, Col, Card } from "react-bootstrap";
+import { Button, Row, Col, Card, Spinner } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useSpinner } from "../../context/SpinnerContext";
@@ -34,6 +34,7 @@ const Dashboard = ({ user }) => {
   const [showVisitorModal, setShowVisitorModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
 
   useEffect(() => {
     if (user?.userId) {
@@ -71,7 +72,6 @@ const Dashboard = ({ user }) => {
 
   const handleGenerateQR = async (visitorId, visitdetailsId) => {
     try {
-
       const fee = await getFeeByCodeAndStatus("GENQR01");
       const data = await getBalance(user.userId);
       const parsedBalance = parseFloat(data?.balance);
@@ -166,8 +166,15 @@ const Dashboard = ({ user }) => {
       {/* Main content */}
       <section className="content">
         <div className="container-fluid">
-          <DashboardStats user={user} />
-
+          {dashboardLoading ? (
+            <div className="text-center my-4">
+              <Spinner animation="border" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </Spinner>
+            </div>
+          ) : (
+            <DashboardStats user={user} />
+          )}
           <Row className="justify-content-center">
             <Col md={8} lg={12}>
               <Card className="shadow">

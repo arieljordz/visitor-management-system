@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
+import { useSpinner } from "../../context/SpinnerContext";
 import {
   getVisitorsByDateRange,
   getPaymentDetailsByDateRange,
@@ -13,6 +14,7 @@ import ReportTable from "./ReportTable";
 import Navpath from "../../components/common/Navpath";
 
 function GenerateReports({ user, setUser }) {
+  const { setLoading } = useSpinner();
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [reportType, setReportType] = useState("visitor");
@@ -29,7 +31,7 @@ function GenerateReports({ user, setUser }) {
     if (!dateFrom || !dateTo)
       return toast.warning("Please select a date range.");
     setIsGenerating(true);
-
+    setLoading(true);
     try {
       let rows = [];
       let title = "";
@@ -37,7 +39,7 @@ function GenerateReports({ user, setUser }) {
       switch (reportType) {
         case "visitor":
           const visitors = await getVisitorsByDateRange({ dateFrom, dateTo });
-          console.log("visitors:", visitors);
+          // console.log("visitors:", visitors);
           setColumns([
             { header: "#", key: "id", width: "10%" },
             { header: "Name", key: "name" },
@@ -69,7 +71,7 @@ function GenerateReports({ user, setUser }) {
             dateFrom,
             dateTo,
           });
-          console.log("payments:", payments);
+          // console.log("payments:", payments);
           setColumns([
             { header: "#", key: "id" },
             { header: "User", key: "user" },
@@ -93,7 +95,7 @@ function GenerateReports({ user, setUser }) {
 
         case "audit":
           const audits = await getAuditLogsByDateRange({ dateFrom, dateTo });
-          console.log("audits:", audits);
+          // console.log("audits:", audits);
           setColumns([
             { header: "#", key: "id" },
             { header: "User", key: "user" },
@@ -121,6 +123,7 @@ function GenerateReports({ user, setUser }) {
       toast.error("Failed to generate report.");
     } finally {
       setIsGenerating(false);
+      setLoading(false);
     }
   };
 
