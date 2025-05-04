@@ -28,7 +28,7 @@ export const getAuditLogs = async (req, res) => {
     if (userId) filter.userId = userId;
     if (action) filter.action = action;
 
-    const logs = await AuditLog.find(filter).populate("userId", "email"); // adjust populated fields as needed
+    const logs = await AuditLog.find(filter).populate("userId", "name email"); // adjust populated fields as needed
     res.status(200).json(logs);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch audit logs", error });
@@ -39,7 +39,7 @@ export const getAuditLogs = async (req, res) => {
 export const getAuditLogById = async (req, res) => {
   try {
     const { id } = req.params;
-    const log = await AuditLog.findById(id).populate("userId", "email");
+    const log = await AuditLog.findById(id).populate("userId", "name email");
 
     if (!log) return res.status(404).json({ message: "Audit log not found" });
 

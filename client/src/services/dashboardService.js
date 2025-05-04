@@ -5,26 +5,10 @@ export const getVisitorByUserId = async (userId) => {
   return response.data.data || [];
 };
 
-export const checkActiveQRCodeById = async (user, visitorId) => {
-  const response = await api.get(
-    `/api/check-active-qr/${user.userId}/${visitorId}`
-  );
-  return response.data.data || [];
-};
-
 export const generateQRCode = async (user, visitorId) => {
   const response = await api.post(
     `/api/generate-qr/${user.userId}/${visitorId}`
   );
-  return response.data.data || [];
-};
-
-export const processPayment = async (user, visitorId) => {
-  const response = await api.post(`/api/submit-payment`, {
-    userId: user.userId,
-    visitorId: visitorId,
-  });
-
   return response.data.data || [];
 };
 

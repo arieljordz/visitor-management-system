@@ -37,7 +37,7 @@ api.interceptors.response.use(
       originalRequest?.url?.includes(endpoint)
     );
 
-    console.log("shouldSkipAuthHandling:", shouldSkipAuthHandling);
+    // console.log("shouldSkipAuthHandling:", shouldSkipAuthHandling);
 
     // Handle token expiration and retry logic
     if (isAuthError && originalRequest && !originalRequest._retry) {

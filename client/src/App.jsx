@@ -12,12 +12,12 @@ import AuthenticatedLayout from "./layouts/AuthenticatedLayout";
 import VerifyEmail from "./pages/Login/VerifyEmail";
 import ForgotPassword from "./pages/Login/ForgotPassword";
 import ResetPassword from "./pages/Login/ResetPassword";
+import { SpinnerProvider } from "./context/SpinnerContext";
 
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
@@ -32,11 +32,6 @@ const App = () => {
             userId: parsedUser.userId,
             role: parsedUser.role,
           });
-          // console.log(
-          //   "✅ Joined socket room:",
-          //   parsedUser.userId,
-          //   parsedUser.role
-          // );
         }
       };
 
@@ -62,37 +57,26 @@ const App = () => {
 
   return (
     <ThemeProvider>
-      <GoogleOAuthProvider clientId={API_KEY}>
-        <BrowserRouter>
-          {loading && <Spinner />}
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <LoginPage
-                  user={user}
-                  setUser={setUser}
-                  setLoading={setLoading}
-                />
-              }
-            />
-            <Route path="/email-verification" element={<VerifyEmail />} />
-            <Route path="/forgot-password" element={<ForgotPassword setLoading={setLoading}/>} />
-            <Route path="/reset-password/:token" element={<ResetPassword setLoading={setLoading}/>} />
-            <Route
-              path="/*"
-              element={
-                <AuthenticatedLayout
-                  user={user}
-                  setUser={setUser}
-                  loading={loading}
-                />
-              }
-            />
-          </Routes>
-          <ToastContainer position="top-right" autoClose={2000} />
-        </BrowserRouter>
-      </GoogleOAuthProvider>
+      <SpinnerProvider>
+        <GoogleOAuthProvider clientId={API_KEY}>
+          <BrowserRouter>
+            <Routes>
+              <Route
+                path="/"
+                element={<LoginPage user={user} setUser={setUser} />}
+              />
+              <Route path="/email-verification" element={<VerifyEmail />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
+              <Route
+                path="/*"
+                element={<AuthenticatedLayout user={user} setUser={setUser} />}
+              />
+            </Routes>
+            <ToastContainer position="top-right" autoClose={2000} />
+          </BrowserRouter>
+        </GoogleOAuthProvider>
+      </SpinnerProvider>
     </ThemeProvider>
   );
 };

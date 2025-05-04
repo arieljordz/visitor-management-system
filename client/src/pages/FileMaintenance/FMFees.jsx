@@ -101,6 +101,7 @@ function FMFees({ user, setUser }) {
       obj._id?.slice(-6),
       obj.description,
       obj.fee,
+      obj.feeCode,
       obj.status,
       new Date(obj.createdAt).toLocaleString(),
     ];

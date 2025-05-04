@@ -5,7 +5,7 @@ import Visitor from "../models/Visitor.js";
 import VisitDetail from "../models/VisitDetail.js";
 import PaymentDetail from "../models/PaymentDetail.js";
 import Balance from "../models/Balance.js";
-import Fee from "../models/Fee.js";
+import { fetchFeeByCodeAndStatus } from "../utils/feeUtils.js";
 
 export const generateQRCodeWithPayment = async (req, res) => {
   const {
@@ -50,7 +50,7 @@ export const generateQRCodeWithPayment = async (req, res) => {
     const activeQRCodes = await QRCode.find({
       visitorId,
       userId,
-      status: "active",
+      status: { $in: ["active", "used"] },
     }).populate("visitdetailsId");
 
     // Check if any QR already exists for the same visit date
@@ -61,19 +61,11 @@ export const generateQRCodeWithPayment = async (req, res) => {
     });
 
     if (duplicateQR) {
-      return res.status(409).json({ message: "Active QR code already exists for this visit date." });
+      return res.status(409).json({ message: "Active or Used QR code already exists for this visit date." });
     }
 
     // Get the active 'generate qr fee'
-    const feeDoc = await Fee.findOne({
-      description: { $regex: /generate qr fee/i },
-      status: "active",
-    });
-
-    if (!feeDoc) {
-      return res.status(404).json({ message: "'Generate QR fee' not found or inactive." });
-    }
-
+    const feeDoc = await fetchFeeByCodeAndStatus("GENQR01");
     const feeAmount = feeDoc.fee ?? 0;
 
     // Fetch and validate balance
@@ -163,7 +155,7 @@ export const scanQRCode = async (req, res) => {
 
     const qrCodeDoc = await QRCode.findOne({ qrData })
       .populate("visitorId")
-      .populate("userId", "-password")
+      .populate("userId", "name email")
       .populate("visitdetailsId");
 
     if (!qrCodeDoc) {
@@ -214,7 +206,7 @@ export const scanQRCode = async (req, res) => {
 export const getGeneratedQRCodes = async (req, res) => {
   try {
     const generatedQRCodes = await QRCode.find()
-      .populate("userId", "-password")
+      .populate("userId", "name email")
       .populate("visitorId") 
       .populate("visitdetailsId") 
       .sort({ generatedAt: -1 })
@@ -256,7 +248,7 @@ export const getGeneratedQRCodesById = async (req, res) => {
 
     // Fetch QR codes created by the user
     const generatedQRCodes = await QRCode.find({ userId })
-      .populate("userId", "-password") // omit sensitive fields
+      .populate("userId", "name email")
       .populate("visitorId")
       .populate("visitdetailsId")
       .sort({ generatedAt: -1 })
@@ -293,60 +285,10 @@ export const getGeneratedQRCodesById = async (req, res) => {
   }
 };
 
-export const checkActiveQRCodeById = async (req, res) => {
-  try {
-    const { userId, visitorId } = req.params;
-
-    // Validate ObjectIds
-    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(visitorId)) {
-      return res.status(400).json({ message: "Invalid user or visitor ID." });
-    }
-
-    // Today's date at the start of the day
-    const today = moment().startOf("day");
-
-    // Find active QR for this visitor and user where the visit date is today or in the future
-    const activeQRCode = await QRCode.findOne({
-      userId,
-      visitorId,
-      status: "active",
-    })
-    .populate({
-      path: "visitdetailsId",
-      select: "visitDate",
-    });
-
-    if (!activeQRCode || !activeQRCode.visitdetailsId) {
-      return res.status(404).json({ message: "No active QR code found." });
-    }
-
-    const visitDate = moment(activeQRCode.visitdetailsId.visitDate).startOf("day");
-
-    if (visitDate.isBefore(today)) {
-      return res.status(404).json({ message: "No active QR code found for upcoming visits." });
-    }
-
-    return res.status(200).json({
-      message: "Active QR code found for a future or current visit.",
-      qrCodeId: activeQRCode._id,
-      qrImageUrl: activeQRCode.qrImageUrl,
-      qrData: activeQRCode.qrData,
-      status: activeQRCode.status,
-      generatedAt: activeQRCode.generatedAt,
-    });
-  } catch (error) {
-    console.error("Error checking active QR code:", error);
-    return res.status(500).json({ message: "Internal server error." });
-  }
-};
-
 export const checkActiveQRCodeForVisit = async (req, res) => {
   try {
     const { visitorId, userId, visitdetailsId } = req.params;
 
-    console.log("req.params:", req.params);
-
-    // Validate ObjectIds
     if (
       !mongoose.Types.ObjectId.isValid(visitorId) ||
       !mongoose.Types.ObjectId.isValid(userId) ||
@@ -355,7 +297,6 @@ export const checkActiveQRCodeForVisit = async (req, res) => {
       return res.status(400).json({ message: "Invalid ID(s)." });
     }
 
-    // Get the visit date from visitdetailsId
     const visitDetail = await VisitDetail.findById(visitdetailsId);
     if (!visitDetail || !visitDetail.visitDate) {
       return res.status(404).json({ message: "Visit details not found or missing visit date." });
@@ -363,43 +304,34 @@ export const checkActiveQRCodeForVisit = async (req, res) => {
 
     const targetVisitDate = moment(visitDetail.visitDate).startOf("day");
 
-    // Find all active QR codes for this visitor & user
-    const activeQRCodes = await QRCode.find({
+    const qrCodes = await QRCode.find({
       visitorId,
       userId,
-      status: "active",
+      status: { $in: ["active", "used"] },
     }).populate("visitdetailsId");
 
-    // Debug: log dates
-    console.log("Target visit date:", targetVisitDate.format("YYYY-MM-DD"));
-    for (const qr of activeQRCodes) {
-      console.log(
-        "Existing QR visit date:",
-        moment(qr.visitdetailsId?.visitDate).startOf("day").format("YYYY-MM-DD")
-      );
-    }
-
-    // Check if any active QR has the same visit date
-    const duplicateQR = activeQRCodes.find((qr) => {
+    const conflict = qrCodes.find((qr) => {
       if (!qr.visitdetailsId?.visitDate) return false;
-
       const qrVisitDate = moment(qr.visitdetailsId.visitDate).startOf("day");
       return qrVisitDate.isSame(targetVisitDate);
     });
 
-    if (duplicateQR) {
-      return res
-        .status(409)
-        .json({ message: "Active QR code already exists for this visit date." });
+    if (conflict) {
+      const message =
+        conflict.status === "active"
+          ? "An *active* QR code already exists for this visit date."
+          : "A QR code has already been *used* for this visit date.";
+
+      return res.status(409).json({ message, status: conflict.status });
     }
 
     return res
       .status(200)
-      .json({ message: "No conflicting active QR code. Safe to generate." });
-
+      .json({ message: "No conflicting QR code found. Safe to generate." });
   } catch (error) {
-    console.error("Error checking QR code for visit date:", error);
+    console.error("Error checking QR code:", error);
     return res.status(500).json({ message: "Internal server error." });
   }
 };
+
 

@@ -26,3 +26,9 @@ export const deleteFee = async (id) => {
   const response = await api.delete(`/api/delete-fee/${id}`);
   return response;
 };
+
+export const getFeeByCodeAndStatus = async (feeCode) => {
+  const response = await api.get(`/api/get-fee-code/${feeCode}`);
+  return response;
+};
+

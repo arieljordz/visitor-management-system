@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Container, Card, Form, Button, Alert } from "react-bootstrap";
 import axios from "axios";
+import { useSpinner } from "../../context/SpinnerContext";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
-const ResetPassword = ({ setLoading }) => {
+const ResetPassword = () => {
+  const { setLoading } = useSpinner();
   const { token } = useParams();
   const navigate = useNavigate();
 

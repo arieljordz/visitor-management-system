@@ -11,6 +11,10 @@ const FeeSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    feeCode: {
+      type: String,
+      required: true,
+    },
     status: {
       type: String,
       enum: ["active", "inactive"],

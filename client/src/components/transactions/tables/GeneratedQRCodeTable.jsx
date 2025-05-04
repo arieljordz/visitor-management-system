@@ -22,6 +22,7 @@ const GeneratedQRCodeTable = ({
             <th className="text-center">Visitor Type</th>
             <th className="text-center">Client Name</th>
             <th className="text-center">Name/Group</th>
+            <th className="text-center">No. of Visitors</th>
             <th className="text-center">Purpose</th>
             <th className="text-center">QR Code</th>
             <th className="text-center">Generated Date</th>
@@ -45,6 +46,7 @@ const GeneratedQRCodeTable = ({
                       }`
                     : txn.visitorId?.groupName.toUpperCase()}
                 </td>
+                <td className="text-center">{txn.visitdetailsId?.noOfVisitors ? txn.visitdetailsId?.noOfVisitors : 1}</td>
                 <td className="text-center">{txn.visitdetailsId?.purpose.toUpperCase()}</td>
                 <td className="text-center">
                   {/* Check if qrImageUrl exists and render the image */}
@@ -78,7 +80,7 @@ const GeneratedQRCodeTable = ({
             ))
           ) : (
             <tr>
-              <td colSpan="9" className={`text-center text-muted`}>
+              <td colSpan="10" className={`text-center text-muted`}>
                 No records found.
               </td>
             </tr>

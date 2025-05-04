@@ -7,6 +7,7 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
   const [formData, setFormData] = useState({
     description: "",
     fee: 0,
+    feeCode: "",
     status: "active",
   });
 
@@ -15,6 +16,7 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
       setFormData({
         description: selectedRow.description || "",
         fee: selectedRow.fee || 0,
+        feeCode: selectedRow.feeCode || 0,
         status: selectedRow.status || "active",
       });
     } else {
@@ -26,6 +28,7 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
     setFormData({
       description: "",
       fee: 0,
+      feeCode: "",
       status: "active",
     });
   };
@@ -82,7 +85,7 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
           <Row className="g-3">
             <Col md={12} className="mb-2">
               <Form.Group>
-                <Form.Label>Description</Form.Label>
+                <Form.Label>Fee Description</Form.Label>
                 <Form.Control
                   type="text"
                   name="description"
@@ -93,8 +96,20 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
                 />
               </Form.Group>
             </Col>
-
-            <Col md={12} className="mb-2">
+            <Col md={6} className="mb-2">
+              <Form.Group>
+                <Form.Label>Fee Code</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="feeCode"
+                  placeholder="Enter code"
+                  value={formData.feeCode}
+                  onChange={handleChange}
+                  required
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6} className="mb-2">
               <Form.Group>
                 <Form.Label>Fee Amount</Form.Label>
                 <Form.Control

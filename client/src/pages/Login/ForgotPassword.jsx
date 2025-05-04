@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Container, Card, Form, Button, Alert } from "react-bootstrap";
 import axios from "axios";
+import { useSpinner } from "../../context/SpinnerContext";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
-const ForgotPassword = ({ setLoading }) => {
+const ForgotPassword = () => {
+  const { setLoading } = useSpinner();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 

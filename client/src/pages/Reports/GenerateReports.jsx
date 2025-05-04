@@ -56,7 +56,7 @@ function GenerateReports({ user, setUser }) {
             visitorType: item.visitorId?.visitorType?.toUpperCase(),
             purpose: item.purpose.toUpperCase(),
             classification: item.classification?.toUpperCase(),
-            noOfVisitors: item.noOfVisitors,
+            noOfVisitors: item.noOfVisitors ? item.noOfVisitors : 1,
             date: formatDate(item.visitDate),
           }));
           title = `Visitor Report - ${formatDate(

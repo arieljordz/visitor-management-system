@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button, Row, Col, Card } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { useSpinner } from "../../context/SpinnerContext";
 import Swal from "sweetalert2";
 
 import Navpath from "../../components/common/Navpath";
@@ -18,10 +19,11 @@ import {
   checkActiveQRCodeForVisit,
 } from "../../services/qrService.js";
 import { getBalance } from "../../services/balanceService.js";
+import { getFeeByCodeAndStatus } from "../../services/feeService.js";
 
 const Dashboard = ({ user }) => {
+  const { setLoading } = useSpinner();
   const [proofs, setVisitors] = useState([]);
-  const [balance, setBalance] = useState(0.0);
   const [txnId, setTxnId] = useState("");
   const [qrViewImageUrl, setViewQrImageUrl] = useState("");
 
@@ -36,7 +38,6 @@ const Dashboard = ({ user }) => {
   useEffect(() => {
     if (user?.userId) {
       fetchVisitors();
-      fetchBalance();
     }
   }, [user]);
 
@@ -50,19 +51,6 @@ const Dashboard = ({ user }) => {
       // console.error("Failed to fetch visitor:", err);
     } finally {
       setTableLoading(false);
-    }
-  };
-
-  const fetchBalance = async () => {
-    try {
-      const data = await getBalance(user.userId);
-      // console.log("data:", data);
-      const parsedBalance = parseFloat(data?.balance);
-      const safeBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;
-      setBalance(safeBalance);
-    } catch (err) {
-      console.error("Failed to fetch balance:", err);
-      setBalance(0.0);
     }
   };
 
@@ -83,14 +71,24 @@ const Dashboard = ({ user }) => {
 
   const handleGenerateQR = async (visitorId, visitdetailsId) => {
     try {
-      if (balance < 20) {
+
+      const fee = await getFeeByCodeAndStatus("GENQR01");
+      const data = await getBalance(user.userId);
+      const parsedBalance = parseFloat(data?.balance);
+      const currentBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;
+
+      if (currentBalance < fee.fee) {
         toast.warning("Your balance is insufficient to generate a QR code.");
         return;
       }
 
-      const hasActiveQR = await checkActiveQRCodeForVisit(user, visitorId, visitdetailsId);
-      if (hasActiveQR) {
-        toast.warning("This visitor currently has an active QR code for that date.");
+      const conflict = await checkActiveQRCodeForVisit(
+        user,
+        visitorId,
+        visitdetailsId
+      );
+      if (conflict) {
+        toast.warning(conflict.message);
         return;
       }
 
@@ -104,20 +102,21 @@ const Dashboard = ({ user }) => {
 
       if (!result.isConfirmed) return;
 
-      // console.log("visitdetailsId:", visitdetailsId);
+      setLoading(true);
+
       const response = await generateQRCodeWithPayment({
         userId: user.userId,
         visitorId,
         visitdetailsId,
       });
 
-      // console.log("response:", response);
-
       toast.success("Your payment was successful and the QR code is ready.");
       fetchVisitors();
-      fetchBalance();
     } catch (error) {
       console.error("QR/Payment process failed:", error);
+      toast.warning(error.response?.data?.message || "An error occurred.");
+    } finally {
+      setLoading(false);
     }
   };
 

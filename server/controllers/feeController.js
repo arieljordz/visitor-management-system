@@ -1,17 +1,35 @@
 import Fee from "../models/Fee.js";
+import { fetchFeeByCodeAndStatus } from "../utils/feeUtils.js";
 
 // Create a new fee
 export const createFee = async (req, res) => {
   try {
-    const { description, fee, status } = req.body;
+    const { description, fee, feeCode, status } = req.body;
 
-    if (!description || !["active", "inactive"].includes(status)) {
-      return res.status(400).json({ message: "Description and valid status are required." });
+    // Validate required fields
+    if (!description || !feeCode || !status || fee === undefined || fee === null) {
+      return res.status(400).json({ message: "All fields (description, fee, feeCode, status) are required." });
     }
 
-    const newFee = new Fee({ description, fee, status });
-    const savedFee = await newFee.save();
+    // Validate fee is a number and non-negative
+    const parsedFee = parseFloat(fee);
+    if (isNaN(parsedFee) || parsedFee < 0) {
+      return res.status(400).json({ message: "Fee must be a valid non-negative number." });
+    }
 
+    // Validate status
+    if (!["active", "inactive"].includes(status.toLowerCase())) {
+      return res.status(400).json({ message: "Status must be either 'active' or 'inactive'." });
+    }
+
+    const newFee = new Fee({
+      description,
+      fee: parsedFee,
+      feeCode,
+      status: status.toLowerCase(),
+    });
+
+    const savedFee = await newFee.save();
     res.status(201).json({ message: "Fee created successfully", data: savedFee });
   } catch (err) {
     console.error("Create Fee Error:", err);
@@ -48,20 +66,37 @@ export const getFeeById = async (req, res) => {
 export const updateFee = async (req, res) => {
   try {
     const { id } = req.params;
-    const { description, fee, status } = req.body;
+    const { description, fee, feeCode, status } = req.body;
 
-    if (!description || !["active", "inactive"].includes(status)) {
-      return res.status(400).json({ message: "Description and valid status are required." });
+    // Validate required fields
+    if (!description || !feeCode || !status || fee === undefined || fee === null) {
+      return res.status(400).json({ message: "All fields (description, fee, feeCode, status) are required." });
+    }
+
+    // Validate fee
+    const parsedFee = parseFloat(fee);
+    if (isNaN(parsedFee) || parsedFee < 0) {
+      return res.status(400).json({ message: "Fee must be a valid non-negative number." });
+    }
+
+    // Validate status
+    if (!["active", "inactive"].includes(status.toLowerCase())) {
+      return res.status(400).json({ message: "Status must be either 'active' or 'inactive'." });
     }
 
     const updatedFee = await Fee.findByIdAndUpdate(
       id,
-      { description, fee, status },
+      {
+        description,
+        fee: parsedFee,
+        feeCode,
+        status: status.toLowerCase(),
+      },
       { new: true, runValidators: true }
     );
 
     if (!updatedFee) {
-      return res.status(404).json({ message: "Fee not found" });
+      return res.status(404).json({ message: "Fee not found." });
     }
 
     res.status(200).json({ message: "Fee updated successfully", data: updatedFee });
@@ -86,20 +121,17 @@ export const deleteFee = async (req, res) => {
 };
 
 // Get active "Generate QR" fee
-export const getActiveGenerateQRFee = async (req, res) => {
+export const getFeeByCodeAndStatus = async (req, res) => {
   try {
-    const fee = await Fee.findOne({
-      description: { $regex: /generate qr fee/i },
-      status: "active",
+    const fee = await fetchFeeByCodeAndStatus(req.params.feeCode);
+
+    res.status(200).json({
+      message: `Active ${fee.description} fetched successfully`,
+      data: fee,
     });
-
-    if (!fee) {
-      return res.status(404).json({ message: "Active 'Generate QR fee' not found." });
-    }
-
-    res.status(200).json({ message: "Active 'Generate QR fee' fetched successfully", data: fee });
   } catch (err) {
-    console.error("Get Active Generate QR Fee Error:", err);
-    res.status(500).json({ message: "Failed to fetch fee", error: err.message });
+    res.status(404).json({
+      message: err.message || "Failed to fetch fee",
+    });
   }
 };

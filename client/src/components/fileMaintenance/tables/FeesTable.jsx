@@ -20,6 +20,7 @@ const FeesTable = ({
           <tr>
             <th className="text-center">#</th>
             <th className="text-center">FeeID</th>
+            <th className="text-center">Fee Code</th>
             <th className="text-center">Fee Description</th>
             <th className="text-center">Amount Fee</th>
             <th className="text-center">Date Created</th>
@@ -35,7 +36,8 @@ const FeesTable = ({
                 <td className="text-center">
                   {row._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">{row.description.toUpperCase()}</td>
+                <td className="text-center">{row.feeCode?.toUpperCase()}</td>
+                <td className="text-center">{row.description?.toUpperCase()}</td>
                 <td className="text-center">
                   ₱{Number(row.fee || 0).toFixed(2)}
                 </td>
@@ -75,7 +77,7 @@ const FeesTable = ({
             ))
           ) : (
             <tr>
-              <td colSpan="7" className={`text-center text-muted`}>
+              <td colSpan="8" className={`text-center text-muted`}>
                 No records found.
               </td>
             </tr>

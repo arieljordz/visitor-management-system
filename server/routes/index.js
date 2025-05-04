@@ -18,12 +18,10 @@ import {
   scanQRCode,
   getGeneratedQRCodes,
   getGeneratedQRCodesById,
-  checkActiveQRCodeById,
   checkActiveQRCodeForVisit,
 } from "../controllers/qrController.js";
 import { getBalance, topUp } from "../controllers/balanceController.js";
 import {
-  processPayment,
   getPaymentDetails,
   getPaymentDetailsById,
   getPaymentProofs,
@@ -70,6 +68,7 @@ import {
   getFeeById,
   updateFee,
   deleteFee,
+  getFeeByCodeAndStatus,
 } from "../controllers/feeController.js";
 import {
   createNotification,
@@ -123,7 +122,6 @@ router.get("/check-balance/:userId", authenticate, getBalance);
 router.post("/top-up/:userId", authenticate, auditMiddleware("TOPUP_BALANCE"), upload.single("proof"), topUp);
 
 // PaymentDetail Routes
-router.post("/submit-payment", authenticate, auditMiddleware("SUBMIT_PAYMENT"), processPayment);
 router.get("/get-payment-details", authenticate, getPaymentDetails);
 router.get("/get-payment-details/:userId", authenticate, getPaymentDetailsById);
 router.get("/get-payment-proofs", authenticate, getPaymentProofs);
@@ -172,6 +170,7 @@ router.get("/get-fees", authenticate, getFees);
 router.get("/get-fee/:id", authenticate, getFeeById);
 router.put("/update-fee/:id", authenticate, auditMiddleware("UPDATE_FEE"), updateFee);
 router.delete("/delete-fee/:id", authenticate, auditMiddleware("DELETE_FEE"), deleteFee);
+router.get("/get-fee-code/:feeCode", authenticate, getFeeByCodeAndStatus);
 
 // Notification Routes
 router.post("/create-notification", authenticate, createNotification);

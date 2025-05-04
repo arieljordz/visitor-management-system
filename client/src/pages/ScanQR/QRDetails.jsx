@@ -14,7 +14,7 @@ const QRDetails = ({ responseMessage }) => {
       <Card.Body>
         <Row className="mb-3">
           <Col md={6}>
-            <Form.Label className="fw-semibold">Home Owner Name</Form.Label>
+            <Form.Label className="fw-semibold">Owner Name</Form.Label>
             <div className="form-control-plaintext border rounded px-3 py-2 bg-light">
               {clientName}
             </div>

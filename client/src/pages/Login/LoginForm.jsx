@@ -4,10 +4,12 @@ import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useSpinner } from "../../context/SpinnerContext";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
-const LoginForm = ({ setUser, setLoading, setIsRegistering }) => {
+const LoginForm = ({ setUser, setIsRegistering }) => {
+  const { setLoading } = useSpinner();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");

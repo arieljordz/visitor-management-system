@@ -2,16 +2,15 @@ import api from "../api/api.js";
 
 export const checkActiveQRCodeForVisit = async (user, visitorId, visitdetailsId) => {
   try {
-    const response = await api.get(
-      `/api/check-active-qr/${user.userId}/${visitorId}/${visitdetailsId}`
-    );
-    return false; 
+    await api.get(`/api/check-active-qr/${user.userId}/${visitorId}/${visitdetailsId}`);
+    return null; 
   } catch (error) {
     if (error.response && error.response.status === 409) {
-      return true; 
+      const { message, status } = error.response.data;
+      return { message, status };
     }
     console.error("Error checking active QR:", error);
-    throw error; 
+    throw error;
   }
 };
 

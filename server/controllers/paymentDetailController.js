@@ -2,89 +2,17 @@ import mongoose from "mongoose";
 import User from "../models/User.js";
 import PaymentDetail from "../models/PaymentDetail.js";
 import Balance from "../models/Balance.js";
-import Fee from "../models/Fee.js";
 import {
   createNotification,
   emitNotification,
 } from "../services/notificationService.js";
+import { fetchFeeByCodeAndStatus } from "../utils/feeUtils.js";
 
-export const processPayment = async (req, res) => {
-  const {
-    userId,
-    visitorId,
-    paymentMethod = "e-wallet",
-    proofOfPayment = null,
-  } = req.body;
-
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(400).json({ message: "Invalid userId." });
-  }
-
-  try {
-    const feeDoc = await Fee.findOne({
-      description: { $regex: /generate qr fee/i },
-      status: "active",
-    });
-
-    if (!feeDoc) {
-      return res.status(404).json({
-        message: "'Generate QR fee' not found or inactive.",
-      });
-    }
-
-    const feeAmount = feeDoc.fee ?? 0;
-
-    const balanceDoc = await Balance.findOne({ userId });
-    if (!balanceDoc) {
-      return res.status(404).json({ message: "Balance record not found." });
-    }
-
-    if (balanceDoc.balance < feeAmount) {
-      return res.status(400).json({ message: "Insufficient balance." });
-    }
-
-    balanceDoc.balance -= feeAmount;
-    await balanceDoc.save();
-
-    const payment = new PaymentDetail({
-      userId,
-      visitorId,
-      amount: feeAmount,
-      paymentMethod,
-      transaction: "debit",
-      status: "completed",
-      proofOfPayment,
-      referenceNumber: null,
-      verificationStatus: "verified",
-      paymentDate: new Date(),
-      completedDate: new Date(),
-    });
-
-    await payment.save();
-
-    const io = req.app.get("io");
-    io.emit("balance-updated", {
-      userId,
-      newBalance: balanceDoc.balance,
-    });
-
-    return res.status(200).json({
-      newBalance: balanceDoc.balance,
-      paymentId: payment._id,
-    });
-  } catch (error) {
-    console.error("Payment processing failed:", error);
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
 
 export const getPaymentDetails = async (req, res) => {
   try {
     const paymentDetails = await PaymentDetail.find()
-      .populate("userId") // Include user details
+      .populate("userId", "name email") // Include user details
       .sort({ paymentDate: -1 }); // Newest first
 
     res.status(200).json({
@@ -105,7 +33,7 @@ export const getPaymentDetailsById = async (req, res) => {
     }
 
     const paymentDetails = await PaymentDetail.find({ userId })
-      .populate("userId")
+      .populate("userId", "name email")
       .populate("visitorId")
       .sort({ paymentDate: -1 })
       .lean();

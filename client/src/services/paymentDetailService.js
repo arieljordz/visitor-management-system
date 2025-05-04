@@ -1,13 +1,5 @@
 import api from "../api/api.js";
 
-export const processPayment = async (user, visitorId) => {
-  const response = await api.post(`/api/submit-payment`, {
-    userId: user.userId,
-    visitorId: visitorId,
-  });
-  return response;
-};
-
 export const deletePaymentProofs = async (selectedRows) => {
   const response = await api.delete(`/api/delete-payment-proofs`, {
     data: { selectedRows },
