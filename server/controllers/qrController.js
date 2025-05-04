@@ -13,6 +13,7 @@ import {
   PaymentStatusEnum,
   VerificationStatusEnum,
   VisitorTypeEnum,
+  PaymentMethodEnum,
 } from "../enums/enums.js";
 
 export const generateQRCodeWithPayment = async (req, res) => {
@@ -20,10 +21,11 @@ export const generateQRCodeWithPayment = async (req, res) => {
     userId,
     visitorId,
     visitdetailsId,
-    paymentMethod = TransactionEnum.E_WALLET,
+    paymentMethod = PaymentMethodEnum.E_WALLET,
     proofOfPayment = null,
   } = req.body;
 
+  console.log("paymentMethod", req.body);
   // Validate ObjectIds
   if (
     !mongoose.Types.ObjectId.isValid(userId) ||
