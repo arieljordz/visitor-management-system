@@ -106,10 +106,10 @@ function GenerateReports({ user, setUser }) {
           ]);
           rows = audits.map((item, index) => ({
             id: index + 1,
-            user: item.userId === null ? item.details?.body?.name.toUpperCase() : item.userId?.name.toUpperCase(),
+            user: item.userId === null ? item.details?.body?.name?.toUpperCase() : item.userId?.name?.toUpperCase(),
             email: item.userId === null ? item.details?.body?.email : item.userId?.email,
-            action: item.action.toUpperCase(),
-            ipAddress: item.ipAddress.toUpperCase(),
+            action: item.action?.toUpperCase(),
+            ipAddress: item.ipAddress?.toUpperCase(),
             date: formatDate(item.createdAt),
           }));
           title = `Audit Log Report - ${formatDate(
