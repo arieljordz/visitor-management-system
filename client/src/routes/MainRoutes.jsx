@@ -19,33 +19,35 @@ import FMClassification from "../pages/FileMaintenance/FMClassification";
 import FMFees from "../pages/FileMaintenance/FMFees";
 import FMAccounts from "../pages/FileMaintenance/FMAccounts";
 import GenerateReports from "../pages/Reports/GenerateReports";
+import Settings from "../pages/Settings/Settings";
 
 // Staff page
 import ScanQR from "../pages/ScanQR/ScanQR";
 
-const MainRoutes = ({ user, setUser }) => (
+const MainRoutes = ({ user }) => (
   <Routes>
     {/* Client */}
-    <Route path="/dashboard" element={<Dashboard user={user} setUser={setUser} />} />
-    <Route path="/transactions/payment-history" element={<PaymentHistory user={user} setUser={setUser} />} />
-    <Route path="/transactions/generated-qr-codes" element={<GeneratedQRCodes user={user} setUser={setUser} />} />
-    <Route path="/my-wallet" element={<MyWallet user={user} setUser={setUser} />} />
+    <Route path="/dashboard" element={<Dashboard user={user}/>} />
+    <Route path="/transactions/payment-history" element={<PaymentHistory user={user}/>} />
+    <Route path="/transactions/generated-qr-codes" element={<GeneratedQRCodes user={user}/>} />
+    <Route path="/my-wallet" element={<MyWallet user={user}/>} />
 
     {/* Admin */}
-    <Route path="/admin/dashboard" element={<AdminDashboard user={user} setUser={setUser} />} />
-    <Route path="/admin/transactions/payment-history" element={<AdminPaymentHistory user={user} setUser={setUser} />} />
-    <Route path="/admin/transactions/generated-qr-codes" element={<AdminGeneratedQRCodes user={user} setUser={setUser} />} />
-    <Route path="/admin/verifications" element={<Verifications user={user} setUser={setUser} />} />
-    <Route path="/admin/file-maintenance/proofs" element={<FMProofs user={user} setUser={setUser} />} />
-    <Route path="/admin/file-maintenance/payment-methods" element={<FMPaymentMethod user={user} setUser={setUser} />} />
-    <Route path="/admin/file-maintenance/payment-accounts" element={<FMPaymentAccount user={user} setUser={setUser} />} />
-    <Route path="/admin/file-maintenance/classifications" element={<FMClassification user={user} setUser={setUser} />} />
-    <Route path="/admin/file-maintenance/fees" element={<FMFees user={user} setUser={setUser} />} />
-    <Route path="/admin/file-maintenance/accounts" element={<FMAccounts user={user} setUser={setUser} />} />
-    <Route path="/admin/generate-reports" element={<GenerateReports user={user} setUser={setUser} />} />
+    <Route path="/admin/dashboard" element={<AdminDashboard user={user}/>} />
+    <Route path="/admin/transactions/payment-history" element={<AdminPaymentHistory user={user}/>} />
+    <Route path="/admin/transactions/generated-qr-codes" element={<AdminGeneratedQRCodes user={user}/>} />
+    <Route path="/admin/verifications" element={<Verifications user={user}/>} />
+    <Route path="/admin/file-maintenance/proofs" element={<FMProofs user={user}/>} />
+    <Route path="/admin/file-maintenance/payment-methods" element={<FMPaymentMethod user={user}/>} />
+    <Route path="/admin/file-maintenance/payment-accounts" element={<FMPaymentAccount user={user}/>} />
+    <Route path="/admin/file-maintenance/classifications" element={<FMClassification user={user}/>} />
+    <Route path="/admin/file-maintenance/fees" element={<FMFees user={user}/>} />
+    <Route path="/admin/file-maintenance/accounts" element={<FMAccounts user={user}/>} />
+    <Route path="/admin/generate-reports" element={<GenerateReports user={user}/>} />
+    <Route path="/admin/settings" element={<Settings user={user}/>} />
 
     {/* Staff */}
-    <Route path="/staff/scan-qr" element={<ScanQR user={user} setUser={setUser} />} />
+    <Route path="/staff/scan-qr" element={<ScanQR user={user}/>} />
   </Routes>
 );
 

@@ -1,15 +1,14 @@
 import React from "react";
 import { Card, Row, Col } from "react-bootstrap";
 import Navpath from "../../components/common/Navpath";
-import QRScanner from "./QRScanner";
+import FeatureFlagToggle from "./FeatureFlagToggle";
 
-
-function ScanQR({ user }) {
+function Settings({ user }) {
   return (
     <div>
       <div className="content-wrapper">
         {/* Content Header */}
-        <Navpath levelOne="Scan QR" levelTwo="Home" levelThree="Scan QR" />
+        <Navpath levelOne="Settings" levelTwo="Home" levelThree="Settings" />
 
         {/* Main Content */}
         <section className="content">
@@ -19,7 +18,15 @@ function ScanQR({ user }) {
                 {/* Card with conditional dark mode styling */}
                 <Card>
                   <Card.Body className="main-card">
-                    <QRScanner />
+                    <section className="content">
+                      <div className="container-fluid">
+                        <div className="card card-primary card-outline">
+                          <div className="card-body">
+                            <FeatureFlagToggle />
+                          </div>
+                        </div>
+                      </div>
+                    </section>
                   </Card.Body>
                 </Card>
               </Col>
@@ -31,4 +38,4 @@ function ScanQR({ user }) {
   );
 }
 
-export default ScanQR;
+export default Settings;

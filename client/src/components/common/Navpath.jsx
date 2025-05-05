@@ -3,7 +3,7 @@ import React from "react";
 function Navpath({ levelOne, levelTwo, levelThree }) {
   return (
     <div>
-      <div className="content-header">
+      <div className="content-header mt-6">
         <div className="container-fluid">
           <div className="row mb-2">
             <div className="col-sm-6">

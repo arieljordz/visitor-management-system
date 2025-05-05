@@ -13,7 +13,7 @@ import {
 } from "../../services/paymentDetailService.js";
 import { VerificationStatusEnum } from "../../enums/enums.js";
 
-function Verifications({ user, setUser }) {
+function Verifications({ user }) {
   const [proofs, setProofs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

@@ -4,7 +4,7 @@ import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 
-function Verifications({ user, setUser }) {
+function Verifications({ user }) {
   return (
     <div>
       <div className="content-wrapper">

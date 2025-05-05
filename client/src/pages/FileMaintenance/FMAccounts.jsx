@@ -15,7 +15,7 @@ import {
 } from "../../services/userService.js";
 import { StatusEnum } from "../../enums/enums.js";
 
-function FMAccounts({ user, setUser }) {
+function FMAccounts({ user }) {
   const [accounts, setAccounts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

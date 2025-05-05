@@ -5,6 +5,7 @@ import Sidebar from "../components/common/Sidebar";
 import Footer from "../components/common/Footer";
 import Spinner from "../components/common/Spinner";
 import MainRoutes from "../routes/MainRoutes";
+import { FeatureFlagProvider } from "../context/FeatureFlagContext";
 
 const AuthenticatedLayout = ({ user, setUser, loading }) => {
   const navigate = useNavigate();
@@ -19,10 +20,12 @@ const AuthenticatedLayout = ({ user, setUser, loading }) => {
 
   return (
     <div className="wrapper">
-      <Navbar user={user} setUser={setUser} />
-      <Sidebar user={user} setUser={setUser} />
-      <MainRoutes user={user} setUser={setUser} />
-      <Footer />
+      <FeatureFlagProvider>
+        <Navbar user={user} />
+        <Sidebar user={user} />
+        <MainRoutes user={user} />
+        <Footer />
+      </FeatureFlagProvider>
     </div>
   );
 };

@@ -15,7 +15,7 @@ import {
 } from "../../services/paymentMethodService.js";
 import { StatusEnum } from "../../enums/enums.js";
 
-function FMPaymentMethod({ user, setUser }) {
+function FMPaymentMethod({ user }) {
   const [paymentMethod, setPaymentMethod] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

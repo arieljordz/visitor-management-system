@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
 import { Card, Row, Col } from "react-bootstrap";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
@@ -10,7 +8,7 @@ import QRCodeModal from "../../components/adminTransactions/modals/QRCodeModal";
 import { getGeneratedQRCodes } from "../../services/qrService.js";
 import { QRStatusEnum } from "../../enums/enums.js";
 
-function AdminGeneratedQRCodes({ user, setUser }) {
+function AdminGeneratedQRCodes({ user }) {
   const [qRCodes, setQRCodes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

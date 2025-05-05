@@ -4,7 +4,7 @@ import Navpath from "../../components/common/Navpath";
 import TopUp from "../../components/myWallet/TopUp";
 import { getActivePaymentAccounts } from "../../services/paymentAccountService";
 
-const MyWallet = ({ user, setUser }) => {
+const MyWallet = ({ user }) => {
   const [balance, setBalance] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("gcash");
   const [paymentAccounts, setPaymentAccounts] = useState([]);

@@ -3,7 +3,7 @@ import { Spinner } from "react-bootstrap";
 import Navpath from "../../components/common/Navpath";
 import AdminDashboardStats from "./AdminDashboardStats";
 
-const AdminDashboard = ({ user, setUser }) => {
+const AdminDashboard = ({ user }) => {
   const [dashboardLoading, setDashboardLoading] = useState(false);
 
   return (

@@ -7,7 +7,7 @@ import AdminPaymentHistoryTable from "../../components/adminTransactions/tables/
 import { getPaymentDetails } from "../../services/paymentDetailService.js";
 import { PaymentStatusEnum } from "../../enums/enums.js";
 
-function AdminPaymentHistory({ user, setUser }) {
+function AdminPaymentHistory({ user }) {
   const [transactions, setTransactions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

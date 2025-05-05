@@ -57,26 +57,20 @@ const App = () => {
 
   return (
     <ThemeProvider>
-      <SpinnerProvider>
-        <GoogleOAuthProvider clientId={API_KEY}>
-          <BrowserRouter>
-            <Routes>
-              <Route
-                path="/"
-                element={<LoginPage user={user} setUser={setUser} />}
-              />
-              <Route path="/email-verification" element={<VerifyEmail />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password/:token" element={<ResetPassword />} />
-              <Route
-                path="/*"
-                element={<AuthenticatedLayout user={user} setUser={setUser} />}
-              />
-            </Routes>
-            <ToastContainer position="top-right" autoClose={2000} />
-          </BrowserRouter>
-        </GoogleOAuthProvider>
-      </SpinnerProvider>
+        <SpinnerProvider>
+          <GoogleOAuthProvider clientId={API_KEY}>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<LoginPage user={user} setUser={setUser} />} />
+                <Route path="/email-verification" element={<VerifyEmail />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route path="/*" element={<AuthenticatedLayout user={user} />} />
+              </Routes>
+              <ToastContainer position="top-right" autoClose={2000} />
+            </BrowserRouter>
+          </GoogleOAuthProvider>
+        </SpinnerProvider>
     </ThemeProvider>
   );
 };

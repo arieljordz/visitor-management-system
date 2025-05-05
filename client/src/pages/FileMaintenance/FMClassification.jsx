@@ -16,7 +16,7 @@ import {
 } from "../../services/classificationService.js";
 import { StatusEnum } from "../../enums/enums.js";
 
-function FMClassification({ user, setUser }) {
+function FMClassification({ user }) {
   const [classifications, setClassifications] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

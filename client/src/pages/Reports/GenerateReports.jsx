@@ -13,7 +13,7 @@ import ReportActions from "./ReportActions";
 import ReportTable from "./ReportTable";
 import Navpath from "../../components/common/Navpath";
 
-function GenerateReports({ user, setUser }) {
+function GenerateReports({ user }) {
   const { setLoading } = useSpinner();
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -130,7 +130,7 @@ function GenerateReports({ user, setUser }) {
   return (
     <div className="content-wrapper">
       <Navpath
-        levelOne="Generate Reports"
+        levelOne="Reports"
         levelTwo="Home"
         levelThree="Reports"
       />

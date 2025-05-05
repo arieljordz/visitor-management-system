@@ -90,6 +90,14 @@ import {
   getPaymentDetailsByDateRange,
   getAuditLogsByDateRange,
 } from "../controllers/reportController.js";
+import { 
+  getMenuByRole,
+  upsertMenuConfig
+} from "../controllers/menuConfigController.js";
+import {
+  getFeatureFlags,
+  updateFeatureFlag,
+} from "../controllers/featureFlagController.js";
 import upload from "../middlewares/uploadMiddleware.js";
 import authenticate from "../middlewares/authMiddleware.js";
 import auditMiddleware from "../middlewares/auditMiddleware.js";
@@ -192,5 +200,12 @@ router.get("/get-visitors-report", getVisitorsByDateRange);
 router.get("/get-payment-details-report", getPaymentDetailsByDateRange);
 router.get("/get-auditlogs-report", getAuditLogsByDateRange);
 
+// MenuConfig Routes
+router.get("/get-menu-config/:role", getMenuByRole);
+router.post("/upsert-menu-config", upsertMenuConfig);
+
+// Feature Flag Routes
+router.get("/get-feature-flags", authenticate, getFeatureFlags);
+router.put("/update-feature-flags/:key", authenticate, updateFeatureFlag); 
 
 export default router;

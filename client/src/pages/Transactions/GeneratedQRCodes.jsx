@@ -8,7 +8,7 @@ import GeneratedQRCodeTable from "../../components/transactions/tables/Generated
 import { getGeneratedQRCodesById } from "../../services/qrService.js";
 import { QRStatusEnum } from "../../enums/enums.js";
 
-function GeneratedQRCodes({ user, setUser }) {
+function GeneratedQRCodes({ user }) {
   const [generatedQRs, setGeneratedQRs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

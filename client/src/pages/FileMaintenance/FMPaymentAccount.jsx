@@ -15,7 +15,7 @@ import {
 } from "../../services/paymentAccountService.js";
 import { StatusEnum } from "../../enums/enums.js";
 
-function FMPaymentAccount({ user, setUser }) {
+function FMPaymentAccount({ user }) {
   const [paymentAccount, setPaymentAccount] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

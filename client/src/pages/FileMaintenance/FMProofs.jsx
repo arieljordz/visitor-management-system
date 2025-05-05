@@ -8,7 +8,7 @@ import ProofsModal from "../../components/verifications/modals/ProofsModal";
 import { getPaymentProofs } from "../../services/paymentDetailService.js";
 import { PaymentStatusEnum } from "../../enums/enums.js";
 
-function FMProofs({ user, setUser }) {
+function FMProofs({ user }) {
   const [proofs, setProofs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
