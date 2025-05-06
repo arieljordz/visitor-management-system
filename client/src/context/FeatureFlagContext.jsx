@@ -7,22 +7,25 @@ export const useFeatureFlags = () => useContext(FeatureFlagContext);
 
 export const FeatureFlagProvider = ({ children }) => {
   const [flags, setFlags] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  const fetchFlags = async () => {
+    try {
+      const flagData = await getFeatureFlags();
+      setFlags(flagData);
+    } catch (error) {
+      console.error("Failed to load feature flags", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchFlags = async () => {
-      try {
-        const flagData = await getFeatureFlags();
-        setFlags(flagData);
-      } catch (error) {
-        console.error("Failed to load feature flags", error);
-      }
-    };
-
     fetchFlags();
   }, []);
 
   return (
-    <FeatureFlagContext.Provider value={flags}>
+    <FeatureFlagContext.Provider value={{ flags, refreshFlags: fetchFlags, loading }}>
       {children}
     </FeatureFlagContext.Provider>
   );

@@ -46,8 +46,9 @@ const NavItem = ({
                   e.preventDefault();
                   onSubClick(sub.path);
                 }}
+                style={{ paddingLeft: "30px" }} 
               >
-                <i className="far fa-circle nav-icon" />
+                <i className="fas fa-angle-right nav-icon" />
                 <p>{sub.label}</p>
               </a>
             </li>

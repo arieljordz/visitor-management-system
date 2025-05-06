@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
+import { addDays } from "date-fns";
 import User from "../models/User.js";
 import Session from "../models/Session.js";
 import {
@@ -11,6 +12,7 @@ import {
 } from "../utils/authUtils.js";
 import { sendEmail } from "../utils/mailer.js";
 import { StatusEnum, UserRoleEnum, PasswordEnum } from "../enums/enums.js";
+import { sendVerificationEmail } from "../services/sendEmailService.js";
 
 // User handler
 export const login = async (req, res) => {
@@ -62,7 +64,6 @@ export const login = async (req, res) => {
     });
 
     res.json(buildResponse(safeUser, accessToken));
-
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -75,13 +76,12 @@ export const googleLogin = async (req, res) => {
   try {
     let user = await User.findOne({ email });
     const sessionToken = uuidv4();
-    const hashedPassword = password
-      ? await bcrypt.hash(password, 10)
-      : undefined;
-
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
     const isNewUser = !user;
 
     if (isNewUser) {
+      const expiryDate = addDays(new Date(), 30); // trial for 30 days
+
       user = new User({
         email,
         password: hashedPassword,
@@ -91,6 +91,8 @@ export const googleLogin = async (req, res) => {
         address,
         verified: false,
         status: StatusEnum.ACTIVE,
+        subscription: true,
+        expiryDate,
         sessionToken,
       });
     } else {
@@ -105,36 +107,15 @@ export const googleLogin = async (req, res) => {
 
     const { password: _, ...safeUser } = user.toObject();
 
-    // Send refresh token as cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     if (isNewUser || !user.verified) {
-      const verificationUrl = `${process.env.BASE_API_URL}/api/google-login-verify-user?email=${encodeURIComponent(email)}`;
-      const subject = "Verify Your Email";
-
-      const message = `
-        <div>
-          <p>Hello ${name},</p>
-          <p>Please verify your email address by clicking the link below:</p>
-          <p>
-            <a href="${verificationUrl}" style="color: #1a73e8; text-decoration: underline;" target="_blank" rel="noopener noreferrer">
-              Verify Email
-            </a>
-          </p>
-          <p>Or copy and paste the link into your browser:</p>
-          <p style="word-break: break-all;">${verificationUrl}</p>
-          <p><strong>Note:</strong> Your default password is: <code>DefaultPass123!</code></p>
-          <p>You can change your password after logging in.</p>
-          <p>If you did not request this, please ignore this email.</p>
-        </div>
-      `;
-
-      await sendEmail({ to: email, subject, html: message });
+      await sendVerificationEmail({ name, email });
     } else {
       await createSession(user, req, sessionToken, "google");
     }
@@ -345,7 +326,9 @@ export const getUsers = async (req, res) => {
 // Get all active users by Status
 export const getActiveUsers = async (req, res) => {
   try {
-    const users = await User.find({ status: StatusEnum.ACTIVE }).select("-password");
+    const users = await User.find({ status: StatusEnum.ACTIVE }).select(
+      "-password"
+    );
     res.status(200).json({ data: users });
   } catch (error) {
     console.error("Get Active Users Error:", error);

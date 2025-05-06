@@ -1,6 +1,6 @@
 import { logAudit } from "../utils/auditLogger.js";
 
-const auditMiddleware = (actionName) => {
+const auditLogger = (actionName) => {
   return async (req, res, next) => {
     res.on("finish", async () => {
       if (res.statusCode < 400) {
@@ -26,4 +26,4 @@ const auditMiddleware = (actionName) => {
   };
 };
 
-export default auditMiddleware;
+export default auditLogger;

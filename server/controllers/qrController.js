@@ -16,6 +16,7 @@ import {
   PaymentMethodEnum,
 } from "../enums/enums.js";
 
+// For Prepaid
 export const generateQRCodeWithPayment = async (req, res) => {
   const {
     userId,
@@ -25,7 +26,7 @@ export const generateQRCodeWithPayment = async (req, res) => {
     proofOfPayment = null,
   } = req.body;
 
-  console.log("paymentMethod", req.body);
+  // console.log("QRCodeWithPayment:", req.body);
   // Validate ObjectIds
   if (
     !mongoose.Types.ObjectId.isValid(userId) ||
@@ -153,6 +154,99 @@ export const generateQRCodeWithPayment = async (req, res) => {
     });
   } catch (error) {
     console.error("QR/payment combined process failed:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// For Subscrition
+export const generateQRCodeSubscription = async (req, res) => {
+  const { userId, visitorId, visitdetailsId } = req.body;
+
+  // console.log("Subscription:", req.body);
+  // Validate ObjectIds
+  if (
+    !mongoose.Types.ObjectId.isValid(userId) ||
+    !mongoose.Types.ObjectId.isValid(visitorId) ||
+    !mongoose.Types.ObjectId.isValid(visitdetailsId)
+  ) {
+    return res.status(400).json({ message: "Invalid ID(s)." });
+  }
+
+  try {
+    // Check if visitor exists
+    const visitor = await Visitor.findById(visitorId);
+    if (!visitor) {
+      return res.status(404).json({ message: "Visitor not found." });
+    }
+
+    // Fetch visit detail
+    const visitDetail = await VisitDetail.findById(visitdetailsId);
+    if (!visitDetail || !visitDetail.visitDate) {
+      return res
+        .status(404)
+        .json({ message: "Visit details not found or missing visit date." });
+    }
+
+    const targetVisitDate = moment(visitDetail.visitDate).startOf("day");
+    const today = moment().startOf("day");
+
+    // ❌ Prevent QR generation for past visit dates
+    if (targetVisitDate.isBefore(today)) {
+      return res
+        .status(400)
+        .json({ message: "Cannot generate QR code for a past visit date." });
+    }
+
+    // Find all active QR codes for this visitor and user
+    const activeQRCodes = await QRCode.find({
+      visitorId,
+      userId,
+      status: { $in: [QRStatusEnum.ACTIVE, QRStatusEnum.USED] },
+    }).populate("visitdetailsId");
+
+    // Check for duplicate QR for same visit date
+    const duplicateQR = activeQRCodes.find((qr) => {
+      const qrVisitDate = qr.visitdetailsId?.visitDate;
+      return qrVisitDate && moment(qrVisitDate).startOf("day").isSame(targetVisitDate);
+    });
+
+    if (duplicateQR) {
+      return res.status(409).json({
+        message: "Active or Used QR code already exists for this visit date.",
+      });
+    }
+
+    // Generate QR code
+    const qrData = `visitor-${userId}-${visitorId}-${Date.now()}`;
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+      qrData
+    )}&size=150x150`;
+
+    const qrCodeDoc = new QRCode({
+      userId,
+      visitorId,
+      visitdetailsId,
+      qrData,
+      qrImageUrl,
+      status: QRStatusEnum.ACTIVE,
+      generatedAt: new Date(),
+    });
+
+    await qrCodeDoc.save();
+
+    return res.status(200).json({
+      message: "QR code generated successfully.",
+      data: {
+        qrCodeId: qrCodeDoc._id,
+        qrImageUrl,
+        qrData,
+      },
+    });
+  } catch (error) {
+    console.error("QR code generation failed:", error);
     return res.status(500).json({
       message: "Internal server error",
       error: error.message,

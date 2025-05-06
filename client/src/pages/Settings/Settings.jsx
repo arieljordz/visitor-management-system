@@ -1,10 +1,13 @@
 import React from "react";
 import { Card, Row, Col } from "react-bootstrap";
+import { useFeatureFlags } from "../../context/FeatureFlagContext";
 import Navpath from "../../components/common/Navpath";
 import FeatureFlagToggle from "./FeatureFlagToggle";
 import MenuConfigForm from "./MenuConfigForm";
 
 function Settings({ user }) {
+  const { flags } = useFeatureFlags();
+  console.log("flags:", flags);
   return (
     <div>
       <div className="content-wrapper">
@@ -23,8 +26,8 @@ function Settings({ user }) {
                       <div className="container-fluid">
                         <div className="card card-primary card-outline">
                           <div className="card-body">
-                            {/* <FeatureFlagToggle /> */}
-                            <MenuConfigForm />
+                            <FeatureFlagToggle />
+                            {!flags.enableMenuConfig && <MenuConfigForm />}
                           </div>
                         </div>
                       </div>

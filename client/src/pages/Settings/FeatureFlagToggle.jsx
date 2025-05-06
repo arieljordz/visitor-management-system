@@ -1,42 +1,25 @@
-import { useEffect, useState } from "react";
-import {
-  getFeatureFlags,
-  updateFeatureFlag,
-} from "../../services/featureFlagService";
+import { useState } from "react";
+import { updateFeatureFlag } from "../../services/featureFlagService";
+import { useFeatureFlags } from "../../context/FeatureFlagContext";
 
 const FeatureFlagToggle = () => {
-  const [flags, setFlags] = useState({});
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchFlags = async () => {
-      try {
-        const flagData = await getFeatureFlags();
-        console.log("flagData:", flagData);
-        setFlags(flagData);
-      } catch (error) {
-        console.error("Error loading feature flags:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFlags();
-  }, []);
+  const { flags, refreshFlags, loading } = useFeatureFlags();
+  const [updating, setUpdating] = useState(false);
 
   const handleToggle = async (key) => {
     const newValue = !flags[key];
     try {
+      setUpdating(true);
       await updateFeatureFlag(key, newValue);
-      setFlags((prev) => ({
-        ...prev,
-        [key]: newValue,
-      }));
+      await refreshFlags(); // Refresh the global context flags
     } catch (error) {
       console.error(`Failed to update flag "${key}"`, error);
+    } finally {
+      setUpdating(false);
     }
   };
 
-  if (loading)
+  if (loading || !flags || Object.keys(flags).length === 0)
     return <div className="text-center py-4">Loading feature flags...</div>;
 
   return (
@@ -57,6 +40,7 @@ const FeatureFlagToggle = () => {
                   id={`flag-${key}`}
                   checked={value}
                   onChange={() => handleToggle(key)}
+                  disabled={updating}
                 />
                 <label
                   className="custom-control-label"

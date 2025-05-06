@@ -1,31 +1,46 @@
 import React, { useState } from "react";
-import {
-  upsertMenuConfig,
-  getMenuByRole,
-} from "../../services/menuConfigService.js";
+import { toast } from "react-toastify";
+import RoleSelector from "../../components/settings/RoleSelector";
+import MenuItemCard from "../../components/settings/MenuItemCard";
+import { upsertMenuConfig, getMenuByRole } from "../../services/menuConfigService";
 
 const MenuConfigForm = () => {
   const [role, setRole] = useState("");
   const [menuItems, setMenuItems] = useState([]);
 
+
   const handleRoleChange = async (value) => {
-    setRole(value)
-    const data = await getMenuByRole(role);
-    
+    setRole(value);
+    try {
+      const response = await getMenuByRole(value);
+      console.log("response:", response);
+      if (response && Array.isArray(response.data.menuItems)) {
+        const cleanedMenuItems = response.data.menuItems.map((item) => ({
+          label: item.label,
+          icon: item.icon,
+          path: item.path,
+          submenu: item.submenu.map((sub) => ({
+            label: sub.label,
+            path: sub.path
+          })),
+        }));
+  
+        setMenuItems(cleanedMenuItems);
+      } else {
+        setMenuItems([]);
+      }
+    } catch (error) {
+      console.error("Error retrieving menu config:", error);
+      setMenuItems([]);
+    }
   };
+  
 
-  const handleAddMenuItem = () => {
-    setMenuItems([
-      ...menuItems,
-      { label: "", icon: "", path: "", submenu: [] },
-    ]);
-  };
+  const handleAddMenuItem = () =>
+    setMenuItems([...menuItems, { label: "", icon: "", path: "", submenu: [] }]);
 
-  const handleRemoveMenuItem = (index) => {
-    const updated = [...menuItems];
-    updated.splice(index, 1);
-    setMenuItems(updated);
-  };
+  const handleRemoveMenuItem = (index) =>
+    setMenuItems(menuItems.filter((_, i) => i !== index));
 
   const handleMenuItemChange = (index, field, value) => {
     const updated = [...menuItems];
@@ -54,15 +69,13 @@ const MenuConfigForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log("role:", role);
-      console.log("menuItems:", menuItems);
       await upsertMenuConfig({ role, menuItems });
-      alert("Menu config saved!");
+      toast.success("Menu config succesfully saved!");
       setRole("");
       setMenuItems([]);
     } catch (error) {
       console.error(error);
-      alert("Error saving menu config");
+      toast.error("Error saving of menu config");
     }
   };
 
@@ -70,131 +83,19 @@ const MenuConfigForm = () => {
     <div className="container mt-4">
       <h3>Create Menu Configuration</h3>
       <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label>Role</label>
-          <select
-            className="form-control"
-            value={role}
-            // onChange={(e) => setRole(e.target.value)}
-            onChange={(e) => handleRoleChange(e.target.value)}
-            required
-          >
-            <option value="">Select role</option>
-            <option value="admin">Admin</option>
-            <option value="client">Client</option>
-            <option value="staff">Staff</option>
-          </select>
-        </div>
+        <RoleSelector role={role} onChange={handleRoleChange} />
 
         {menuItems.map((item, index) => (
-          <div key={index} className="card p-3 mb-3">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <h5>Menu Item {index + 1}</h5>
-              <button
-                type="button"
-                className="btn btn-sm btn-danger"
-                onClick={() => handleRemoveMenuItem(index)}
-              >
-                Remove Menu
-              </button>
-            </div>
-
-            <div className="row g-2">
-              <div className="col-md-4">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Label"
-                  value={item.label}
-                  onChange={(e) =>
-                    handleMenuItemChange(index, "label", e.target.value)
-                  }
-                  required
-                />
-              </div>
-              <div className="col-md-4">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Icon (e.g., fas fa-home)"
-                  value={item.icon}
-                  onChange={(e) =>
-                    handleMenuItemChange(index, "icon", e.target.value)
-                  }
-                />
-              </div>
-              <div className="col-md-4">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Path"
-                  value={item.path}
-                  onChange={(e) =>
-                    handleMenuItemChange(index, "path", e.target.value)
-                  }
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="mt-2">
-              <button
-                type="button"
-                className="btn btn-sm btn-secondary"
-                onClick={() => handleAddSubmenu(index)}
-              >
-                Add Submenu
-              </button>
-            </div>
-
-            {item.submenu.map((sub, subIndex) => (
-              <div key={subIndex} className="row mt-2 ms-3 align-items-center">
-                <div className="col-md-5">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Submenu Label"
-                    value={sub.label}
-                    onChange={(e) =>
-                      handleSubmenuChange(
-                        index,
-                        subIndex,
-                        "label",
-                        e.target.value
-                      )
-                    }
-                    required
-                  />
-                </div>
-                <div className="col-md-5">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Submenu Path"
-                    value={sub.path}
-                    onChange={(e) =>
-                      handleSubmenuChange(
-                        index,
-                        subIndex,
-                        "path",
-                        e.target.value
-                      )
-                    }
-                    required
-                  />
-                </div>
-                <div className="col-md-2">
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={() => handleRemoveSubmenu(index, subIndex)}
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <MenuItemCard
+            key={index}
+            item={item}
+            index={index}
+            onRemove={handleRemoveMenuItem}
+            onChange={handleMenuItemChange}
+            onAddSubmenu={handleAddSubmenu}
+            onSubmenuChange={handleSubmenuChange}
+            onRemoveSubmenu={handleRemoveSubmenu}
+          />
         ))}
 
         <div className="d-flex justify-content-between mb-3">

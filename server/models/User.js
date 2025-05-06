@@ -19,6 +19,8 @@ const UserSchema = new mongoose.Schema(
       enum: Object.values(StatusEnum),
       default: StatusEnum.ACTIVE,
     },
+    subscription: { type: Boolean, required: true, default: false },
+    expiryDate: { type: Date, default: null },
     sessionToken: { type: String, default: null },
     refreshToken: { type: String, default: null },
     resetToken: { type: String, default: null },

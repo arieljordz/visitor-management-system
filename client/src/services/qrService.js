@@ -23,6 +23,15 @@ export const generateQRCodeWithPayment = async ({ userId, visitorId, visitdetail
   return response.data.data || [];
 };
 
+export const generateQRCodeSubscription = async ({ userId, visitorId, visitdetailsId }) => {
+  const response = await api.post("/api/generate-qr-subscription", {
+    userId,
+    visitorId,
+    visitdetailsId,
+  });
+  return response.data.data || [];
+};
+
 export const getGeneratedQRCodes = async () => {
   const response = await api.get("/api/get-generated-qr");
   return response.data.data || [];

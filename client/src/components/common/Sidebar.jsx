@@ -4,41 +4,27 @@ import { useNavigate, useLocation } from "react-router-dom";
 import ProfileModal from "../dashboard/modals/ProfileModal";
 import NavItem from "./NavItem";
 import { logout } from "../../services/userService";
-import { getFeatureFlags } from "../../services/featureFlagService";
 import { getMenuByRole } from "../../services/menuConfigService";
 import { UserRoleEnum } from "../../enums/enums";
+import { useFeatureFlags } from "../../context/FeatureFlagContext";
 
 const Sidebar = ({ user }) => {
   const [showModal, setShowModal] = useState(false);
   const [openMenus, setOpenMenus] = useState({});
-  const [featureFlags, setFeatureFlags] = useState({});
   const [modules, setModules] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
   const userRole = user?.role || UserRoleEnum.CLIENT;
 
+  const { flags: featureFlags, loading: flagsLoading } = useFeatureFlags();
+
   useEffect(() => {
-    const loadSidebarData = async () => {
-      await Promise.all([loadFeatureFlags(), loadMenuConfig()]);
-    };
-
-    loadSidebarData();
+    loadMenuConfig();
   }, [userRole]);
-
-  const loadFeatureFlags = async () => {
-    try {
-      const flags = await getFeatureFlags();
-      setFeatureFlags(flags);
-    } catch (err) {
-      console.error("Failed to load feature flags:", err);
-      setFeatureFlags({});
-    }
-  };
 
   const loadMenuConfig = async () => {
     try {
       const menuConfig = await getMenuByRole(userRole);
-      // console.log("menuConfig:", menuConfig);
       setModules(menuConfig.data.menuItems);
     } catch (err) {
       console.error("Failed to load menu config:", err);
@@ -54,7 +40,6 @@ const Sidebar = ({ user }) => {
     if (item.submenu && item.submenu.length > 0) {
       toggleMenu(item.label);
     } else {
-      console.log("Navigating to:", item.path);
       handleNavigation(item.path);
     }
   };
@@ -79,28 +64,21 @@ const Sidebar = ({ user }) => {
     }
   };
 
+  const isFeatureEnabled = (label) => {
+    const key = `enable${label.replace(/\s+/g, "")}`;
+    return featureFlags?.[key];
+  };
+
   const filteredMenu = modules
     .map((item) => {
-      if (item.submenu) {
-        const filteredSub = item.submenu.filter((sub) => {
-          if (
-            sub.label === "Payment History" &&
-            featureFlags.disablePaymentHistory
-          )
-            return false;
-          if (sub.label === "Proofs" && featureFlags.disableProofs)
-            return false;
-          return true;
-        });
+      if (item.submenu && item.submenu.length > 0) {
+        const filteredSub = item.submenu.filter(
+          (sub) => !isFeatureEnabled(sub.label)
+        );
         return { ...item, submenu: filteredSub };
       }
 
-      if (item.label === "My Wallet" && featureFlags.disableMyWallet)
-        return null;
-      if (item.label === "Verifications" && featureFlags.disableVerifications)
-        return null;
-
-      return item;
+      return isFeatureEnabled(item.label) ? null : item;
     })
     .filter(Boolean);
 
@@ -133,13 +111,13 @@ const Sidebar = ({ user }) => {
 
                 return (
                   <NavItem
-                  key={index}
-                  {...item}
-                  isOpen={openMenus[item.label]}
-                  isActive={isActive}
-                  onMainClick={() => handleMainClick(item)}
-                  onSubClick={handleNavigation}
-                />
+                    key={index}
+                    {...item}
+                    isOpen={openMenus[item.label]}
+                    isActive={isActive}
+                    onMainClick={() => handleMainClick(item)}
+                    onSubClick={handleNavigation}
+                  />
                 );
               })}
             </ul>

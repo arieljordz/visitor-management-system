@@ -324,7 +324,7 @@ export const getVisitorByUserId = async (req, res) => {
       };
     });
 
-    console.log("enrichedVisitors:", enrichedVisitors);
+    // console.log("enrichedVisitors:", enrichedVisitors);
     res.status(200).json({ data: enrichedVisitors });
   } catch (error) {
     console.error("Error fetching visitors:", error);

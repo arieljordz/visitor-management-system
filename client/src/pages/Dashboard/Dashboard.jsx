@@ -3,6 +3,7 @@ import { Button, Row, Col, Card, Spinner } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useSpinner } from "../../context/SpinnerContext";
+import { useFeatureFlags } from "../../context/FeatureFlagContext";
 import Swal from "sweetalert2";
 
 import Navpath from "../../components/common/Navpath";
@@ -16,6 +17,7 @@ import DashboardStats from "./DashboardStats.jsx";
 import { getVisitorByUserId } from "../../services/visitorService.js";
 import {
   generateQRCodeWithPayment,
+  generateQRCodeSubscription,
   checkActiveQRCodeForVisit,
 } from "../../services/qrService.js";
 import { getBalance } from "../../services/balanceService.js";
@@ -24,6 +26,7 @@ import { FeeCodeEnum, QRStatusEnum } from "../../enums/enums.js";
 
 const Dashboard = ({ user }) => {
   const { setLoading } = useSpinner();
+  const { flags } = useFeatureFlags();
   const [proofs, setVisitors] = useState([]);
   const [txnId, setTxnId] = useState("");
   const [qrViewImageUrl, setViewQrImageUrl] = useState("");
@@ -73,52 +76,61 @@ const Dashboard = ({ user }) => {
 
   const handleGenerateQR = async (visitorId, visitdetailsId) => {
     try {
-      const fee = await getFeeByCodeAndStatus(FeeCodeEnum.GENQR01);
-      const data = await getBalance(user.userId);
-      const parsedBalance = parseFloat(data?.balance);
-      const currentBalance = isNaN(parsedBalance) ? 0.0 : parsedBalance;
-
-      if (currentBalance < fee.fee) {
-        toast.warning("Your balance is insufficient to generate a QR code.");
-        return;
-      }
-
-      const conflict = await checkActiveQRCodeForVisit(
-        user,
-        visitorId,
-        visitdetailsId
-      );
+      if (!await canGenerateQRCode()) return;
+  
+      const conflict = await checkActiveQRCodeForVisit(user, visitorId, visitdetailsId);
       if (conflict) {
         toast.warning(conflict.message);
         return;
       }
-
-      const result = await Swal.fire({
-        title: "Proceed with QR Generation?",
-        text: "The generation of a QR code will initiate a deduction from your available balance.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, generate it",
-      });
-
-      if (!result.isConfirmed) return;
-
+  
+      const confirm = await confirmQRGeneration();
+      if (!confirm) return;
+  
       setLoading(true);
-
-      const response = await generateQRCodeWithPayment({
-        userId: user.userId,
-        visitorId,
-        visitdetailsId,
-      });
-
-      toast.success("Your payment was successful and the QR code is ready.");
+  
+      const generateFn = flags.enableSubscription 
+        ? generateQRCodeSubscription 
+        : generateQRCodeWithPayment;
+  
+      await generateFn({ userId: user.userId, visitorId, visitdetailsId });
+  
+      toast.success("Successfully generated QR code for the visitor.");
       fetchVisitors();
+  
     } catch (error) {
-      console.error("QR/Payment process failed:", error);
+      console.error("Generation of QR failed:", error);
       toast.warning(error.response?.data?.message || "An error occurred.");
     } finally {
       setLoading(false);
     }
+  };
+  
+  const canGenerateQRCode = async () => {
+    if (flags.enableSubscription) return true;
+  
+    const fee = await getFeeByCodeAndStatus(FeeCodeEnum.GENQR01);
+    const data = await getBalance(user.userId);
+    const currentBalance = parseFloat(data?.balance || "0");
+  
+    if (currentBalance < fee.fee) {
+      toast.warning("Your balance is insufficient to generate a QR code.");
+      return false;
+    }
+  
+    return true;
+  };
+  
+  const confirmQRGeneration = async () => {
+    const result = await Swal.fire({
+      title: "Proceed with QR Generation?",
+      text: "This will generated a QR code for the specific visitor.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, generate it",
+    });
+  
+    return result.isConfirmed;
   };
 
   const filteredData = proofs.filter((txn) => {

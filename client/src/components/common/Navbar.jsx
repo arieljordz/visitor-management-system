@@ -1,12 +1,12 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useContext } from "react";
 import { ThemeContext } from "../../context/ThemeContext";
 import DisplayBalance from "./DisplayBalance";
 import Notifications from "./Notifications";
+import { useFeatureFlags } from "../../context/FeatureFlagContext";
 
 const Navbar = ({ user, setUser }) => {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
-
-  // console.log("Nav user:", user);
+  const { flags } = useFeatureFlags(); 
 
   return (
     <nav
@@ -27,18 +27,22 @@ const Navbar = ({ user, setUser }) => {
       </ul>
 
       {/* Centered balance on mobile */}
-      <ul className="navbar-nav mx-auto d-sm-none">
-        <li className="nav-item">
-          <DisplayBalance user={user} />
-        </li>
-      </ul>
+      {!flags.enableSubscription && (
+        <ul className="navbar-nav mx-auto d-sm-none">
+          <li className="nav-item">
+            <DisplayBalance user={user} />
+          </li>
+        </ul>
+      )}
 
       {/* Right navbar links */}
       <ul className="navbar-nav ml-auto align-items-center">
         {/* Balance on desktop */}
-        <li className="nav-item d-none d-sm-inline-block mr-2">
-          <DisplayBalance user={user} />
-        </li>
+        {!flags.enableSubscription && (
+          <li className="nav-item d-none d-sm-inline-block mr-2">
+            <DisplayBalance user={user} />
+          </li>
+        )}
         {/* Notifications */}
         <li className="nav-item dropdown">
           <Notifications user={user} />

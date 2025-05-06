@@ -1,20 +1,19 @@
 import FeatureFlag from "../models/FeatureFlag.js";
 
 export const getFeatureFlags = async (req, res) => {
-    try {
-      const flags = await FeatureFlag.find(); 
-      const result = {};
-  
-      flags.forEach((flag) => {
-        result[flag.key] = flag.enabled; 
-      });
-  
-      res.json(result);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to load feature flags" });
-    }
-  };
-  
+  try {
+    const flags = await FeatureFlag.find();
+    const result = {};
+
+    flags.forEach((flag) => {
+      result[flag.key] = flag.enabled;
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to load feature flags" });
+  }
+};
 
 export const updateFeatureFlag = async (req, res) => {
   const { key } = req.params;
