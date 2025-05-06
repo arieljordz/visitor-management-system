@@ -27,7 +27,7 @@ function Settings({ user }) {
                         <div className="card card-primary card-outline">
                           <div className="card-body">
                             <FeatureFlagToggle />
-                            {!flags.enableMenuConfig && <MenuConfigForm />}
+                            {flags.enableMenuConfig && <MenuConfigForm />}
                           </div>
                         </div>
                       </div>
