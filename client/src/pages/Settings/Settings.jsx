@@ -23,8 +23,8 @@ function Settings({ user }) {
                       <div className="container-fluid">
                         <div className="card card-primary card-outline">
                           <div className="card-body">
-                            <FeatureFlagToggle />
-                            {/* <MenuConfigForm /> */}
+                            {/* <FeatureFlagToggle /> */}
+                            <MenuConfigForm />
                           </div>
                         </div>
                       </div>

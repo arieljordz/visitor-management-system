@@ -48,11 +48,20 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
       setMessage("Registration successful");
-      setIsRegistering(false);
+      
+      setFormData({
+        email: "",
+        name: "",
+        password: "",
+        confirmPassword: "",
+        address: "",
+        verified: true,
+      });
+
       setLoading(false);
     } catch (error) {
-      const msg = error.response?.data?.message || "Registration failed";
-      setMessage(msg);
+      console.error("Login error:", error.response);
+      setMessage("Registration failed");
       setLoading(false);
     }
   };

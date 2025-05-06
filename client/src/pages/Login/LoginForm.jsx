@@ -52,6 +52,7 @@ const LoginForm = ({ setUser, setIsRegistering }) => {
       navigateByRole(userData);
     } catch (error) {
       setMessage("Login failed");
+      console.error("Login error:", error.response);
       setLoading(false);
     }
   };

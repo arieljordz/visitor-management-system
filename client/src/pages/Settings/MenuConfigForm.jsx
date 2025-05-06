@@ -1,15 +1,30 @@
 import React, { useState } from "react";
-import { upsertMenuConfig } from "../../services/menuConfigService.js";
+import {
+  upsertMenuConfig,
+  getMenuByRole,
+} from "../../services/menuConfigService.js";
 
 const MenuConfigForm = () => {
   const [role, setRole] = useState("");
   const [menuItems, setMenuItems] = useState([]);
+
+  const handleRoleChange = async (value) => {
+    setRole(value)
+    const data = await getMenuByRole(role);
+    
+  };
 
   const handleAddMenuItem = () => {
     setMenuItems([
       ...menuItems,
       { label: "", icon: "", path: "", submenu: [] },
     ]);
+  };
+
+  const handleRemoveMenuItem = (index) => {
+    const updated = [...menuItems];
+    updated.splice(index, 1);
+    setMenuItems(updated);
   };
 
   const handleMenuItemChange = (index, field, value) => {
@@ -24,6 +39,12 @@ const MenuConfigForm = () => {
     setMenuItems(updated);
   };
 
+  const handleRemoveSubmenu = (menuIndex, subIndex) => {
+    const updated = [...menuItems];
+    updated[menuIndex].submenu.splice(subIndex, 1);
+    setMenuItems(updated);
+  };
+
   const handleSubmenuChange = (menuIndex, subIndex, field, value) => {
     const updated = [...menuItems];
     updated[menuIndex].submenu[subIndex][field] = value;
@@ -33,8 +54,8 @@ const MenuConfigForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        console.log("role:", role);
-        console.log("menuItems:", menuItems);
+      console.log("role:", role);
+      console.log("menuItems:", menuItems);
       await upsertMenuConfig({ role, menuItems });
       alert("Menu config saved!");
       setRole("");
@@ -54,7 +75,8 @@ const MenuConfigForm = () => {
           <select
             className="form-control"
             value={role}
-            onChange={(e) => setRole(e.target.value)}
+            // onChange={(e) => setRole(e.target.value)}
+            onChange={(e) => handleRoleChange(e.target.value)}
             required
           >
             <option value="">Select role</option>
@@ -66,7 +88,17 @@ const MenuConfigForm = () => {
 
         {menuItems.map((item, index) => (
           <div key={index} className="card p-3 mb-3">
-            <h5>Menu Item {index + 1}</h5>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h5>Menu Item {index + 1}</h5>
+              <button
+                type="button"
+                className="btn btn-sm btn-danger"
+                onClick={() => handleRemoveMenuItem(index)}
+              >
+                Remove Menu
+              </button>
+            </div>
+
             <div className="row g-2">
               <div className="col-md-4">
                 <input
@@ -116,7 +148,7 @@ const MenuConfigForm = () => {
             </div>
 
             {item.submenu.map((sub, subIndex) => (
-              <div key={subIndex} className="row mt-2 ms-3">
+              <div key={subIndex} className="row mt-2 ms-3 align-items-center">
                 <div className="col-md-5">
                   <input
                     type="text"
@@ -151,12 +183,21 @@ const MenuConfigForm = () => {
                     required
                   />
                 </div>
+                <div className="col-md-2">
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={() => handleRemoveSubmenu(index, subIndex)}
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         ))}
 
-        <div className="mb-3">
+        <div className="d-flex justify-content-between mb-3">
           <button
             type="button"
             className="btn btn-primary mr-2"

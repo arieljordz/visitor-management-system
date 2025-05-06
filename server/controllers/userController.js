@@ -17,31 +17,43 @@ export const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    // Step 1: Find user by email
     const user = await User.findOne({ email });
-    if (
-      !user ||
-      !user.password ||
-      !(await bcrypt.compare(password, user.password))
-    ) {
-      return res.status(401).json({ message: "Invalid credentials" });
+    if (!user) {
+      return res.status(401).json({ message: "Email not found" });
     }
 
+    // Step 2: Validate password
+    if (!user.password) {
+      return res.status(401).json({ message: "Password not set" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    // Step 3: Check account status
     if (user.status !== StatusEnum.ACTIVE) {
       return res.status(403).json({ message: "Account is inactive" });
     }
 
+    // Step 4: Generate tokens
     const sessionToken = uuidv4();
     const accessToken = generateAccessToken(user._id, sessionToken);
     const refreshToken = generateRefreshToken(user._id);
 
+    // Step 5: Store session and refresh token
     user.sessionToken = sessionToken;
     user.refreshToken = refreshToken;
     await user.save();
 
-    const { password: _, ...safeUser } = user.toObject();
+    // Step 6: Create session
     await createSession(user, req, sessionToken, "local");
 
-    // Send refresh token via HttpOnly cookie
+    // Step 7: Send response
+    const { password: _, ...safeUser } = user.toObject();
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -50,6 +62,7 @@ export const login = async (req, res) => {
     });
 
     res.json(buildResponse(safeUser, accessToken));
+
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ message: "Server error" });

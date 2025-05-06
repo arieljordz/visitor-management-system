@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Card, Container } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import { useSpinner } from "../../context/SpinnerContext";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 
-const LoginPage = ({ user, setUser, setLoading }) => {
+const LoginPage = ({ user, setUser }) => {
+  const { setLoading } = useSpinner();
   const [isRegistering, setIsRegistering] = useState(false);
 
   return (
