@@ -1,12 +1,27 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 
-const NavItem = ({ label, icon, submenu = [], isOpen, isActive, onClick, toggleMenu }) => {
+const NavItem = ({
+  label,
+  icon,
+  submenu = [],
+  isOpen,
+  isActive,
+  onMainClick,
+  onSubClick,
+}) => {
   const location = useLocation();
 
   return (
     <li className={`nav-item border-bottom ${isActive ? "active" : ""}`}>
-      <a href="#" className={`nav-link ${isActive ? "active" : ""}`} onClick={onClick}>
+      <a
+        href="#"
+        className={`nav-link ${isActive ? "active" : ""}`}
+        onClick={(e) => {
+          e.preventDefault();
+          onMainClick();
+        }}
+      >
         <i className={`nav-icon ${icon}`} />
         <p>
           {label}
@@ -16,15 +31,20 @@ const NavItem = ({ label, icon, submenu = [], isOpen, isActive, onClick, toggleM
         </p>
       </a>
       {submenu.length > 0 && (
-        <ul className="nav nav-treeview" style={{ display: isOpen ? "block" : "none" }}>
+        <ul
+          className="nav nav-treeview"
+          style={{ display: isOpen ? "block" : "none" }}
+        >
           {submenu.map((sub, idx) => (
             <li className="nav-item border-bottom" key={idx}>
               <a
                 href="#"
-                className={`nav-link ${location.pathname === sub.path ? "active" : ""}`}
+                className={`nav-link ${
+                  location.pathname === sub.path ? "active" : ""
+                }`}
                 onClick={(e) => {
                   e.preventDefault();
-                  toggleMenu(sub.path);
+                  onSubClick(sub.path);
                 }}
               >
                 <i className="far fa-circle nav-icon" />

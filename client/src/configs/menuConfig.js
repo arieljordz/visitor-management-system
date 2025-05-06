@@ -50,10 +50,16 @@ const menuConfig = {
         submenu: [
           { label: "Proofs", path: "/admin/file-maintenance/proofs" },
           { label: "Payment Methods", path: "/admin/file-maintenance/payment-methods" },
+          { label: "Payment Accounts", path: "/admin/file-maintenance/payment-accounts" },
           { label: "Classifications", path: "/admin/file-maintenance/classifications" },
           { label: "Fees", path: "/admin/file-maintenance/fees" },
           { label: "Accounts", path: "/admin/file-maintenance/accounts" },
         ],
+      },
+      {
+        label: "Reports",
+        icon: "fas fa-file-alt",
+        path: "/admin/generate-reports",
       },
       {
         label: "Settings",

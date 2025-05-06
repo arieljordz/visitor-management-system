@@ -91,6 +91,7 @@ import {
   getAuditLogsByDateRange,
 } from "../controllers/reportController.js";
 import { 
+  createMenuConfig,
   getMenuByRole,
   upsertMenuConfig
 } from "../controllers/menuConfigController.js";
@@ -201,6 +202,7 @@ router.get("/get-payment-details-report", getPaymentDetailsByDateRange);
 router.get("/get-auditlogs-report", getAuditLogsByDateRange);
 
 // MenuConfig Routes
+router.post("/create-menu-config", createMenuConfig); 
 router.get("/get-menu-config/:role", getMenuByRole);
 router.post("/upsert-menu-config", upsertMenuConfig);
 

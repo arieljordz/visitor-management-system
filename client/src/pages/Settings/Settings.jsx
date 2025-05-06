@@ -2,6 +2,7 @@ import React from "react";
 import { Card, Row, Col } from "react-bootstrap";
 import Navpath from "../../components/common/Navpath";
 import FeatureFlagToggle from "./FeatureFlagToggle";
+import MenuConfigForm from "./MenuConfigForm";
 
 function Settings({ user }) {
   return (
@@ -23,6 +24,7 @@ function Settings({ user }) {
                         <div className="card card-primary card-outline">
                           <div className="card-body">
                             <FeatureFlagToggle />
+                            {/* <MenuConfigForm /> */}
                           </div>
                         </div>
                       </div>
