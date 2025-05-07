@@ -214,7 +214,7 @@ router.get("/get-menu-config/:role", authenticate, getMenuByRole);
 router.post("/upsert-menu-config", authenticate, upsertMenuConfig);
 
 // Settings Routes
-router.get("/get-settings", getSettings);
+router.get("/get-settings", authenticate, getSettings);
 router.post("/upsert-settings", authenticate, upsertSettings);
 
 // Feature Flag Routes
