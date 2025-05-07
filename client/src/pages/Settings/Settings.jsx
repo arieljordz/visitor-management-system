@@ -1,13 +1,14 @@
 import React from "react";
-import { Card, Row, Col } from "react-bootstrap";
+import { Tabs, Tab, Card, Row, Col } from "react-bootstrap";
 import { useFeatureFlags } from "../../context/FeatureFlagContext";
 import Navpath from "../../components/common/Navpath";
 import FeatureFlagToggle from "./FeatureFlagToggle";
-import MenuConfigForm from "./MenuConfigForm";
+import MenuSettings from "./MenuSettings";
+import SystemSettings from "./SystemSettings";
 
 function Settings({ user }) {
   const { flags } = useFeatureFlags();
-  console.log("flags:", flags);
+  // console.log("flags:", flags);
   return (
     <div>
       <div className="content-wrapper">
@@ -26,8 +27,54 @@ function Settings({ user }) {
                       <div className="container-fluid">
                         <div className="card card-primary card-outline">
                           <div className="card-body">
-                            <FeatureFlagToggle />
-                            {flags.enableMenuConfig && <MenuConfigForm />}
+                            <Tabs
+                              defaultActiveKey="featureFlags"
+                              id="settings-tabs"
+                              // className="mb-3"
+                            >
+                              {/* Feature Flags Tab */}
+                              <Tab
+                                eventKey="featureFlags"
+                                title="Feature Flags"
+                              >
+                                <div>
+                                  <Row>
+                                    <Col md={8} lg={12}>
+                                      <FeatureFlagToggle />
+                                    </Col>
+                                  </Row>
+                                </div>
+                              </Tab>
+                              {/* Feature Flags Tab */}
+                              <Tab
+                                eventKey="systemSettings"
+                                title="System Settings"
+                              >
+                                <div>
+                                  <Row>
+                                    <Col md={8} lg={12}>
+                                      <SystemSettings />
+                                    </Col>
+                                  </Row>
+                                </div>
+                              </Tab>
+
+                              {/* Menu Settings Tab (conditional rendering based on flag) */}
+                              {flags.enableMenuConfig && (
+                                <Tab
+                                  eventKey="menuSettings"
+                                  title="Menu Settings"
+                                >
+                                  <div>
+                                    <Row>
+                                      <Col md={8} lg={12}>
+                                        <MenuSettings />
+                                      </Col>
+                                    </Row>
+                                  </div>
+                                </Tab>
+                              )}
+                            </Tabs>
                           </div>
                         </div>
                       </div>

@@ -3,26 +3,61 @@ import { ThemeContext } from "../../context/ThemeContext";
 import DisplayBalance from "./DisplayBalance";
 import Notifications from "./Notifications";
 import { useFeatureFlags } from "../../context/FeatureFlagContext";
+import { useSettings } from "../../context/SettingsContext";
 
-const Navbar = ({ user, setUser }) => {
+const Navbar = ({ user }) => {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
-  const { flags } = useFeatureFlags(); 
+  const { flags } = useFeatureFlags();
+  const { settings } = useSettings();
+
+  const lightTextColors = [
+    "primary",
+    "secondary",
+    "success",
+    "danger",
+    "dark",
+    "info",
+  ];
+  
+  const getTextColorClass = (navColor) => {
+    // Special handling for 'warning' navbar color (set text to black)
+    if (navColor === "warning") return "text-dark";
+    
+    // Default behavior for light navbar colors (e.g., primary, success)
+    return lightTextColors.includes(navColor) ? "text-light" : "text-dark";
+  };
+  
+  const navBarColor = settings?.navBarColor;
+  
+  const navBarColorClass = navBarColor
+    ? `navbar-${navBarColor} bg-${navBarColor}`  // Correctly assigns bg-warning, etc.
+    : darkMode
+    ? "bg-dark"
+    : "navbar-light bg-light";
+  
+  const textColorClass = getTextColorClass(navBarColor);
+  const iconButtonClass = textColorClass === "text-light" ? "btn-outline-light" : "btn-outline-dark";
 
   return (
     <nav
-      className={`main-header navbar navbar-expand fixed-top ${
-        darkMode ? "navbar-dark bg-dark" : "navbar-white navbar-light"
-      }`}
+      className={`main-header navbar navbar-expand fixed-top ${navBarColorClass}`}
     >
       {/* Left navbar links */}
       <ul className="navbar-nav">
         <li className="nav-item">
-          <a className="nav-link" data-widget="pushmenu" href="#" role="button">
+          <a
+            className={`nav-link ${textColorClass}`}
+            data-widget="pushmenu"
+            href="#"
+            role="button"
+          >
             <i className="fas fa-bars"></i>
           </a>
         </li>
         <li className="nav-item d-none d-sm-inline-block">
-          <span className="nav-link fw-bold">Visitor Management System</span>
+          <span className={`nav-link fw-bold ${textColorClass}`}>
+            {settings.title}
+          </span>
         </li>
       </ul>
 
@@ -45,13 +80,13 @@ const Navbar = ({ user, setUser }) => {
         )}
         {/* Notifications */}
         <li className="nav-item dropdown">
-          <Notifications user={user} />
+          <Notifications user={user} textColorClass={textColorClass} />
         </li>
 
         {/* Dark Mode Toggle */}
         <li className="nav-item ml-1">
           <button
-            className="btn btn-sm btn-outline-secondary"
+            className={`btn btn-sm ${iconButtonClass}`}
             onClick={toggleTheme}
             title="Toggle Dark Mode"
           >

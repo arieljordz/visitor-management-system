@@ -25,3 +25,7 @@ body,
   margin-top: 4rem !important;
   margin-bottom: 4rem !important;
 }
+
+.border-custom-color {
+  border-color: #6c757d !important;
+}

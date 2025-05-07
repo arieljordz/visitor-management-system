@@ -19,3 +19,21 @@ export function formatDate(dateStr) {
   const year = date.getFullYear();
   return `${month}-${day}-${year}`; // MM-DD-YYYY
 }
+
+export const SystemSettings = ({ title, favicon }) => {
+  // Set title
+  if (title) {
+    document.title = title;
+  }
+
+  // Set favicon
+  if (favicon) {
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
+    link.href = favicon;
+  }
+};

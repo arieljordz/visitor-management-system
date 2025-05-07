@@ -20,19 +20,29 @@ export const updateFeatureFlag = async (req, res) => {
   const { enabled } = req.body;
 
   try {
-    const updatedFlag = await FeatureFlag.findOneAndUpdate(
-      { key },
-      { enabled },
-      { new: true }
-    );
+    // Get the flag to update
+    const flag = await FeatureFlag.findOne({ key });
 
-    if (!updatedFlag) {
+    if (!flag) {
       return res.status(404).json({ error: "Feature flag not found" });
     }
 
-    res.json(updatedFlag);
+    // Gather keys to update: the flag itself + any related keys
+    const keysToUpdate = [key, ...(flag.relatedKeys || [])];
+
+    // Update all relevant flags
+    await FeatureFlag.updateMany(
+      { key: { $in: keysToUpdate } },
+      { enabled }
+    );
+
+    // Return updated flags
+    const updatedFlags = await FeatureFlag.find({ key: { $in: keysToUpdate } });
+
+    res.json({ message: "Feature flags updated", updatedFlags });
   } catch (error) {
-    console.error("Error updating feature flag:", error);
-    res.status(500).json({ error: "Failed to update feature flag" });
+    console.error("Error updating feature flags:", error);
+    res.status(500).json({ error: "Failed to update feature flags" });
   }
 };
+

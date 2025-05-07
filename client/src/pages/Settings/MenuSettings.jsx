@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import RoleSelector from "../../components/settings/RoleSelector";
 import MenuItemCard from "../../components/settings/MenuItemCard";
-import { upsertMenuConfig, getMenuByRole } from "../../services/menuConfigService";
+import {
+  upsertMenuConfig,
+  getMenuByRole,
+} from "../../services/menuConfigService";
 
-const MenuConfigForm = () => {
+const MenuSettings = () => {
   const [role, setRole] = useState("");
   const [menuItems, setMenuItems] = useState([]);
-
 
   const handleRoleChange = async (value) => {
     setRole(value);
@@ -21,10 +23,10 @@ const MenuConfigForm = () => {
           path: item.path,
           submenu: item.submenu.map((sub) => ({
             label: sub.label,
-            path: sub.path
+            path: sub.path,
           })),
         }));
-  
+
         setMenuItems(cleanedMenuItems);
       } else {
         setMenuItems([]);
@@ -34,10 +36,12 @@ const MenuConfigForm = () => {
       setMenuItems([]);
     }
   };
-  
 
   const handleAddMenuItem = () =>
-    setMenuItems([...menuItems, { label: "", icon: "", path: "", submenu: [] }]);
+    setMenuItems([
+      ...menuItems,
+      { label: "", icon: "", path: "", submenu: [] },
+    ]);
 
   const handleRemoveMenuItem = (index) =>
     setMenuItems(menuItems.filter((_, i) => i !== index));
@@ -81,7 +85,7 @@ const MenuConfigForm = () => {
 
   return (
     <div className="container mt-4">
-      <h3>Create Menu Configuration</h3>
+      <h3>Menu Configuration</h3>
       <form onSubmit={handleSubmit}>
         <RoleSelector role={role} onChange={handleRoleChange} />
 
@@ -115,4 +119,4 @@ const MenuConfigForm = () => {
   );
 };
 
-export default MenuConfigForm;
+export default MenuSettings;

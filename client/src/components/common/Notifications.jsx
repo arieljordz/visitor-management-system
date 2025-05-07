@@ -9,7 +9,7 @@ import {
 } from "../../services/notificationService.js";
 import { UserRoleEnum } from "../../enums/enums.js";
 
-const Notifications = ({ user }) => {
+const Notifications = ({ user, textColorClass }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
@@ -106,7 +106,7 @@ const Notifications = ({ user }) => {
         href="#"
         onClick={handleOpenDropdown}
       >
-        <i className="far fa-bell" />
+        <i className={`far fa-bell ${textColorClass}`} />
         {unreadCount > 0 && (
           <span className="badge badge-danger navbar-badge">{unreadCount}</span>
         )}

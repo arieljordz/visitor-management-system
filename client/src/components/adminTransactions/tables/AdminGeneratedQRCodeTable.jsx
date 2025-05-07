@@ -37,17 +37,17 @@ const AdminGeneratedQRCodeTable = ({
                 <td className="text-center">
                   {txn._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">{txn.visitorId?.visitorType.toUpperCase()}</td>
-                <td className="text-center">{txn.userId.name.toUpperCase()}</td>
+                <td className="text-center">{txn.visitorId?.visitorType?.toUpperCase()}</td>
+                <td className="text-center">{txn.userId?.name?.toUpperCase()}</td>
                 <td className="text-center">
                   {txn.visitorId?.visitorType === "Individual"
-                    ? `${txn.visitorId?.firstName.toUpperCase() || ""} ${
-                        txn.visitorId?.lastName.toUpperCase() || ""
+                    ? `${txn.visitorId?.firstName?.toUpperCase() || ""} ${
+                        txn.visitorId?.lastName?.toUpperCase() || ""
                       }`
-                    : txn.visitorId?.groupName.toUpperCase()}
+                    : txn.visitorId?.groupName?.toUpperCase()}
                 </td>
                 <td className="text-center">{txn.visitdetailsId?.noOfVisitors ? txn.visitdetailsId?.noOfVisitors : 1}</td>
-                <td className="text-center">{txn.visitdetailsId?.purpose.toUpperCase()}</td>
+                <td className="text-center">{txn.visitdetailsId?.purpose?.toUpperCase()}</td>
                 <td className="text-center">
                   {/* Check if qrImageUrl exists and render the image */}
                   {txn.qrImageUrl ? (

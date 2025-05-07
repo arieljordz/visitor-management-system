@@ -97,6 +97,10 @@ import {
   upsertMenuConfig
 } from "../controllers/menuConfigController.js";
 import {
+  getSettings,
+  upsertSettings,
+} from "../controllers/settingsController.js";
+import {
   getFeatureFlags,
   updateFeatureFlag,
 } from "../controllers/featureFlagController.js";
@@ -134,9 +138,9 @@ router.get("/check-balance/:userId", authenticate, getBalance);
 router.post("/top-up/:userId", authenticate, auditLogger("TOPUP_BALANCE"), upload.single("proof"), topUp);
 
 // PaymentDetail Routes
-router.get("/get-payment-details", authenticate, checkFeature("disableSubscription"), getPaymentDetails);
-router.get("/get-payment-details/:userId", authenticate, checkFeature("disableSubscription"), getPaymentDetailsById);
-router.get("/get-payment-proofs", authenticate, checkFeature("disableSubscription"), getPaymentProofs);
+router.get("/get-payment-details", authenticate, checkFeature("enableSubscription"), getPaymentDetails);
+router.get("/get-payment-details/:userId", authenticate, checkFeature("enableSubscription"), getPaymentDetailsById);
+router.get("/get-payment-proofs", authenticate, checkFeature("enableSubscription"), getPaymentProofs);
 router.delete("/delete-payment-proofs", authenticate, auditLogger("DELETE_PAYMENT"), deletePaymentProofs);
 router.put("/update-verification/:id", authenticate, auditLogger("UPDATE_PAYMENT"), updateVerificationStatus);
 router.put("/payment-verification-verify/:id", authenticate, auditLogger("VERIFY_PAYMENT"), verifyPayment);
@@ -205,9 +209,13 @@ router.get("/get-payment-details-report", getPaymentDetailsByDateRange);
 router.get("/get-auditlogs-report", getAuditLogsByDateRange);
 
 // MenuConfig Routes
-router.post("/create-menu-config", createMenuConfig); 
-router.get("/get-menu-config/:role", getMenuByRole);
-router.post("/upsert-menu-config", upsertMenuConfig);
+router.post("/create-menu-config", authenticate, createMenuConfig); 
+router.get("/get-menu-config/:role", authenticate, getMenuByRole);
+router.post("/upsert-menu-config", authenticate, upsertMenuConfig);
+
+// Settings Routes
+router.get("/get-settings", authenticate, getSettings);
+router.post("/upsert-settings", authenticate, upsertSettings);
 
 // Feature Flag Routes
 router.get("/get-feature-flags", authenticate, getFeatureFlags);

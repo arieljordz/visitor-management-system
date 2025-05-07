@@ -1,6 +1,6 @@
+// App.jsx
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
@@ -13,6 +13,9 @@ import VerifyEmail from "./pages/Login/VerifyEmail";
 import ForgotPassword from "./pages/Login/ForgotPassword";
 import ResetPassword from "./pages/Login/ResetPassword";
 import { SpinnerProvider } from "./context/SpinnerContext";
+import { SettingProvider, useSettings } from "./context/SettingsContext";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { SystemSettings } from "./utils/globalUtils";
 
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
@@ -57,21 +60,37 @@ const App = () => {
 
   return (
     <ThemeProvider>
-        <SpinnerProvider>
+      <SpinnerProvider>
+        <SettingProvider>
           <GoogleOAuthProvider clientId={API_KEY}>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<LoginPage user={user} setUser={setUser} />} />
-                <Route path="/email-verification" element={<VerifyEmail />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password/:token" element={<ResetPassword />} />
-                <Route path="/*" element={<AuthenticatedLayout user={user} />} />
-              </Routes>
-              <ToastContainer position="top-right" autoClose={2000} />
-            </BrowserRouter>
+            <AppContent user={user} setUser={setUser} />
           </GoogleOAuthProvider>
-        </SpinnerProvider>
+        </SettingProvider>
+      </SpinnerProvider>
     </ThemeProvider>
+  );
+};
+
+const AppContent = ({ user, setUser }) => {
+  const { settings } = useSettings();
+
+  useEffect(() => {
+    if (settings) {
+      SystemSettings(settings);
+    }
+  }, [settings]);
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LoginPage user={user} setUser={setUser} />} />
+        <Route path="/email-verification" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/*" element={<AuthenticatedLayout user={user} />} />
+      </Routes>
+      <ToastContainer position="top-right" autoClose={2000} />
+    </BrowserRouter>
   );
 };
 

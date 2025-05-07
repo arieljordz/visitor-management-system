@@ -6,9 +6,14 @@ import NavItem from "./NavItem";
 import { logout } from "../../services/userService";
 import { getMenuByRole } from "../../services/menuConfigService";
 import { UserRoleEnum } from "../../enums/enums";
+import { useTheme } from "../../context/ThemeContext";
 import { useFeatureFlags } from "../../context/FeatureFlagContext";
+import { useSettings } from "../../context/SettingsContext";
 
 const Sidebar = ({ user }) => {
+  const { darkMode, toggleTheme } = useTheme();
+  const { settings } = useSettings();
+  const { flags: featureFlags, loading: flagsLoading } = useFeatureFlags();
   const [showModal, setShowModal] = useState(false);
   const [openMenus, setOpenMenus] = useState({});
   const [modules, setModules] = useState([]);
@@ -16,13 +21,11 @@ const Sidebar = ({ user }) => {
   const location = useLocation();
   const userRole = user?.role || UserRoleEnum.CLIENT;
 
-  const { flags: featureFlags, loading: flagsLoading } = useFeatureFlags();
-
   useEffect(() => {
-    loadMenuConfig();
+    fetchMenuConfig();
   }, [userRole]);
 
-  const loadMenuConfig = async () => {
+  const fetchMenuConfig = async () => {
     try {
       const menuConfig = await getMenuByRole(userRole);
       setModules(menuConfig.data.menuItems);
@@ -72,22 +75,34 @@ const Sidebar = ({ user }) => {
   const filteredMenu = modules
     .map((item) => {
       if (item.submenu && item.submenu.length > 0) {
-        const filteredSub = item.submenu.filter(
-          (sub) => !isFeatureEnabled(sub.label)
+        const filteredSub = item.submenu.filter((sub) =>
+          isFeatureEnabled(sub.label)
         );
-        return { ...item, submenu: filteredSub };
+
+        // Only include parent menu if at least one submenu is enabled
+        return filteredSub.length > 0
+          ? { ...item, submenu: filteredSub }
+          : null;
       }
 
-      return isFeatureEnabled(item.label) ? null : item;
+      // Include the item only if the feature is enabled
+      return isFeatureEnabled(item.label) ? item : null;
     })
     .filter(Boolean);
 
+  const sideBarColorClass = settings?.navBarColor
+    ? settings.navBarColor
+    : darkMode
+    ? "dark"
+    : "light";
+
+  const textColorClass = darkMode ? "text-light" : "text-dark";
   return (
     <>
       <aside className="main-sidebar sidebar-dark-primary elevation-4">
         <a
           href="#"
-          className="brand-link"
+          className={`brand-link bg-${sideBarColorClass} ${textColorClass}`}
           onClick={(e) => {
             e.preventDefault();
             setShowModal(true);
@@ -99,7 +114,9 @@ const Sidebar = ({ user }) => {
             className="brand-image img-circle elevation-3"
             style={{ opacity: ".8" }}
           />
-          <span className="brand-text font-weight-bold ml-4">VMS-APP</span>
+          <span className="brand-text font-weight-bold ml-4">
+            {settings?.sideHeader?.toUpperCase()}
+          </span>
         </a>
         <div className="sidebar">
           <nav className="mt-2">
