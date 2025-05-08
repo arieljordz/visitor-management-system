@@ -23,6 +23,7 @@ import Settings from "../pages/Settings/Settings";
 
 // Staff page
 import ScanQR from "../pages/ScanQR/ScanQR";
+import Subscriptions from "../pages/Subscriptions/Subscriptions";
 
 const MainRoutes = ({ user }) => (
   <Routes>
@@ -43,6 +44,7 @@ const MainRoutes = ({ user }) => (
     <Route path="/admin/file-maintenance/classifications" element={<FMClassification user={user}/>} />
     <Route path="/admin/file-maintenance/fees" element={<FMFees user={user}/>} />
     <Route path="/admin/file-maintenance/accounts" element={<FMAccounts user={user}/>} />
+    <Route path="/admin/subscriptions" element={<Subscriptions user={user}/>} />
     <Route path="/admin/generate-reports" element={<GenerateReports user={user}/>} />
     <Route path="/admin/settings" element={<Settings user={user}/>} />
 

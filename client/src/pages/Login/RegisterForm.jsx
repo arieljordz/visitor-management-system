@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Form, Row, Col, Button, Alert } from "react-bootstrap";
 import axios from "axios";
-import { UserRoleEnum } from "../../enums/enums.js";
+import { UserRoleEnum, StatusEnum } from "../../enums/enums.js";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
@@ -13,7 +13,8 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
     password: "",
     confirmPassword: "",
     address: "",
-    verified: true,
+    classification: "",
+    subscription: true,
   });
 
   const register = async () => {
@@ -24,14 +25,19 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
 
     try {
       setLoading(true);
+
+      // Send registration request to backend
       const res = await axios.post(`${API_URL}/api/create-user`, {
         email: formData.email,
         name: formData.name,
         password: formData.password,
-        picture: null,
+        picture: null, // Assuming picture is optional for now
         role: UserRoleEnum.CLIENT,
         address: formData.address,
-        verified: true,
+        classification: formData.classification,
+        subscription: formData.subscription,
+        verified: false, // Default to false until verified by email or admin
+        status: StatusEnum.ACTIVE, // Default to active status
       });
 
       const { data } = res.data;
@@ -43,25 +49,29 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
         role: data.role,
         address: data.address,
         verified: data.verified,
+        classification: data.classification,
+        subscription: data.subscription,
       };
 
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
       setMessage("Registration successful");
-      
+
+      // Clear form after submission
       setFormData({
         email: "",
         name: "",
         password: "",
         confirmPassword: "",
         address: "",
-        verified: true,
+        classification: "",
+        subscription: true,
       });
 
       setLoading(false);
     } catch (error) {
-      console.error("Login error:", error.response);
-      setMessage("Registration failed");
+      console.error("Registration error:", error.response);
+      setMessage(error?.response?.data?.message);
       setLoading(false);
     }
   };
@@ -121,7 +131,7 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
                 onChange={(e) =>
                   setFormData({ ...formData, confirmPassword: e.target.value })
                 }
-                placeholder="confirm your password"
+                placeholder="Confirm your password"
                 required
               />
             </Form.Group>
@@ -134,6 +144,18 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 placeholder="Enter your address"
+                required
+              />
+            </Form.Group>
+          </Col>
+          <Col md={12}>
+            <Form.Group className="mb-3">
+              <Form.Label>Classification</Form.Label>
+              <Form.Control
+                type="text"
+                value={formData.classification}
+                onChange={(e) => setFormData({ ...formData, classification: e.target.value })}
+                placeholder="Enter your classification"
                 required
               />
             </Form.Group>

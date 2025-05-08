@@ -15,18 +15,32 @@ export const generateRefreshToken = (userId) => {
   });
 };
 
-export const createSession = async (user, req, sessionToken, method) => {
-  await Session.updateMany(
-    { userId: user._id, isActive: true },
-    { $set: { isActive: false } }
-  );
+export const createSession = async (userId, sessionToken, refreshToken, req) => {
+  try {
+    // Deactivate previous sessions
+    await Session.updateMany(
+      { userId, isActive: true },
+      { $set: { isActive: false } }
+    );
 
-  await Session.create({
-    userId: user._id,
-    sessionToken,
-    ipAddress: req.ip,
-    userAgent: req.headers["user-agent"],
-  });
+    // Set expiry date (7 days from now)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    // Create new session
+    await Session.create({
+      userId,
+      sessionToken,
+      refreshToken,
+      expiresAt,
+      ipAddress: req.ip,
+      userAgent: req.headers["user-agent"] || "unknown",
+      isActive: true,
+    });
+  } catch (error) {
+    console.error("Session Creation Error:", error);
+    throw error;
+  }
 };
 
 export const buildResponse = (user, token) => ({

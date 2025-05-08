@@ -6,17 +6,17 @@ import Swal from "sweetalert2";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
-import AccountsTable from "../../components/fileMaintenance/tables/AccountsTable";
-import AccountsModal from "../../components/fileMaintenance/modals/AccountsModal";
+import SubscriberTable from "../../components/subscriptions/tables/SubscriberTable";
+import SubscriberModal from "../../components/subscriptions/modals/SubscriberModal";
 import {
-  getUsers,
+  getUsersByRole,
   getUserById,
   deleteUser,
 } from "../../services/userService.js";
-import { StatusEnum } from "../../enums/enums.js";
+import { StatusEnum, UserRoleEnum } from "../../enums/enums.js";
 
-function FMAccounts({ user }) {
-  const [accounts, setAccounts] = useState([]);
+function Subscriptions({ user }) {
+  const [subscribers, setSubscribers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -28,15 +28,15 @@ function FMAccounts({ user }) {
 
   useEffect(() => {
     if (user?.userId) {
-      fetchAccounts();
+      fetchSubscribers();
     }
   }, [user]);
 
-  const fetchAccounts = async () => {
+  const fetchSubscribers = async () => {
     setLoading(true);
     try {
-      const data = await getUsers();
-      setAccounts(data);
+      const data = await getUsersByRole(UserRoleEnum.ADMIN);
+      setSubscribers(data);
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
@@ -68,7 +68,7 @@ function FMAccounts({ user }) {
       try {
         await deleteUser(id);
         toast.success("Account deleted.");
-        fetchAccounts();
+        fetchSubscribers();
       } catch (err) {
         toast.error("Failed to delete Account.");
       }
@@ -96,7 +96,18 @@ function FMAccounts({ user }) {
     }
   };
 
-  const filteredData = accounts.filter((obj) => {
+  const getSubsClass = (value) => {
+    switch (value) {
+      case value === true:
+        return "success";
+      case value === false:
+        return "warning";
+      default:
+        return "dark";
+    }
+  };
+
+  const filteredData = subscribers.filter((obj) => {
     const values = [
       obj._id?.slice(-6),
       obj.email,
@@ -131,9 +142,9 @@ function FMAccounts({ user }) {
       <div className="content-wrapper">
         {/* Content Header */}
         <Navpath
-          levelOne="Accounts"
+          levelOne="Subscriptions"
           levelTwo="Home"
-          levelThree="File Maintenance"
+          levelThree="Subscriptions"
         />
 
         {/* Main Content */}
@@ -150,7 +161,7 @@ function FMAccounts({ user }) {
                         onClick={() => setShowModal(true)}
                       >
                         <FaPlus className="mr-1" />
-                        Add User
+                        Add Subscriber
                       </Button>
                     </div>
 
@@ -163,7 +174,7 @@ function FMAccounts({ user }) {
                       onAdd={handleOpen}
                     />
 
-                    <AccountsTable
+                    <SubscriberTable
                       loading={loading}
                       currentData={currentData}
                       handleEdit={handleEdit}
@@ -181,11 +192,11 @@ function FMAccounts({ user }) {
                       paginate={paginate}
                     />
 
-                    <AccountsModal
+                    <SubscriberModal
                       show={showModal}
                       onHide={handleClose}
                       selectedRow={selectedRow}
-                      refreshList={fetchAccounts}
+                      refreshList={fetchSubscribers}
                     />
                   </Card.Body>
                 </Card>
@@ -198,4 +209,4 @@ function FMAccounts({ user }) {
   );
 }
 
-export default FMAccounts;
+export default Subscriptions;

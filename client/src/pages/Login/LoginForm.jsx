@@ -42,17 +42,20 @@ const LoginForm = ({ setUser, setIsRegistering }) => {
         { withCredentials: true } // Important: allows cookie to be set by backend
       );
 
-      const { accessToken, ...userData } = res.data;
+      localStorage.setItem("accessToken", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data));
 
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("user", JSON.stringify(userData));
-
-      setUser(userData);
-      setMessage("Login successful");
-      navigateByRole(userData);
+      setUser(res.data);
+      console.log("login user:", res.data);
+      setMessage(
+        res.data.verified
+          ? "Login successful."
+          : "Email not yet verified."
+      );
+      navigateByRole(res.data);
     } catch (error) {
       setMessage("Login failed");
-      console.error("Login error:", error.response);
+      console.error("Login error:", error);
       setLoading(false);
     }
   };
@@ -78,20 +81,20 @@ const LoginForm = ({ setUser, setIsRegistering }) => {
         { withCredentials: true } // allows refreshToken to be set in cookie
       );
 
-      const { accessToken, ...user } = res.data;
+      localStorage.setItem("accessToken", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data));
+      setUser(res.data);
 
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
-
+      console.log("Google user:", res);
       setMessage(
-        user.verified
+        res.data.verified
           ? "Google login successful."
           : "Google mail registration successful. Please verify it to your email."
       );
 
-      navigateByRole(user);
+      navigateByRole(res.data);
     } catch (error) {
+      console.error("Login error:", error);
       setMessage("Google login failed");
       setLoading(false);
     }

@@ -22,6 +22,11 @@ export const getUserById = async (id) => {
   return response.data.data || [];
 };
 
+export const getUsersByRole = async (role) => {
+  const response = await api.get(`/api/get-user-by-role/${role}`);
+  return response.data.data || [];
+};
+
 export const deleteUser = async (id) => {
   const response = await api.delete(`/api/delete-user/${id}`);
   return response;

@@ -9,14 +9,15 @@ const api = axios.create({
 });
 
 // Optional: list of endpoints that should skip auth handling
-const skipAuthEndpoints = ["/api/logout-user"];
+const skipAuthEndpoints = ["/api/logout-user", "/api/get-settings"];
 
 // Attach Authorization token to every request
 api.interceptors.request.use(
   (config) => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user?.token) {
-      config.headers.Authorization = `Bearer ${user.token}`;
+    const token = localStorage.getItem("accessToken");
+    // console.log("api token:", token);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -37,6 +38,9 @@ api.interceptors.response.use(
       originalRequest?.url?.includes(endpoint)
     );
 
+    // console.log("isAuthError:", isAuthError);
+    // console.log("originalRequest:", originalRequest);
+    // console.log("originalRequest._retry:", originalRequest._retry);
     // console.log("shouldSkipAuthHandling:", shouldSkipAuthHandling);
 
     // Handle token expiration and retry logic
@@ -50,16 +54,18 @@ api.interceptors.response.use(
           { withCredentials: true }
         );
 
-        const { token: newToken } = res.data;
+        // console.log("api user:", res);
 
-        const user = JSON.parse(localStorage.getItem("user")) || {};
-        const updatedUser = { ...user, token: newToken };
+        const { accessToken: newToken, user: updatedUser } = res.data;
+
+        localStorage.setItem("accessToken", newToken);
         localStorage.setItem("user", JSON.stringify(updatedUser));
 
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         if (!shouldSkipAuthHandling) {
+          console.log("Error 401 shouldSkipAuthHandling");
           return handleSessionExpired(refreshError);
         }
         return Promise.reject(refreshError);
@@ -68,7 +74,8 @@ api.interceptors.response.use(
 
     // Catch-all for other 401s
     if (error.response?.status === 401 && !shouldSkipAuthHandling) {
-      // return handleSessionExpired(error);
+      console.log("Error 401");
+      return handleSessionExpired(error);
     }
 
     return Promise.reject(error);

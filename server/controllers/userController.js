@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
@@ -25,36 +26,32 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Email not found" });
     }
 
-    // Step 2: Validate password
+    // Step 2: Check if password is set
     if (!user.password) {
       return res.status(401).json({ message: "Password not set" });
     }
 
+    // Step 3: Validate password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    // Step 3: Check account status
+    // Step 4: Check account status
     if (user.status !== StatusEnum.ACTIVE) {
       return res.status(403).json({ message: "Account is inactive" });
     }
 
-    // Step 4: Generate tokens
+    // Step 5: Generate session and tokens
     const sessionToken = uuidv4();
-    const accessToken = generateAccessToken(user._id, sessionToken);
     const refreshToken = generateRefreshToken(user._id);
-
-    // Step 5: Store session and refresh token
-    user.sessionToken = sessionToken;
-    user.refreshToken = refreshToken;
-    await user.save();
+    const accessToken = generateAccessToken(user._id, sessionToken);
 
     // Step 6: Create session
-    await createSession(user, req, sessionToken, "local");
+    await createSession(user._id, sessionToken, refreshToken, req);
 
-    // Step 7: Send response
-    const { password: _, ...safeUser } = user.toObject();
+    // Step 7: Return response
+    const { password: _, ...userData } = user.toObject();
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -63,7 +60,7 @@ export const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    res.json(buildResponse(safeUser, accessToken));
+    res.status(200).json(buildResponse(userData, accessToken));
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -71,16 +68,29 @@ export const login = async (req, res) => {
 };
 
 export const googleLogin = async (req, res) => {
-  const { email, password, name, picture, role = UserRoleEnum.CLIENT, address } = req.body;
+  const {
+    email,
+    password,
+    name,
+    picture,
+    role = UserRoleEnum.CLIENT,
+    address,
+    classification = "N/A",
+    subscription = false,
+    expiryDate = null,
+    verified = false,
+    status = StatusEnum.ACTIVE,
+  } = req.body;
 
   try {
     let user = await User.findOne({ email });
-    const sessionToken = uuidv4();
-    const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
     const isNewUser = !user;
+    const sessionToken = uuidv4();
+    const refreshToken = generateRefreshToken(user?._id || null);
 
     if (isNewUser) {
-      const expiryDate = addDays(new Date(), 30); // trial for 30 days
+      const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
+      // const expiryDate = addDays(new Date(), 30); // Trial period
 
       user = new User({
         email,
@@ -89,21 +99,20 @@ export const googleLogin = async (req, res) => {
         picture,
         role,
         address,
-        verified: false,
-        status: StatusEnum.ACTIVE,
-        subscription: true,
+        classification,
+        subscription,
         expiryDate,
-        sessionToken,
+        verified,
+        status,
       });
-    } else {
-      user.sessionToken = sessionToken;
+
+      await user.save(); // Save new user before creating session
     }
 
     const accessToken = generateAccessToken(user._id, sessionToken);
-    const refreshToken = generateRefreshToken(user._id);
 
-    user.refreshToken = refreshToken;
-    await user.save();
+    // Save session token and refresh token
+    await createSession(user._id, sessionToken, refreshToken, req);
 
     const { password: _, ...safeUser } = user.toObject();
 
@@ -116,11 +125,9 @@ export const googleLogin = async (req, res) => {
 
     if (isNewUser || !user.verified) {
       await sendVerificationEmail({ name, email });
-    } else {
-      await createSession(user, req, sessionToken, "google");
     }
 
-    res.json(buildResponse(safeUser, accessToken));
+    res.status(200).json(buildResponse(safeUser, accessToken));
   } catch (error) {
     console.error("Google Login Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -245,21 +252,35 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+
 export const logout = async (req, res) => {
   try {
     const userId = req.user._id;
-    const sessionToken = req.user.sessionToken;
 
-    await User.findByIdAndUpdate(userId, { sessionToken: null });
-    await Session.updateOne(
+    // Extract token from Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ message: "Authorization header missing" });
+
+    const token = authHeader.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Invalid token format" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const sessionToken = decoded.sessionToken;
+
+    // Invalidate session in the Session collection
+    const sessionUpdate = await Session.updateOne(
       { userId, sessionToken, isActive: true },
       { $set: { isActive: false } }
     );
 
-    res.json({ message: "Logged out successfully" });
+    if (sessionUpdate.matchedCount === 0) {
+      return res.status(404).json({ message: "Session not found or already logged out." });
+    }
+
+    return res.json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Logout Error:", error);
-    res.status(500).json({ message: "Logout failed" });
+    return res.status(500).json({ message: "Logout failed", error: error.message });
   }
 };
 
@@ -271,11 +292,21 @@ export const createUser = async (req, res) => {
       password: rawPassword,
       name,
       picture,
-      role,
+      role = UserRoleEnum.CLIENT,
       address,
-      verified,
-      status,
+      classification,
+      subscription = false,
+      expiryDate = null,
+      verified = false,
+      status = StatusEnum.ACTIVE,
     } = req.body;
+
+    // Validate required fields
+    if (!email || !address || !classification) {
+      return res.status(400).json({
+        message: "Email, address, and classification are required fields",
+      });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -292,21 +323,26 @@ export const createUser = async (req, res) => {
       picture,
       role,
       address,
+      classification,
+      subscription,
+      expiryDate,
       verified,
-      status: status || StatusEnum.ACTIVE,
+      status,
     });
 
     const savedUser = await newUser.save();
     const { password: _, ...safeUser } = savedUser.toObject();
 
-    res
-      .status(201)
-      .json({ message: "User created successfully", data: safeUser });
+    res.status(201).json({
+      message: "User created successfully",
+      data: safeUser,
+    });
   } catch (err) {
     console.error("Create User Error:", err);
-    res
-      .status(500)
-      .json({ message: "Failed to create user", error: err.message });
+    res.status(500).json({
+      message: "Failed to create user",
+      error: err.message,
+    });
   }
 };
 
@@ -342,9 +378,14 @@ export const getActiveUsers = async (req, res) => {
 // Get all active users BySession
 export const getActiveUsersBySession = async (req, res) => {
   try {
-    const activeUsers = await User.find({ sessionToken: { $ne: null } }).select(
-      "-password"
-    );
+    // Query the Session model for active sessions with active status
+    const activeSessions = await Session.find({ isActive: true })
+      .populate("userId", "-password")  // Populate user details excluding password
+      .exec();
+
+    // Extract the users from the session data
+    const activeUsers = activeSessions.map((session) => session.userId);
+
     res.status(200).json({ data: activeUsers });
   } catch (error) {
     console.error("Get Active Users Error:", error);
@@ -369,23 +410,62 @@ export const getUserById = async (req, res) => {
   }
 };
 
+// Get a user by Role
+export const getUsersByRole = async (req, res) => {
+  const { role } = req.params;
+
+  try {
+    // Validate if the role is a valid user role
+    if (!Object.values(UserRoleEnum).includes(role)) {
+      return res.status(400).json({ message: "Invalid role provided" });
+    }
+
+    // Find users by the provided role
+    const usersByRole = await User.find({ role }).select("-password");
+
+    if (usersByRole.length === 0) {
+      return res.status(404).json({ message: "No users found with this role" });
+    }
+
+    res.status(200).json({ data: usersByRole });
+  } catch (error) {
+    console.error("Get Users by Role Error:", error);
+    res.status(500).json({
+      message: "Failed to retrieve users by role",
+      error: error.message,
+    });
+  }
+};
+
 // Update a user
 export const updateUser = async (req, res) => {
   try {
+    const { id } = req.params;  // User ID from route params
     const updates = { ...req.body };
 
-    // Only hash password if it's being changed
+    // Only hash the password if it's being changed
     if (updates.password) {
       updates.password = await bcrypt.hash(updates.password, 10);
     }
 
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, updates, {
+    // Validate the role and status (if applicable)
+    if (updates.role && !Object.values(UserRoleEnum).includes(updates.role)) {
+      return res.status(400).json({ message: "Invalid role provided" });
+    }
+
+    if (updates.status && !Object.values(StatusEnum).includes(updates.status)) {
+      return res.status(400).json({ message: "Invalid status provided" });
+    }
+
+    // Perform the update operation
+    const updatedUser = await User.findByIdAndUpdate(id, updates, {
       new: true,
       runValidators: true,
-    }).select("-password");
+    }).select("-password"); // Exclude password from the returned user object
 
-    if (!updatedUser)
+    if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
+    }
 
     res
       .status(200)

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { useSettings } from "../../context/SettingsContext";
 import { useSpinner } from "../../context/SpinnerContext";
 
@@ -10,12 +11,11 @@ const SystemSettings = () => {
     title: "",
     header: "",
     sideHeader: "",
-    navBarColor: "",
-    sideBarColor: "",
+    navBarColor: localStorage.getItem("navBarColor") || "",
+    sideBarColor: localStorage.getItem("sideBarColor") || "",
     favicon: "",
   });
 
-  // Predefined color options for navBarColor and sideBarColor
   const colorOptions = [
     "primary",
     "secondary",
@@ -26,10 +26,15 @@ const SystemSettings = () => {
     "info",
   ];
 
-  // Populate formData when setting is updated
   useEffect(() => {
     if (settings) {
-      setFormData(settings);
+      setFormData({
+        ...settings,
+        navBarColor:
+          settings.navBarColor || localStorage.getItem("navBarColor") || "",
+        sideBarColor:
+          settings.sideBarColor || localStorage.getItem("sideBarColor") || "",
+      });
     }
   }, [settings]);
 
@@ -45,8 +50,14 @@ const SystemSettings = () => {
     try {
       await saveSettings(formData);
       await fetchSettings();
+
+      // Save colors to localStorage
+      localStorage.setItem("navBarColor", formData.navBarColor);
+      localStorage.setItem("sideBarColor", formData.sideBarColor);
+      toast.success("Settings succesfully saved!");
     } catch (error) {
       console.error("Failed to save settings", error);
+      toast.error("Error saving of settings");
     } finally {
       setLoading(false);
     }

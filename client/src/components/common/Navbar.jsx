@@ -27,7 +27,7 @@ const Navbar = ({ user }) => {
     return lightTextColors.includes(navColor) ? "text-light" : "text-dark";
   };
   
-  const navBarColor = settings?.navBarColor;
+  const navBarColor = settings?.navBarColor ?? localStorage.getItem("navBarColor");
   
   const navBarColorClass = navBarColor
     ? `navbar-${navBarColor} bg-${navBarColor}`  // Correctly assigns bg-warning, etc.

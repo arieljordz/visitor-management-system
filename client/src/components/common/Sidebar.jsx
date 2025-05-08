@@ -89,8 +89,10 @@ const Sidebar = ({ user }) => {
       return isFeatureEnabled(item.label) ? item : null;
     })
     .filter(Boolean);
+    
+  const navBarColor = settings?.navBarColor ?? localStorage.getItem("navBarColor");
 
-  const sideBarColorClass = settings?.navBarColor
+  const sideBarColorClass = navBarColor
     ? settings.navBarColor
     : darkMode
     ? "dark"

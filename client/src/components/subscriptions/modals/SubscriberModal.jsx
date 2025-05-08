@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { updateUser, createUser } from "../../../services/userService.js";
 import { StatusEnum, UserRoleEnum } from "../../../enums/enums.js";
 
-const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
+const SubscriberModal = ({ show, onHide, selectedRow, refreshList }) => {
   const initialFormData = {
     email: "",
     name: "",
@@ -178,7 +178,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
               </Form.Group>
             </Col>
 
-            {/* <Col md={12}>
+            <Col md={12}>
               <div className="form-group">
                 <div className="custom-control custom-switch">
                   <input
@@ -199,7 +199,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
                   </label>
                 </div>
               </div>
-            </Col> */}
+            </Col>
 
             <Col md={12}>
               <div className="form-group">
@@ -238,4 +238,4 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
   );
 };
 
-export default AccountsModal;
+export default SubscriberModal;

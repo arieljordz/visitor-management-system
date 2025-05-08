@@ -2,7 +2,7 @@ import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
-const AccountsTable = ({
+const SubscriberTable = ({
   loading,
   currentData,
   handleEdit,
@@ -24,6 +24,7 @@ const AccountsTable = ({
             <th className="text-center">Address</th>
             <th className="text-center">Role</th>
             <th className="text-center">Classification</th>
+            <th className="text-center">Subscribed</th>
             <th className="text-center">Date Created</th>
             <th className="text-center">Status</th>
             <th className="text-center">Action</th>
@@ -38,7 +39,22 @@ const AccountsTable = ({
                 <td className="text-center">{user.name?.toUpperCase()}</td>
                 <td className="text-center">{user.address?.toUpperCase()}</td>
                 <td className="text-center">{user.role?.toUpperCase()}</td>
-                <td className="text-center">{user.classification?.toUpperCase()}</td>
+                <td className="text-center">
+                  {user.classification?.toUpperCase()}
+                </td>
+                <td className="text-center">
+                  {user.subscription ? (
+                    <span
+                      className={`badge bg-${
+                        user.subscription === true ? "success" : "warning"
+                      }`}
+                    >
+                      {user.subscription === true
+                        ? "Subscribed"
+                        : "Unsubscribed"}
+                    </span>
+                  ) : null}
+                </td>
                 <td className="text-center">
                   {user.createdAt
                     ? new Date(user.createdAt).toLocaleString()
@@ -86,4 +102,4 @@ const AccountsTable = ({
   );
 };
 
-export default AccountsTable;
+export default SubscriberTable;
