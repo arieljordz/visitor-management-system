@@ -1,16 +1,12 @@
-import React from "react";
 import { Routes, Route } from "react-router-dom";
 
-// Client pages
+// Subscriber pages
 import Dashboard from "../pages/Dashboard/Dashboard";
 import PaymentHistory from "../pages/Transactions/PaymentHistory";
 import GeneratedQRCodes from "../pages/Transactions/GeneratedQRCodes";
 import MyWallet from "../pages/MyWallet/MyWallet";
 
 // Admin pages
-import AdminDashboard from "../pages/AdminDashboard/AdminDashboard";
-import AdminPaymentHistory from "../pages/AdminTransactions/AdminPaymentHistory";
-import AdminGeneratedQRCodes from "../pages/AdminTransactions/AdminGeneratedQRCodes";
 import Verifications from "../pages/Verifications/Verifications";
 import FMProofs from "../pages/FileMaintenance/FMProofs";
 import FMPaymentMethod from "../pages/FileMaintenance/FMPaymentMethod";
@@ -27,29 +23,26 @@ import Subscriptions from "../pages/Subscriptions/Subscriptions";
 
 const MainRoutes = ({ user }) => (
   <Routes>
-    {/* Client */}
+    {/* Subscriber */}
     <Route path="/dashboard" element={<Dashboard user={user}/>} />
-    <Route path="/transactions/payment-history" element={<PaymentHistory user={user}/>} />
-    <Route path="/transactions/generated-qr-codes" element={<GeneratedQRCodes user={user}/>} />
+    <Route path="/payment-history" element={<PaymentHistory user={user}/>} />
+    <Route path="/generated-qr-codes" element={<GeneratedQRCodes user={user}/>} />
     <Route path="/my-wallet" element={<MyWallet user={user}/>} />
 
     {/* Admin */}
-    <Route path="/admin/dashboard" element={<AdminDashboard user={user}/>} />
-    <Route path="/admin/transactions/payment-history" element={<AdminPaymentHistory user={user}/>} />
-    <Route path="/admin/transactions/generated-qr-codes" element={<AdminGeneratedQRCodes user={user}/>} />
-    <Route path="/admin/verifications" element={<Verifications user={user}/>} />
-    <Route path="/admin/file-maintenance/proofs" element={<FMProofs user={user}/>} />
-    <Route path="/admin/file-maintenance/payment-methods" element={<FMPaymentMethod user={user}/>} />
-    <Route path="/admin/file-maintenance/payment-accounts" element={<FMPaymentAccount user={user}/>} />
-    <Route path="/admin/file-maintenance/classifications" element={<FMClassification user={user}/>} />
-    <Route path="/admin/file-maintenance/fees" element={<FMFees user={user}/>} />
-    <Route path="/admin/file-maintenance/accounts" element={<FMAccounts user={user}/>} />
-    <Route path="/admin/subscriptions" element={<Subscriptions user={user}/>} />
-    <Route path="/admin/generate-reports" element={<GenerateReports user={user}/>} />
-    <Route path="/admin/settings" element={<Settings user={user}/>} />
+    <Route path="/verifications" element={<Verifications user={user}/>} />
+    <Route path="/file-maintenance/proofs" element={<FMProofs user={user}/>} />
+    <Route path="/file-maintenance/payment-methods" element={<FMPaymentMethod user={user}/>} />
+    <Route path="/file-maintenance/payment-accounts" element={<FMPaymentAccount user={user}/>} />
+    <Route path="/file-maintenance/classifications" element={<FMClassification user={user}/>} />
+    <Route path="/file-maintenance/fees" element={<FMFees user={user}/>} />
+    <Route path="/file-maintenance/accounts" element={<FMAccounts user={user}/>} />
+    <Route path="/subscriptions" element={<Subscriptions user={user}/>} />
+    <Route path="/generate-reports" element={<GenerateReports user={user}/>} />
+    <Route path="/settings" element={<Settings user={user}/>} />
 
     {/* Staff */}
-    <Route path="/staff/scan-qr" element={<ScanQR user={user}/>} />
+    <Route path="/scan-qr" element={<ScanQR user={user}/>} />
   </Routes>
 );
 

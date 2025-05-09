@@ -123,7 +123,8 @@ router.put("/logout-user", authenticate, auditLogger("LOGOUT_USER"), logout);
 router.post("/create-user", auditLogger("REGISTER_USER"), createUser);
 router.get("/get-users", authenticate, getUsers);
 router.get("/get-user/:id", authenticate, getUserById);
-router.get("/get-user-by-role/:role", authenticate, getUsersByRole);
+// router.get("/get-user-by-role/:role", authenticate, getUsersByRole);
+router.get("/get-users-by-role", authenticate, getUsersByRole);
 router.put("/update-user/:id", authenticate, auditLogger("UPDATE_USER"), updateUser);
 router.delete("/delete-user/:id", authenticate, auditLogger("DELETE_USER"), deleteUser);
 

@@ -5,15 +5,20 @@ const UserSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    name: { type: String, required: false },
+    name: { type: String, required: true },
     picture: { type: String, required: false },
     role: {
       type: String,
       enum: Object.values(UserRoleEnum),
-      default: UserRoleEnum.CLIENT,
+      default: UserRoleEnum.SUBSCRIBER,
     },
     address: { type: String, required: true },
-    classification: { type: String, required: true },
+    subscriberId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    classification: { type: String, required: false },
     subscription: { type: Boolean, required: true, default: false },
     expiryDate: { type: Date, default: null },
     verified: { type: Boolean, required: true, default: false },

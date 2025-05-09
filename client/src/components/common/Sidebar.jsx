@@ -19,7 +19,7 @@ const Sidebar = ({ user }) => {
   const [modules, setModules] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
-  const userRole = user?.role || UserRoleEnum.CLIENT;
+  const userRole = user?.role || UserRoleEnum.SUBSCRIBER;
 
   useEffect(() => {
     fetchMenuConfig();
@@ -103,7 +103,6 @@ const Sidebar = ({ user }) => {
     <>
       <aside className="main-sidebar sidebar-dark-primary elevation-4">
         <a
-          href="#"
           className={`brand-link bg-${sideBarColorClass} ${textColorClass}`}
           onClick={(e) => {
             e.preventDefault();
@@ -113,11 +112,11 @@ const Sidebar = ({ user }) => {
           <img
             src="https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png"
             alt="AdminLTE Logo"
-            className="brand-image img-circle elevation-3"
+            className="brand-image img-circle elevation-3 cursor-pointer"
             style={{ opacity: ".8" }}
           />
-          <span className="brand-text font-weight-bold ml-4">
-            {settings?.sideHeader?.toUpperCase()}
+          <span className="brand-text font-weight-bold ml-4 cursor-pointer">
+            {userRole?.toUpperCase()}
           </span>
         </a>
         <div className="sidebar">

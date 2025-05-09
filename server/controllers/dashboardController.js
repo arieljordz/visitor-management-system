@@ -13,7 +13,7 @@ export const getDashboardStats = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const isClient = user.role === UserRoleEnum.CLIENT;
+    const isClient = user.role === UserRoleEnum.SUBSCRIBER;
     const matchCondition = isClient ? { userId: user._id } : {};
 
     // Prepare async operations
@@ -43,7 +43,7 @@ export const getDashboardStats = async (req, res) => {
 
     const clientCountPromise = isClient
       ? Promise.resolve(null)
-      : User.countDocuments({ role: UserRoleEnum.CLIENT });
+      : User.countDocuments({ role: UserRoleEnum.SUBSCRIBER });
 
     // Wait for all promises
     const [

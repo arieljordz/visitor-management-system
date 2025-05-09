@@ -44,7 +44,7 @@ const DisplayBalance = ({ user }) => {
 
   return (
     <>
-      {user?.role === UserRoleEnum.CLIENT && (
+      {user?.role === UserRoleEnum.SUBSCRIBER && (
         <span
           className="fw-bold me-3 d-flex align-items-center gap-2"
           style={{ transition: "opacity 0.3s ease" }}

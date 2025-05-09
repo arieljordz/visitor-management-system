@@ -23,7 +23,6 @@ const AccountsTable = ({
             <th className="text-center">Full Name</th>
             <th className="text-center">Address</th>
             <th className="text-center">Role</th>
-            <th className="text-center">Classification</th>
             <th className="text-center">Date Created</th>
             <th className="text-center">Status</th>
             <th className="text-center">Action</th>
@@ -38,7 +37,6 @@ const AccountsTable = ({
                 <td className="text-center">{user.name?.toUpperCase()}</td>
                 <td className="text-center">{user.address?.toUpperCase()}</td>
                 <td className="text-center">{user.role?.toUpperCase()}</td>
-                <td className="text-center">{user.classification?.toUpperCase()}</td>
                 <td className="text-center">
                   {user.createdAt
                     ? new Date(user.createdAt).toLocaleString()

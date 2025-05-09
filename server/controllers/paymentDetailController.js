@@ -179,7 +179,7 @@ export const updateVerificationStatus = async (req, res) => {
       NotificationEnum.TOP_UP,
       NotificationEnum.PAYMENT,
       clientMessage,
-      UserRoleEnum.CLIENT
+      UserRoleEnum.SUBSCRIBER
     );
     emitNotification(io, payment.userId, clientMessage);
 
@@ -263,7 +263,7 @@ export const verifyPayment = async (req, res) => {
       NotificationEnum.TOP_UP,
       NotificationEnum.PAYMENT,
       clientMessage,
-      UserRoleEnum.CLIENT
+      UserRoleEnum.SUBSCRIBER
     );
     await createNotification(
       payment.userId,
@@ -327,7 +327,7 @@ export const declinePayment = async (req, res) => {
       NotificationEnum.TOP_UP,
       NotificationEnum.PAYMENT,
       clientMessage,
-      UserRoleEnum.CLIENT
+      UserRoleEnum.SUBSCRIBER
     );
     emitNotification(io, payment.userId, clientMessage);
 

@@ -73,12 +73,12 @@ export const googleLogin = async (req, res) => {
     password,
     name,
     picture,
-    role = UserRoleEnum.CLIENT,
+    role = UserRoleEnum.SUBSCRIBER,
     address,
     classification = "N/A",
     subscription = false,
     expiryDate = null,
-    verified = false,
+    verified = true,
     status = StatusEnum.ACTIVE,
   } = req.body;
 
@@ -123,9 +123,9 @@ export const googleLogin = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    if (isNewUser || !user.verified) {
-      await sendVerificationEmail({ name, email });
-    }
+    // if (isNewUser || !user.verified) {
+    //   await sendVerificationEmail({ name, email });
+    // }
 
     res.status(200).json(buildResponse(safeUser, accessToken));
   } catch (error) {
@@ -252,7 +252,6 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-
 export const logout = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -292,8 +291,9 @@ export const createUser = async (req, res) => {
       password: rawPassword,
       name,
       picture,
-      role = UserRoleEnum.CLIENT,
+      role = UserRoleEnum.SUBSCRIBER,
       address,
+      userId,
       classification,
       subscription = false,
       expiryDate = null,
@@ -301,10 +301,17 @@ export const createUser = async (req, res) => {
       status = StatusEnum.ACTIVE,
     } = req.body;
 
+    let subscriberId = null;
+
+    if (role !== UserRoleEnum.SUBSCRIBER) {
+      // Only assign subscriberId if creating a non-subscriber
+      subscriberId = userId;
+    }
+
     // Validate required fields
-    if (!email || !address || !classification) {
+    if (!email || !address) {
       return res.status(400).json({
-        message: "Email, address, and classification are required fields",
+        message: "Email and address are required fields",
       });
     }
 
@@ -323,6 +330,7 @@ export const createUser = async (req, res) => {
       picture,
       role,
       address,
+      subscriberId,
       classification,
       subscription,
       expiryDate,
@@ -412,26 +420,33 @@ export const getUserById = async (req, res) => {
 
 // Get a user by Role
 export const getUsersByRole = async (req, res) => {
-  const { role } = req.params;
+  const rolesQuery = req.query.roles;
 
   try {
-    // Validate if the role is a valid user role
-    if (!Object.values(UserRoleEnum).includes(role)) {
-      return res.status(400).json({ message: "Invalid role provided" });
+    if (!rolesQuery) {
+      return res.status(400).json({ message: "No roles provided" });
     }
 
-    // Find users by the provided role
-    const usersByRole = await User.find({ role }).select("-password");
+    const roles = rolesQuery.split(",").map((r) => r.trim());
 
-    if (usersByRole.length === 0) {
-      return res.status(404).json({ message: "No users found with this role" });
+    // Validate all provided roles
+    const invalidRoles = roles.filter((role) => !Object.values(UserRoleEnum).includes(role));
+    if (invalidRoles.length > 0) {
+      return res.status(400).json({ message: `Invalid roles provided: ${invalidRoles.join(", ")}` });
     }
 
-    res.status(200).json({ data: usersByRole });
+    // Fetch users with any of the provided roles
+    const usersByRoles = await User.find({ role: { $in: roles } }).select("-password");
+
+    if (usersByRoles.length === 0) {
+      return res.status(404).json({ message: "No users found for the specified roles" });
+    }
+
+    res.status(200).json({ data: usersByRoles });
   } catch (error) {
-    console.error("Get Users by Role Error:", error);
+    console.error("Get Users by Roles Error:", error);
     res.status(500).json({
-      message: "Failed to retrieve users by role",
+      message: "Failed to retrieve users by roles",
       error: error.message,
     });
   }
@@ -455,6 +470,15 @@ export const updateUser = async (req, res) => {
 
     if (updates.status && !Object.values(StatusEnum).includes(updates.status)) {
       return res.status(400).json({ message: "Invalid status provided" });
+    }
+
+    // Handle subscription and expiry date
+    if (typeof updates.subscription === "boolean") {
+      if (updates.subscription === true) {
+        updates.expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+      } else {
+        updates.expiryDate = null; // clear expiryDate if subscription is false
+      }
     }
 
     // Perform the update operation

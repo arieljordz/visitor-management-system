@@ -35,7 +35,7 @@ function Subscriptions({ user }) {
   const fetchSubscribers = async () => {
     setLoading(true);
     try {
-      const data = await getUsersByRole(UserRoleEnum.ADMIN);
+      const data = await getUsersByRole(UserRoleEnum.SUBSCRIBER);
       setSubscribers(data);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -90,17 +90,6 @@ function Subscriptions({ user }) {
       case StatusEnum.ACTIVE:
         return "success";
       case StatusEnum.INACTIVE:
-        return "warning";
-      default:
-        return "dark";
-    }
-  };
-
-  const getSubsClass = (value) => {
-    switch (value) {
-      case value === true:
-        return "success";
-      case value === false:
         return "warning";
       default:
         return "dark";

@@ -17,14 +17,30 @@ const LoginForm = ({ setUser, setIsRegistering }) => {
   const navigate = useNavigate();
 
   const navigateByRole = (data) => {
+    if (!data) return;
+
+    setLoading(true);
+
     setTimeout(() => {
       setLoading(false);
-      if (data.verified) {
-        if (data.role === UserRoleEnum.ADMIN) navigate("/admin/dashboard");
-        else if (data.role === UserRoleEnum.STAFF) navigate("/staff/scan-qr");
-        else navigate("/dashboard");
-      } else {
+
+      if (!data.verified) {
         navigate("/");
+        return;
+      }
+
+      switch (data.role) {
+        case UserRoleEnum.ADMIN:
+          navigate("/dashboard");
+          break;
+        case UserRoleEnum.SUBSCRIBER:
+          navigate("/dashboard");
+          break;
+        case UserRoleEnum.STAFF:
+          navigate("/scan-qr");
+          break;
+        default:
+          navigate("/dashboard");
       }
     }, 800);
   };
@@ -48,9 +64,7 @@ const LoginForm = ({ setUser, setIsRegistering }) => {
       setUser(res.data);
       console.log("login user:", res.data);
       setMessage(
-        res.data.verified
-          ? "Login successful."
-          : "Email not yet verified."
+        res.data.verified ? "Login successful." : "Email not yet verified."
       );
       navigateByRole(res.data);
     } catch (error) {
@@ -71,7 +85,7 @@ const LoginForm = ({ setUser, setIsRegistering }) => {
         password: PasswordEnum.DEFAULT_PASS,
         email: decoded.email,
         picture: decoded.picture,
-        role: UserRoleEnum.CLIENT,
+        role: UserRoleEnum.SUBSCRIBER,
         address: "N/A",
       };
 
@@ -81,13 +95,13 @@ const LoginForm = ({ setUser, setIsRegistering }) => {
         { withCredentials: true } // allows refreshToken to be set in cookie
       );
 
-      localStorage.setItem("accessToken", res.data.token);
+      localStorage.setItem("accessToken", res.data?.token);
       localStorage.setItem("user", JSON.stringify(res.data));
       setUser(res.data);
 
       console.log("Google user:", res);
       setMessage(
-        res.data.verified
+        res.data?.verified
           ? "Google login successful."
           : "Google mail registration successful. Please verify it to your email."
       );

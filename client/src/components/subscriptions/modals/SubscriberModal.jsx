@@ -9,10 +9,11 @@ const SubscriberModal = ({ show, onHide, selectedRow, refreshList }) => {
     email: "",
     name: "",
     address: "",
-    role: UserRoleEnum.CLIENT,
+    role: UserRoleEnum.SUBSCRIBER,
     status: StatusEnum.ACTIVE,
     classification: "",
     subscription: false,
+    verified: true,
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -23,10 +24,11 @@ const SubscriberModal = ({ show, onHide, selectedRow, refreshList }) => {
         email: selectedRow.email || "",
         name: selectedRow.name || "",
         address: selectedRow.address || "",
-        role: selectedRow.role || UserRoleEnum.CLIENT,
+        role: selectedRow.role || UserRoleEnum.SUBSCRIBER,
         status: selectedRow.status || StatusEnum.ACTIVE,
         classification: selectedRow.classification || "",
         subscription: selectedRow.subscription || false,
+        verified: selectedRow.verified || true,
       });
     } else {
       setFormData(initialFormData);
@@ -38,10 +40,11 @@ const SubscriberModal = ({ show, onHide, selectedRow, refreshList }) => {
       email: "",
       name: "",
       address: "",
-      role: UserRoleEnum.CLIENT,
+      role: UserRoleEnum.SUBSCRIBER,
       status: StatusEnum.ACTIVE,
       classification: "",
       subscription: false,
+      verified: true,
     });
   };
 
@@ -90,7 +93,7 @@ const SubscriberModal = ({ show, onHide, selectedRow, refreshList }) => {
       {/* Header */}
       <div className="modal-header">
         <h5 className="modal-title fw-bold">
-          {selectedRow ? "Edit" : "Add"} User
+          {selectedRow ? "Edit" : "Add"} Subscriber
         </h5>
         <button
           type="button"
@@ -157,9 +160,9 @@ const SubscriberModal = ({ show, onHide, selectedRow, refreshList }) => {
                   className="form-control"
                   required
                 >
-                  <option value="client">Client</option>
-                  <option value="admin">Admin</option>
-                  <option value="staff">Staff</option>
+                  <option value={UserRoleEnum.SUBSCRIBER}>
+                    {UserRoleEnum.SUBSCRIBER.toUpperCase()}
+                  </option>
                 </Form.Select>
               </Form.Group>
             </Col>

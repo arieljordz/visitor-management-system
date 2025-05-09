@@ -25,7 +25,7 @@ const SubscriberTable = ({
             <th className="text-center">Role</th>
             <th className="text-center">Classification</th>
             <th className="text-center">Subscribed</th>
-            <th className="text-center">Date Created</th>
+            <th className="text-center">Expiry Date</th>
             <th className="text-center">Status</th>
             <th className="text-center">Action</th>
           </tr>
@@ -43,21 +43,19 @@ const SubscriberTable = ({
                   {user.classification?.toUpperCase()}
                 </td>
                 <td className="text-center">
-                  {user.subscription ? (
+                  {typeof user.subscription === "boolean" && (
                     <span
                       className={`badge bg-${
-                        user.subscription === true ? "success" : "warning"
+                        user.subscription ? "success" : "warning"
                       }`}
                     >
-                      {user.subscription === true
-                        ? "Subscribed"
-                        : "Unsubscribed"}
+                      {user.subscription ? "Subscribed" : "Unsubscribed"}
                     </span>
-                  ) : null}
+                  )}
                 </td>
                 <td className="text-center">
-                  {user.createdAt
-                    ? new Date(user.createdAt).toLocaleString()
+                  {user.expiryDate
+                    ? new Date(user.expiryDate).toLocaleString()
                     : "—"}
                 </td>
                 <td className="text-center">

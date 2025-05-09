@@ -4,15 +4,16 @@ import { toast } from "react-toastify";
 import { updateUser, createUser } from "../../../services/userService.js";
 import { StatusEnum, UserRoleEnum } from "../../../enums/enums.js";
 
-const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
+const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
   const initialFormData = {
     email: "",
     name: "",
     address: "",
-    role: UserRoleEnum.CLIENT,
+    role: UserRoleEnum.SUBSCRIBER,
     status: StatusEnum.ACTIVE,
     classification: "",
     subscription: false,
+    verified: true,
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -23,10 +24,11 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
         email: selectedRow.email || "",
         name: selectedRow.name || "",
         address: selectedRow.address || "",
-        role: selectedRow.role || UserRoleEnum.CLIENT,
+        role: selectedRow.role || UserRoleEnum.SUBSCRIBER,
         status: selectedRow.status || StatusEnum.ACTIVE,
         classification: selectedRow.classification || "",
         subscription: selectedRow.subscription || false,
+        verified: selectedRow.verified || true,
       });
     } else {
       setFormData(initialFormData);
@@ -38,10 +40,11 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
       email: "",
       name: "",
       address: "",
-      role: UserRoleEnum.CLIENT,
+      role: UserRoleEnum.SUBSCRIBER,
       status: StatusEnum.ACTIVE,
       classification: "",
       subscription: false,
+      verified: true,
     });
   };
 
@@ -73,15 +76,18 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
         await updateUser(selectedRow._id, formData);
         toast.success("User updated successfully.");
       } else {
-        await createUser(formData);
-        toast.success("User created successfully.");
+        const updatedFormData = { ...formData, userId };
+        const data = await createUser(updatedFormData);
+        // const data = await createUser(formData);
+        // console.log("data:" , data);
+        toast.success(data?.data?.message);
       }
       refreshList();
       onHide();
       resetForm();
     } catch (error) {
       console.error("Error saving user:", error);
-      toast.error("Error saving user.");
+      toast.error(error?.response?.data?.message);
     }
   };
 
@@ -157,14 +163,20 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
                   className="form-control"
                   required
                 >
-                  <option value="client">Client</option>
-                  <option value="admin">Admin</option>
-                  <option value="staff">Staff</option>
+                  {/* <option value={UserRoleEnum.ADMIN}>
+                    {UserRoleEnum.ADMIN.toUpperCase()}
+                  </option> */}
+                  <option value={UserRoleEnum.SUBSCRIBER}>
+                    {UserRoleEnum.SUBSCRIBER.toUpperCase()}
+                  </option>
+                  <option value={UserRoleEnum.STAFF}>
+                    {UserRoleEnum.STAFF.toUpperCase()}
+                  </option>
                 </Form.Select>
               </Form.Group>
             </Col>
 
-            <Col md={12}>
+            {/* <Col md={12}>
               <Form.Group className="mb-3">
                 <Form.Label>Classification</Form.Label>
                 <Form.Control
@@ -176,7 +188,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList }) => {
                   required
                 />
               </Form.Group>
-            </Col>
+            </Col> */}
 
             {/* <Col md={12}>
               <div className="form-group">

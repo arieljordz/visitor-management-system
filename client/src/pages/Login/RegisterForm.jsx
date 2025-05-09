@@ -31,13 +31,13 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
         email: formData.email,
         name: formData.name,
         password: formData.password,
-        picture: null, // Assuming picture is optional for now
-        role: UserRoleEnum.CLIENT,
+        picture: null, 
+        role: UserRoleEnum.SUBSCRIBER,
         address: formData.address,
         classification: formData.classification,
         subscription: formData.subscription,
-        verified: false, // Default to false until verified by email or admin
-        status: StatusEnum.ACTIVE, // Default to active status
+        verified: false,
+        status: StatusEnum.ACTIVE, 
       });
 
       const { data } = res.data;

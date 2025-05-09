@@ -62,7 +62,7 @@ const Navbar = ({ user }) => {
       </ul>
 
       {/* Centered balance on mobile */}
-      {!flags.enableSubscription && (
+      {!flags.enableSubscriptions && (
         <ul className="navbar-nav mx-auto d-sm-none">
           <li className="nav-item">
             <DisplayBalance user={user} />
@@ -73,7 +73,7 @@ const Navbar = ({ user }) => {
       {/* Right navbar links */}
       <ul className="navbar-nav ml-auto align-items-center">
         {/* Balance on desktop */}
-        {!flags.enableSubscription && (
+        {!flags.enableSubscriptions && (
           <li className="nav-item d-none d-sm-inline-block mr-2">
             <DisplayBalance user={user} />
           </li>

@@ -15,7 +15,7 @@ const Sidebar = ({ user }) => {
   const [modules, setModules] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
-  const userRole = user?.role || UserRoleEnum.CLIENT;
+  const userRole = user?.role || UserRoleEnum.SUBSCRIBER;
 
   useEffect(() => {
     const loadSidebarData = async () => {

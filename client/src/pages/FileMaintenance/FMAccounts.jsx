@@ -9,11 +9,11 @@ import Paginations from "../../components/common/Paginations";
 import AccountsTable from "../../components/fileMaintenance/tables/AccountsTable";
 import AccountsModal from "../../components/fileMaintenance/modals/AccountsModal";
 import {
-  getUsers,
+  getUsersByRole,
   getUserById,
   deleteUser,
 } from "../../services/userService.js";
-import { StatusEnum } from "../../enums/enums.js";
+import { StatusEnum, UserRoleEnum } from "../../enums/enums.js";
 
 function FMAccounts({ user }) {
   const [accounts, setAccounts] = useState([]);
@@ -35,7 +35,7 @@ function FMAccounts({ user }) {
   const fetchAccounts = async () => {
     setLoading(true);
     try {
-      const data = await getUsers();
+      const data = await getUsersByRole(UserRoleEnum.SUBSCRIBER, UserRoleEnum.STAFF);
       setAccounts(data);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -186,6 +186,7 @@ function FMAccounts({ user }) {
                       onHide={handleClose}
                       selectedRow={selectedRow}
                       refreshList={fetchAccounts}
+                      userId={user?.userId}
                     />
                   </Card.Body>
                 </Card>

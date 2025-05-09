@@ -9,10 +9,10 @@ const RoleSelector = ({ role, onChange }) => (
       onChange={(e) => onChange(e.target.value)}
       required
     >
-      <option value="">Select role</option>
-      <option value={UserRoleEnum.ADMIN}>Admin</option>
-      <option value={UserRoleEnum.CLIENT}>Client</option>
-      <option value={UserRoleEnum.STAFF}>Staff</option>
+      <option value="">-- Select role --</option>
+      <option value={UserRoleEnum.ADMIN}>{UserRoleEnum.ADMIN.toUpperCase()}</option>
+      <option value={UserRoleEnum.SUBSCRIBER}>{UserRoleEnum.SUBSCRIBER.toUpperCase()}</option>
+      <option value={UserRoleEnum.STAFF}>{UserRoleEnum.STAFF.toUpperCase()}</option>
     </select>
   </div>
 );

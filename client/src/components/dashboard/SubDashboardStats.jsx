@@ -18,7 +18,7 @@ const StatBox = ({ count, label, icon, bg }) => (
   </div>
 );
 
-const DashboardStats = ({ user }) => {
+const SubDashboardStats = ({ user }) => {
   const [dashboardStats, setDashboardStats] = useState(null);
 
   useEffect(() => {
@@ -86,4 +86,4 @@ const DashboardStats = ({ user }) => {
   );
 };
 
-export default DashboardStats;
+export default SubDashboardStats;

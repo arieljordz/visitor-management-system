@@ -1,6 +1,6 @@
 export const UserRoleEnum = Object.freeze({
-  CLIENT: "client",
   ADMIN: "admin",
+  SUBSCRIBER: "subscriber",
   STAFF: "staff",
 });
 
