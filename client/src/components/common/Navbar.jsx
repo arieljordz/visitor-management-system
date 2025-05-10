@@ -2,10 +2,12 @@ import React, { useContext } from "react";
 import { ThemeContext } from "../../context/ThemeContext";
 import DisplayBalance from "./DisplayBalance";
 import Notifications from "./Notifications";
+import { useAuth } from "../../context/AuthContext";
 import { useFeatureFlags } from "../../context/FeatureFlagContext";
 import { useSettings } from "../../context/SettingsContext";
 
-const Navbar = ({ user }) => {
+const Navbar = () => {
+  const { user } = useAuth();
   const { darkMode, toggleTheme } = useContext(ThemeContext);
   const { flags } = useFeatureFlags();
   const { settings } = useSettings();
@@ -18,25 +20,27 @@ const Navbar = ({ user }) => {
     "dark",
     "info",
   ];
-  
+
   const getTextColorClass = (navColor) => {
     // Special handling for 'warning' navbar color (set text to black)
     if (navColor === "warning") return "text-dark";
-    
+
     // Default behavior for light navbar colors (e.g., primary, success)
     return lightTextColors.includes(navColor) ? "text-light" : "text-dark";
   };
-  
-  const navBarColor = settings?.navBarColor ?? localStorage.getItem("navBarColor");
-  
+
+  const navBarColor =
+    settings?.navBarColor ?? localStorage.getItem("navBarColor");
+
   const navBarColorClass = navBarColor
-    ? `navbar-${navBarColor} bg-${navBarColor}`  // Correctly assigns bg-warning, etc.
+    ? `navbar-${navBarColor} bg-${navBarColor}` // Correctly assigns bg-warning, etc.
     : darkMode
     ? "bg-dark"
     : "navbar-light bg-light";
-  
+
   const textColorClass = getTextColorClass(navBarColor);
-  const iconButtonClass = textColorClass === "text-light" ? "btn-outline-light" : "btn-outline-dark";
+  const iconButtonClass =
+    textColorClass === "text-light" ? "btn-outline-light" : "btn-outline-dark";
 
   return (
     <nav

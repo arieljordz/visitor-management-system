@@ -1,10 +1,12 @@
 import React from "react";
+import { useAuth } from "../../context/AuthContext";
 import { Card, Row, Col } from "react-bootstrap";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 
-function Verifications({ user }) {
+function Verifications() {
+  const { user } = useAuth();
   return (
     <div>
       <div className="content-wrapper">

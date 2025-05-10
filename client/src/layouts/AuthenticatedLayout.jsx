@@ -5,9 +5,13 @@ import Sidebar from "../components/common/Sidebar";
 import Footer from "../components/common/Footer";
 import Spinner from "../components/common/Spinner";
 import MainRoutes from "../routes/MainRoutes";
+import { useAuth } from "../context/AuthContext";
 import { FeatureFlagProvider } from "../context/FeatureFlagContext";
+import { useSpinner } from "../context/SpinnerContext";
 
-const AuthenticatedLayout = ({ user, setUser, loading }) => {
+const AuthenticatedLayout = () => {
+  const { user } = useAuth();
+  const { loading } = useSpinner();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,9 +25,9 @@ const AuthenticatedLayout = ({ user, setUser, loading }) => {
   return (
     <div className="wrapper">
       <FeatureFlagProvider>
-        <Navbar user={user} />
-        <Sidebar user={user} />
-        <MainRoutes user={user} />
+        <Navbar />
+        <Sidebar />
+        <MainRoutes />
         <Footer />
       </FeatureFlagProvider>
     </div>

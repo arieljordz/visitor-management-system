@@ -6,7 +6,7 @@ const checkFeature = (key) => {
       const feature = await FeatureFlag.findOne({ key });
       console.log("feature key:", key);
       console.log("feature:", feature);
-      if (!feature || feature.enabled === true) {
+      if (!feature || feature.enabled === false) {
         return res.status(403).json({ message: "This feature is currently disabled." });
       }
 

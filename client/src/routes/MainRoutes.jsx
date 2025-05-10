@@ -21,28 +21,28 @@ import Settings from "../pages/Settings/Settings";
 import ScanQR from "../pages/ScanQR/ScanQR";
 import Subscriptions from "../pages/Subscriptions/Subscriptions";
 
-const MainRoutes = ({ user }) => (
+const MainRoutes = () => (
   <Routes>
     {/* Subscriber */}
-    <Route path="/dashboard" element={<Dashboard user={user}/>} />
-    <Route path="/payment-history" element={<PaymentHistory user={user}/>} />
-    <Route path="/generated-qr-codes" element={<GeneratedQRCodes user={user}/>} />
-    <Route path="/my-wallet" element={<MyWallet user={user}/>} />
+    <Route path="/dashboard" element={<Dashboard/>} />
+    <Route path="/payment-history" element={<PaymentHistory/>} />
+    <Route path="/generated-qr-codes" element={<GeneratedQRCodes/>} />
+    <Route path="/my-wallet" element={<MyWallet/>} />
 
     {/* Admin */}
-    <Route path="/verifications" element={<Verifications user={user}/>} />
-    <Route path="/file-maintenance/proofs" element={<FMProofs user={user}/>} />
-    <Route path="/file-maintenance/payment-methods" element={<FMPaymentMethod user={user}/>} />
-    <Route path="/file-maintenance/payment-accounts" element={<FMPaymentAccount user={user}/>} />
-    <Route path="/file-maintenance/classifications" element={<FMClassification user={user}/>} />
-    <Route path="/file-maintenance/fees" element={<FMFees user={user}/>} />
-    <Route path="/file-maintenance/accounts" element={<FMAccounts user={user}/>} />
-    <Route path="/subscriptions" element={<Subscriptions user={user}/>} />
-    <Route path="/generate-reports" element={<GenerateReports user={user}/>} />
-    <Route path="/settings" element={<Settings user={user}/>} />
+    <Route path="/verifications" element={<Verifications/>} />
+    <Route path="/file-maintenance/proofs" element={<FMProofs/>} />
+    <Route path="/file-maintenance/payment-methods" element={<FMPaymentMethod/>} />
+    <Route path="/file-maintenance/payment-accounts" element={<FMPaymentAccount/>} />
+    <Route path="/file-maintenance/classifications" element={<FMClassification/>} />
+    <Route path="/file-maintenance/fees" element={<FMFees/>} />
+    <Route path="/file-maintenance/accounts" element={<FMAccounts/>} />
+    <Route path="/subscriptions" element={<Subscriptions/>} />
+    <Route path="/generate-reports" element={<GenerateReports/>} />
+    <Route path="/settings" element={<Settings/>} />
 
     {/* Staff */}
-    <Route path="/scan-qr" element={<ScanQR user={user}/>} />
+    <Route path="/scan-qr" element={<ScanQR/>} />
   </Routes>
 );
 

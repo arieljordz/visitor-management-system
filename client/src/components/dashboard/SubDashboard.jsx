@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button, Row, Col, Card, Spinner } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { useAuth } from "../../context/AuthContext";
 import { useSpinner } from "../../context/SpinnerContext";
 import { useFeatureFlags } from "../../context/FeatureFlagContext";
 import Swal from "sweetalert2";
@@ -24,7 +25,8 @@ import { getBalance } from "../../services/balanceService.js";
 import { getFeeByCodeAndStatus } from "../../services/feeService.js";
 import { FeeCodeEnum, QRStatusEnum } from "../../enums/enums.js";
 
-const SubDashboard = ({ user }) => {
+const SubDashboard = () => {
+  const { user } = useAuth();
   const { setLoading } = useSpinner();
   const { flags } = useFeatureFlags();
   const [proofs, setVisitors] = useState([]);
@@ -76,28 +78,31 @@ const SubDashboard = ({ user }) => {
 
   const handleGenerateQR = async (visitorId, visitdetailsId) => {
     try {
-      if (!await canGenerateQRCode()) return;
-  
-      const conflict = await checkActiveQRCodeForVisit(user, visitorId, visitdetailsId);
+      if (!(await canGenerateQRCode())) return;
+
+      const conflict = await checkActiveQRCodeForVisit(
+        user,
+        visitorId,
+        visitdetailsId
+      );
       if (conflict) {
         toast.warning(conflict.message);
         return;
       }
-  
+
       const confirm = await confirmQRGeneration();
       if (!confirm) return;
-  
+
       setLoading(true);
-  
-      const generateFn = flags.enableSubscriptions 
-        ? generateQRCodeSubscription 
+
+      const generateFn = flags.enableSubscriptions
+        ? generateQRCodeSubscription
         : generateQRCodeWithPayment;
-  
+
       await generateFn({ userId: user.userId, visitorId, visitdetailsId });
-  
+
       toast.success("Successfully generated QR code for the visitor.");
       fetchVisitors();
-  
     } catch (error) {
       console.error("Generation of QR failed:", error);
       toast.warning(error.response?.data?.message || "An error occurred.");
@@ -105,22 +110,22 @@ const SubDashboard = ({ user }) => {
       setLoading(false);
     }
   };
-  
+
   const canGenerateQRCode = async () => {
     if (flags.enableSubscriptions) return true;
-  
+
     const fee = await getFeeByCodeAndStatus(FeeCodeEnum.GENQR01);
     const data = await getBalance(user.userId);
     const currentBalance = parseFloat(data?.balance || "0");
-  
+
     if (currentBalance < fee.fee) {
       toast.warning("Your balance is insufficient to generate a QR code.");
       return false;
     }
-  
+
     return true;
   };
-  
+
   const confirmQRGeneration = async () => {
     const result = await Swal.fire({
       title: "Proceed with QR Generation?",
@@ -129,7 +134,7 @@ const SubDashboard = ({ user }) => {
       showCancelButton: true,
       confirmButtonText: "Yes, generate it",
     });
-  
+
     return result.isConfirmed;
   };
 

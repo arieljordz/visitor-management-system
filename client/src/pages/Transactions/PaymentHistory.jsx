@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
@@ -7,7 +8,8 @@ import PaymentHistoryTable from "../../components/transactions/tables/PaymentHis
 import { getPaymentDetailsById } from "../../services/paymentDetailService.js";
 import { PaymentStatusEnum } from "../../enums/enums.js";
 
-function PaymentHistory({ user, setUser }) {
+function PaymentHistory() {
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

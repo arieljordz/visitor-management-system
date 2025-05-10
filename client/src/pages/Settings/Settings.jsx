@@ -6,7 +6,7 @@ import FeatureFlagToggle from "./FeatureFlagToggle";
 import MenuSettings from "./MenuSettings";
 import SystemSettings from "./SystemSettings";
 
-function Settings({ user }) {
+function Settings() {
   const { flags } = useFeatureFlags();
   // console.log("flags:", flags);
   return (

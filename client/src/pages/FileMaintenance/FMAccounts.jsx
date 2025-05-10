@@ -3,6 +3,7 @@ import { Button, Spinner, Row, Col, Card } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import { useAuth } from "../../context/AuthContext";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
@@ -15,7 +16,8 @@ import {
 } from "../../services/userService.js";
 import { StatusEnum, UserRoleEnum } from "../../enums/enums.js";
 
-function FMAccounts({ user }) {
+function FMAccounts() {
+  const { user } = useAuth();
   const [accounts, setAccounts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,7 +37,10 @@ function FMAccounts({ user }) {
   const fetchAccounts = async () => {
     setLoading(true);
     try {
-      const data = await getUsersByRole(UserRoleEnum.SUBSCRIBER, UserRoleEnum.STAFF);
+      const data = await getUsersByRole(
+        UserRoleEnum.SUBSCRIBER,
+        UserRoleEnum.STAFF
+      );
       setAccounts(data);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -84,7 +89,7 @@ function FMAccounts({ user }) {
     setSelectedRow(null);
     setShowModal(false);
   };
-    
+
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
       case StatusEnum.ACTIVE:

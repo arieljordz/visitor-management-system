@@ -113,8 +113,8 @@ import checkFeature from "../middlewares/routesMiddleware.js";
 const router = express.Router();
 
 // User Routes
-router.post("/login-user", auditLogger("LOGIN_USER"), login);
-router.post("/google-login-user", auditLogger("GOOGLE_LOGIN_USER"), googleLogin);
+router.post("/auth/login", auditLogger("LOGIN_USER"), login);
+router.post("/auth/google-login", auditLogger("GOOGLE_LOGIN_USER"), googleLogin);
 router.post("/refresh-token", authenticate, refreshToken);
 router.get("/google-login-verify-user", auditLogger("GOOGLE_VERIFIY_USER"), verifyEmail);
 router.post("/forgot-password", auditLogger("FORGOT_PASSWORD_USER"), forgotPassword);
@@ -141,9 +141,9 @@ router.get("/check-balance/:userId", authenticate, getBalance);
 router.post("/top-up/:userId", authenticate, auditLogger("TOPUP_BALANCE"), upload.single("proof"), topUp);
 
 // PaymentDetail Routes
-router.get("/get-payment-details", authenticate, checkFeature("enableSubscription"), getPaymentDetails);
-router.get("/get-payment-details/:userId", authenticate, checkFeature("enableSubscription"), getPaymentDetailsById);
-router.get("/get-payment-proofs", authenticate, checkFeature("enableSubscription"), getPaymentProofs);
+router.get("/get-payment-details", authenticate, checkFeature("enableSubscriptions"), getPaymentDetails);
+router.get("/get-payment-details/:userId", authenticate, checkFeature("enableSubscriptions"), getPaymentDetailsById);
+router.get("/get-payment-proofs", authenticate, checkFeature("enableSubscriptions"), getPaymentProofs);
 router.delete("/delete-payment-proofs", authenticate, auditLogger("DELETE_PAYMENT"), deletePaymentProofs);
 router.put("/update-verification/:id", authenticate, auditLogger("UPDATE_PAYMENT"), updateVerificationStatus);
 router.put("/payment-verification-verify/:id", authenticate, auditLogger("VERIFY_PAYMENT"), verifyPayment);

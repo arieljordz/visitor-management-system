@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import { Row, Col, Card } from "react-bootstrap";
@@ -8,7 +9,8 @@ import GeneratedQRCodeTable from "../../components/transactions/tables/Generated
 import { getGeneratedQRCodesById } from "../../services/qrService.js";
 import { QRStatusEnum } from "../../enums/enums.js";
 
-function GeneratedQRCodes({ user }) {
+function GeneratedQRCodes() {
+  const { user } = useAuth();
   const [generatedQRs, setGeneratedQRs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -56,8 +58,10 @@ function GeneratedQRCodes({ user }) {
 
   // Filter generatedQRs by search term
   const filteredData = generatedQRs.filter((txn) => {
-    const fullName = `${txn.visitorId?.firstName || ""} ${txn.visitorId?.lastName || ""}`.trim();
-  
+    const fullName = `${txn.visitorId?.firstName || ""} ${
+      txn.visitorId?.lastName || ""
+    }`.trim();
+
     const values = [
       txn._id?.slice(-6),
       txn.transaction,
@@ -67,13 +71,13 @@ function GeneratedQRCodes({ user }) {
       txn.status,
       txn.visitorId?.firstName,
       txn.visitorId?.lastName,
-      fullName, 
+      fullName,
       txn.visitorId?.groupName,
       txn.visitorId?.purpose,
       txn.visitorId?.visitorType,
       txn.userId?.name,
     ];
-  
+
     return values.some((val) =>
       String(val).toLowerCase().includes(searchTerm.toLowerCase())
     );

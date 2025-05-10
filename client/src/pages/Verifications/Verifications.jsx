@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Row, Col, Card } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
+import { useAuth } from "../../context/AuthContext";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
@@ -13,7 +14,8 @@ import {
 } from "../../services/paymentDetailService.js";
 import { VerificationStatusEnum } from "../../enums/enums.js";
 
-function Verifications({ user }) {
+function Verifications() {
+  const { user } = useAuth();
   const [proofs, setProofs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,46 +64,47 @@ function Verifications({ user }) {
   };
 
   const handleVerification = async (id, status, verificationStatus) => {
-    if(status === "pending"){    const result = await Swal.fire({
-      title: "Verification",
-      text: `Are you sure you want to ${verificationStatus} this payment?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: `Yes, ${verificationStatus} it`,
-      cancelButtonText: "Cancel",
-      reverseButtons: false,
-    });
-  
-    if (result.isConfirmed) {
-      let reason = "";
-      if (verificationStatus === "declined") {
-        const { value: inputReason } = await Swal.fire({
-          title: "Reason for Decline",
-          input: "text",
-          inputLabel: "Please provide a reason for declining",
-          inputPlaceholder: "Enter reason here...",
-          inputValidator: (value) => {
-            if (!value) {
-              return "You must enter a reason!";
-            }
-          },
-        });
-  
-        if (!inputReason) return; 
-  
-        reason = inputReason;
+    if (status === "pending") {
+      const result = await Swal.fire({
+        title: "Verification",
+        text: `Are you sure you want to ${verificationStatus} this payment?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: `Yes, ${verificationStatus} it`,
+        cancelButtonText: "Cancel",
+        reverseButtons: false,
+      });
+
+      if (result.isConfirmed) {
+        let reason = "";
+        if (verificationStatus === "declined") {
+          const { value: inputReason } = await Swal.fire({
+            title: "Reason for Decline",
+            input: "text",
+            inputLabel: "Please provide a reason for declining",
+            inputPlaceholder: "Enter reason here...",
+            inputValidator: (value) => {
+              if (!value) {
+                return "You must enter a reason!";
+              }
+            },
+          });
+
+          if (!inputReason) return;
+
+          reason = inputReason;
+        }
+
+        try {
+          await updateVerificationStatus(id, verificationStatus, reason);
+          toast.success(`Payment ${verificationStatus} successfully.`);
+          fetchProofs();
+        } catch (err) {
+          toast.error(err.response?.data?.message || "Something went wrong.");
+          console.error(err);
+        }
       }
-  
-      try {
-        await updateVerificationStatus(id, verificationStatus, reason); 
-        toast.success(`Payment ${verificationStatus} successfully.`);
-        fetchProofs(); 
-      } catch (err) {
-        toast.error(err.response?.data?.message || "Something went wrong.");
-        console.error(err);
-      }
-    }}
-    else{
+    } else {
       toast.info(`This Payment is already been ${status}.`);
     }
   };

@@ -3,6 +3,7 @@ import { Button, Card, Row, Col } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import { useAuth } from "../../context/AuthContext";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
@@ -15,7 +16,8 @@ import {
 } from "../../services/paymentAccountService.js";
 import { StatusEnum } from "../../enums/enums.js";
 
-function FMPaymentAccount({ user }) {
+function FMPaymentAccount() {
+  const { user } = useAuth();
   const [paymentAccount, setPaymentAccount] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,7 +87,7 @@ function FMPaymentAccount({ user }) {
     setSelectedRow(null);
     setShowModal(false);
   };
-  
+
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
       case StatusEnum.ACTIVE:
@@ -167,7 +169,7 @@ function FMPaymentAccount({ user }) {
                       currentData={currentData}
                       handleEdit={handleEdit}
                       handleDelete={handleDelete}
-                      getBadgeClass= {getBadgeClass}
+                      getBadgeClass={getBadgeClass}
                     />
 
                     <Paginations

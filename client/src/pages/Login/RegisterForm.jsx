@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { Form, Row, Col, Button, Alert } from "react-bootstrap";
 import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
+import { useSpinner } from "../../context/SpinnerContext";
 import { UserRoleEnum, StatusEnum } from "../../enums/enums.js";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
-const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
+const RegisterForm = ({ setIsRegistering }) => {
+  const { setUser } = useAuth();
+  const { setLoading } = useSpinner();
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState({
     email: "",
@@ -31,13 +35,13 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
         email: formData.email,
         name: formData.name,
         password: formData.password,
-        picture: null, 
+        picture: null,
         role: UserRoleEnum.SUBSCRIBER,
         address: formData.address,
         classification: formData.classification,
         subscription: formData.subscription,
         verified: false,
-        status: StatusEnum.ACTIVE, 
+        status: StatusEnum.ACTIVE,
       });
 
       const { data } = res.data;
@@ -92,7 +96,9 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
               <Form.Control
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 placeholder="Enter your email"
                 required
               />
@@ -104,7 +110,9 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
               <Form.Control
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Enter your fullname"
                 required
               />
@@ -116,7 +124,9 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
               <Form.Control
                 type="password"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
                 placeholder="Enter your password"
                 required
               />
@@ -142,7 +152,9 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
               <Form.Control
                 type="text"
                 value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
                 placeholder="Enter your address"
                 required
               />
@@ -154,7 +166,9 @@ const RegisterForm = ({ setUser, setLoading, setIsRegistering }) => {
               <Form.Control
                 type="text"
                 value={formData.classification}
-                onChange={(e) => setFormData({ ...formData, classification: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, classification: e.target.value })
+                }
                 placeholder="Enter your classification"
                 required
               />

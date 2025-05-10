@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col } from "react-bootstrap";
+import { useAuth } from "../../context/AuthContext";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
@@ -8,7 +9,8 @@ import QRCodeModal from "../../components/adminTransactions/modals/QRCodeModal";
 import { getGeneratedQRCodes } from "../../services/qrService.js";
 import { QRStatusEnum } from "../../enums/enums.js";
 
-function AdminGeneratedQRCodes({ user }) {
+function AdminGeneratedQRCodes() {
+  const { user } = useAuth();
   const [qRCodes, setQRCodes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col } from "react-bootstrap";
+import { useAuth } from "../../context/AuthContext";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
@@ -7,7 +8,8 @@ import AdminPaymentHistoryTable from "../../components/adminTransactions/tables/
 import { getPaymentDetails } from "../../services/paymentDetailService.js";
 import { PaymentStatusEnum } from "../../enums/enums.js";
 
-function AdminPaymentHistory({ user }) {
+function AdminPaymentHistory() {
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -50,8 +52,10 @@ function AdminPaymentHistory({ user }) {
 
   // Filter transactions by search term
   const filteredData = transactions.filter((txn) => {
-    const fullName = `${txn.visitorId?.firstName || ""} ${txn.visitorId?.lastName || ""}`.trim();
-  
+    const fullName = `${txn.visitorId?.firstName || ""} ${
+      txn.visitorId?.lastName || ""
+    }`.trim();
+
     const values = [
       txn._id?.slice(-6),
       txn.transaction,
@@ -63,9 +67,9 @@ function AdminPaymentHistory({ user }) {
       txn.visitorId?.lastName,
       fullName,
       txn.visitorId?.groupName,
-      txn.userId?.name
+      txn.userId?.name,
     ];
-  
+
     return values.some((val) =>
       String(val).toLowerCase().includes(searchTerm.toLowerCase())
     );

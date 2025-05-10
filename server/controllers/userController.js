@@ -19,6 +19,8 @@ import { sendVerificationEmail } from "../services/sendEmailService.js";
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
+  // console.log("LOGIN ATTEMPT", email, password);
+
   try {
     // Step 1: Find user by email
     const user = await User.findOne({ email });
@@ -60,6 +62,7 @@ export const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
+    // console.log("Found user:", userData);
     res.status(200).json(buildResponse(userData, accessToken));
   } catch (error) {
     console.error("Login Error:", error);
@@ -89,7 +92,9 @@ export const googleLogin = async (req, res) => {
     const refreshToken = generateRefreshToken(user?._id || null);
 
     if (isNewUser) {
-      const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
+      const hashedPassword = password
+        ? await bcrypt.hash(password, 10)
+        : undefined;
       // const expiryDate = addDays(new Date(), 30); // Trial period
 
       user = new User({
@@ -127,6 +132,7 @@ export const googleLogin = async (req, res) => {
     //   await sendVerificationEmail({ name, email });
     // }
 
+    // console.log("safeUser:", safeUser);
     res.status(200).json(buildResponse(safeUser, accessToken));
   } catch (error) {
     console.error("Google Login Error:", error);
@@ -258,10 +264,12 @@ export const logout = async (req, res) => {
 
     // Extract token from Authorization header
     const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ message: "Authorization header missing" });
+    if (!authHeader)
+      return res.status(401).json({ message: "Authorization header missing" });
 
     const token = authHeader.split(" ")[1];
-    if (!token) return res.status(401).json({ message: "Invalid token format" });
+    if (!token)
+      return res.status(401).json({ message: "Invalid token format" });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const sessionToken = decoded.sessionToken;
@@ -273,13 +281,17 @@ export const logout = async (req, res) => {
     );
 
     if (sessionUpdate.matchedCount === 0) {
-      return res.status(404).json({ message: "Session not found or already logged out." });
+      return res
+        .status(404)
+        .json({ message: "Session not found or already logged out." });
     }
 
     return res.json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Logout Error:", error);
-    return res.status(500).json({ message: "Logout failed", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Logout failed", error: error.message });
   }
 };
 
@@ -388,7 +400,7 @@ export const getActiveUsersBySession = async (req, res) => {
   try {
     // Query the Session model for active sessions with active status
     const activeSessions = await Session.find({ isActive: true })
-      .populate("userId", "-password")  // Populate user details excluding password
+      .populate("userId", "-password") // Populate user details excluding password
       .exec();
 
     // Extract the users from the session data
@@ -430,16 +442,26 @@ export const getUsersByRole = async (req, res) => {
     const roles = rolesQuery.split(",").map((r) => r.trim());
 
     // Validate all provided roles
-    const invalidRoles = roles.filter((role) => !Object.values(UserRoleEnum).includes(role));
+    const invalidRoles = roles.filter(
+      (role) => !Object.values(UserRoleEnum).includes(role)
+    );
     if (invalidRoles.length > 0) {
-      return res.status(400).json({ message: `Invalid roles provided: ${invalidRoles.join(", ")}` });
+      return res
+        .status(400)
+        .json({
+          message: `Invalid roles provided: ${invalidRoles.join(", ")}`,
+        });
     }
 
     // Fetch users with any of the provided roles
-    const usersByRoles = await User.find({ role: { $in: roles } }).select("-password");
+    const usersByRoles = await User.find({ role: { $in: roles } }).select(
+      "-password"
+    );
 
     if (usersByRoles.length === 0) {
-      return res.status(404).json({ message: "No users found for the specified roles" });
+      return res
+        .status(404)
+        .json({ message: "No users found for the specified roles" });
     }
 
     res.status(200).json({ data: usersByRoles });
@@ -455,7 +477,7 @@ export const getUsersByRole = async (req, res) => {
 // Update a user
 export const updateUser = async (req, res) => {
   try {
-    const { id } = req.params;  // User ID from route params
+    const { id } = req.params; // User ID from route params
     const updates = { ...req.body };
 
     // Only hash the password if it's being changed

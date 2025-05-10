@@ -66,7 +66,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         if (!shouldSkipAuthHandling) {
           console.log("Error 401 shouldSkipAuthHandling");
-          return handleSessionExpired(refreshError);
+          // return handleSessionExpired(refreshError);
         }
         return Promise.reject(refreshError);
       }
@@ -75,7 +75,7 @@ api.interceptors.response.use(
     // Catch-all for other 401s
     if (error.response?.status === 401 && !shouldSkipAuthHandling) {
       console.log("Error 401");
-      return handleSessionExpired(error);
+      // return handleSessionExpired(error);
     }
 
     return Promise.reject(error);

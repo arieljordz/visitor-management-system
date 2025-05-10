@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Card, Row, Col } from "react-bootstrap";
 import Navpath from "../../components/common/Navpath";
 import TopUp from "../../components/myWallet/TopUp";
+import { useAuth } from "../../context/AuthContext";
 import { getActivePaymentAccounts } from "../../services/paymentAccountService";
 
-const MyWallet = ({ user }) => {
-  const [balance, setBalance] = useState(0);
+const MyWallet = () => {
+  const { user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState("gcash");
   const [paymentAccounts, setPaymentAccounts] = useState([]);
   const [proof, setProof] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchPaymentAccounts = async () => {
@@ -36,15 +36,11 @@ const MyWallet = ({ user }) => {
               <Card>
                 <Card.Body className="main-card">
                   <TopUp
-                    user={user}
                     paymentMethod={paymentMethod}
                     setPaymentMethod={setPaymentMethod}
                     paymentAccounts={paymentAccounts}
                     proof={proof}
                     setProof={setProof}
-                    setBalance={setBalance}
-                    isLoading={isLoading}
-                    setIsLoading={setIsLoading}
                   />
                 </Card.Body>
               </Card>

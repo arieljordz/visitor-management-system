@@ -3,19 +3,17 @@ import { Button, Spinner, Row, Col, Card } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import { useAuth } from "../../context/AuthContext";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import FeesTable from "../../components/fileMaintenance/tables/FeesTable";
 import FeeModal from "../../components/fileMaintenance/modals/FeeModal";
-import {
-  getFees,
-  getFeeById,
-  deleteFee,
-} from "../../services/feeService.js";
+import { getFees, getFeeById, deleteFee } from "../../services/feeService.js";
 import { StatusEnum } from "../../enums/enums.js";
 
-function FMFees({ user }) {
+function FMFees() {
+  const { user } = useAuth();
   const [fee, setFees] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,7 +83,7 @@ function FMFees({ user }) {
     setSelectedRow(null);
     setShowModal(false);
   };
-  
+
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
       case StatusEnum.ACTIVE:
@@ -106,7 +104,7 @@ function FMFees({ user }) {
       obj.status,
       new Date(obj.createdAt).toLocaleString(),
     ];
-  
+
     return values.some((val) =>
       String(val).toLowerCase().includes(searchTerm.toLowerCase())
     );

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Button, Spinner, Row, Col, Card } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import { useAuth } from "../../context/AuthContext";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
@@ -16,7 +16,8 @@ import {
 } from "../../services/classificationService.js";
 import { StatusEnum } from "../../enums/enums.js";
 
-function FMClassification({ user }) {
+function FMClassification() {
+  const { user } = useAuth();
   const [classifications, setClassifications] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

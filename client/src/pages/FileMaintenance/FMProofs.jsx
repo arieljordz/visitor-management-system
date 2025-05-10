@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col } from "react-bootstrap";
+import { useAuth } from "../../context/AuthContext";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
@@ -8,7 +9,8 @@ import ProofsModal from "../../components/verifications/modals/ProofsModal";
 import { getPaymentProofs } from "../../services/paymentDetailService.js";
 import { PaymentStatusEnum } from "../../enums/enums.js";
 
-function FMProofs({ user }) {
+function FMProofs() {
+  const { user } = useAuth();
   const [proofs, setProofs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);

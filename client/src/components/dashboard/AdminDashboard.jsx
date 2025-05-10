@@ -3,7 +3,7 @@ import { Spinner } from "react-bootstrap";
 import Navpath from "../../components/common/Navpath";
 import AdminDashboardStats from "./AdminDashboardStats";
 
-const AdminDashboard = ({ user }) => {
+const AdminDashboard = () => {
   const [dashboardLoading, setDashboardLoading] = useState(false);
 
   return (
@@ -21,7 +21,7 @@ const AdminDashboard = ({ user }) => {
               </Spinner>
             </div>
           ) : (
-            <AdminDashboardStats user={user} />
+            <AdminDashboardStats />
           )}
         </div>
       </section>

@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { Card, Container } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { useSpinner } from "../../context/SpinnerContext";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 
-const LoginPage = ({ user, setUser }) => {
-  const { setLoading } = useSpinner();
+const LoginPage = () => {
   const [isRegistering, setIsRegistering] = useState(false);
 
   return (
@@ -17,18 +15,10 @@ const LoginPage = ({ user, setUser }) => {
           style={{ width: "100%", maxWidth: isRegistering ? "700px" : "400px" }}
         >
           {isRegistering ? (
-            <RegisterForm
-              setUser={setUser}
-              setLoading={setLoading}
-              setIsRegistering={setIsRegistering}
-            />
+            <RegisterForm setIsRegistering={setIsRegistering} />
           ) : (
             <>
-              <LoginForm
-                setUser={setUser}
-                setLoading={setLoading}
-                setIsRegistering={setIsRegistering}
-              />
+              <LoginForm setIsRegistering={setIsRegistering} />
               <div className="text-center mt-2">
                 <Link to="/forgot-password">Forgot Password?</Link>
               </div>

@@ -13,7 +13,7 @@ import ReportActions from "./ReportActions";
 import ReportTable from "./ReportTable";
 import Navpath from "../../components/common/Navpath";
 
-function GenerateReports({ user }) {
+function GenerateReports() {
   const { setLoading } = useSpinner();
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -106,8 +106,14 @@ function GenerateReports({ user }) {
           ]);
           rows = audits.map((item, index) => ({
             id: index + 1,
-            user: item.userId === null ? item.details?.body?.name?.toUpperCase() : item.userId?.name?.toUpperCase(),
-            email: item.userId === null ? item.details?.body?.email : item.userId?.email,
+            user:
+              item.userId === null
+                ? item.details?.body?.name?.toUpperCase()
+                : item.userId?.name?.toUpperCase(),
+            email:
+              item.userId === null
+                ? item.details?.body?.email
+                : item.userId?.email,
             action: item.action?.toUpperCase(),
             ipAddress: item.ipAddress?.toUpperCase(),
             date: formatDate(item.createdAt),
@@ -129,11 +135,7 @@ function GenerateReports({ user }) {
 
   return (
     <div className="content-wrapper">
-      <Navpath
-        levelOne="Reports"
-        levelTwo="Home"
-        levelThree="Reports"
-      />
+      <Navpath levelOne="Reports" levelTwo="Home" levelThree="Reports" />
 
       <section className="content">
         <div className="container-fluid">

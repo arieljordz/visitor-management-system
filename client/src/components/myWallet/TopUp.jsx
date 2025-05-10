@@ -1,19 +1,19 @@
 import React, { useState } from "react";
 import { Button, Form, Row, Col, Card, Spinner, Image } from "react-bootstrap";
 import { toast } from "react-toastify";
+import { useAuth } from "../../context/AuthContext";
+import { useSpinner } from "../../context/SpinnerContext";
 import { topUp } from "../../services/balanceService";
 
 const TopUp = ({
-  user,
   paymentMethod,
   setPaymentMethod,
   paymentAccounts,
   proof,
   setProof,
-  setBalance,
-  isLoading,
-  setIsLoading,
 }) => {
+  const { user } = useAuth();
+  const { setLoading } = useSpinner();
   const [topUpAmount, setTopUpAmount] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -44,7 +44,7 @@ const TopUp = ({
     formData.append("proof", proof);
     formData.append("referenceNumber", referenceNumber);
 
-    setIsLoading(true);
+    setLoading(true);
 
     try {
       await topUp(user.userId, formData);
@@ -59,7 +59,7 @@ const TopUp = ({
         error.response?.data?.message || "Top-up failed. Please try again."
       );
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -192,13 +192,8 @@ const TopUp = ({
         </Col>
       </Row>
 
-      <Button
-        variant="success"
-        className="w-100 mt-4"
-        onClick={handleTopUp}
-        disabled={isLoading}
-      >
-        {isLoading ? <Spinner animation="border" size="sm" /> : "Submit Top-Up"}
+      <Button variant="success" className="w-100 mt-4" onClick={handleTopUp}>
+        Submit Top-Up
       </Button>
     </Form>
   );

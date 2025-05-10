@@ -4,7 +4,7 @@ import Navpath from "../../components/common/Navpath";
 import QRScanner from "./QRScanner";
 
 
-function ScanQR({ user }) {
+function ScanQR() {
   return (
     <div>
       <div className="content-wrapper">

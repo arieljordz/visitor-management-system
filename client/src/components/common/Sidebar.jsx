@@ -6,12 +6,14 @@ import NavItem from "./NavItem";
 import { logout } from "../../services/userService";
 import { getMenuByRole } from "../../services/menuConfigService";
 import { UserRoleEnum } from "../../enums/enums";
+import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useFeatureFlags } from "../../context/FeatureFlagContext";
 import { useSettings } from "../../context/SettingsContext";
 
-const Sidebar = ({ user }) => {
-  const { darkMode, toggleTheme } = useTheme();
+const Sidebar = () => {
+  const { user } = useAuth();
+  const { darkMode } = useTheme();
   const { settings } = useSettings();
   const { flags: featureFlags, loading: flagsLoading } = useFeatureFlags();
   const [showModal, setShowModal] = useState(false);
@@ -89,8 +91,9 @@ const Sidebar = ({ user }) => {
       return isFeatureEnabled(item.label) ? item : null;
     })
     .filter(Boolean);
-    
-  const navBarColor = settings?.navBarColor ?? localStorage.getItem("navBarColor");
+
+  const navBarColor =
+    settings?.navBarColor ?? localStorage.getItem("navBarColor");
 
   const sideBarColorClass = navBarColor
     ? settings.navBarColor

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
 import { getDashboardStats } from "../../services/dashboardService.js";
 
 const StatBox = ({ count, label, icon, bg }) => (
@@ -18,7 +19,8 @@ const StatBox = ({ count, label, icon, bg }) => (
   </div>
 );
 
-const AdminDashboardStats = ({ user }) => {
+const AdminDashboardStats = () => {
+  const { user } = useAuth();
   const [dashboardStats, setDashboardStats] = useState(null);
 
   useEffect(() => {
