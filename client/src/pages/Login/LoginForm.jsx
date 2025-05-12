@@ -4,11 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert } from "react-bootstrap";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
+import { useSpinner } from "../../context/SpinnerContext";
 import { UserRoleEnum, PasswordEnum } from "../../enums/enums.js";
 
 const LoginForm = ({ setIsRegistering }) => {
   const navigate = useNavigate();
   const { login, googleLogin } = useAuth();
+  const { setLoading } = useSpinner();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,43 +18,51 @@ const LoginForm = ({ setIsRegistering }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await login(email, password, navigate);
-    if (!result.success) {
-      setMessage(result.message || "Login failed");
+    setMessage("");
+    setLoading(true);
+
+    try {
+      const result = await login(email, password, navigate);
+      if (!result.success) {
+        setMessage(result.message || "Login failed");
+      }
+    } catch (err) {
+      setMessage("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
     }
   };
 
-const handleGoogleSuccess = async ({ credential }) => {
-  if (!credential) {
-    setMessage("Google login failed: No credential provided");
-    return;
-  }
-
-  try {
-    const decoded = jwtDecode(credential);
-    // console.log("Google JWT decoded:", decoded);
-
-    // Construct the user data expected by your backend
-    const userPayload = {
-    name: decoded.name,
-    password: PasswordEnum.DEFAULT_PASS,
-    email: decoded.email,
-    picture: decoded.picture,
-    role: UserRoleEnum.SUBSCRIBER,
-    address: "N/A",
-    };
-
-    const result = await googleLogin(userPayload, navigate);
-    // console.log("result:", result);
-    if (!result.success) {
-      setMessage(result.message || "Google login failed");
+  const handleGoogleSuccess = async ({ credential }) => {
+    if (!credential) {
+      setMessage("Google login failed: No credential provided");
+      return;
     }
-  } catch (error) {
-    console.error("Error decoding Google credential:", error);
-    setMessage("Google login failed: Invalid credential");
-  }
-};
 
+    setLoading(true);
+    try {
+      const decoded = jwtDecode(credential);
+
+      const userPayload = {
+        name: decoded.name,
+        password: PasswordEnum.DEFAULT_PASS,
+        email: decoded.email,
+        picture: decoded.picture,
+        role: UserRoleEnum.SUBSCRIBER,
+        address: "N/A",
+      };
+
+      const result = await googleLogin(userPayload, navigate);
+      if (!result.success) {
+        setMessage(result.message || "Google login failed");
+      }
+    } catch (error) {
+      console.error("Error decoding Google credential:", error);
+      setMessage("Google login failed: Invalid credential");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>

@@ -1,7 +1,7 @@
 import React from "react";
 import { useAuth } from "../../context/AuthContext";
 import { UserRoleEnum } from "../../enums/enums.js";
-import Restricted from "../../Pages/Restricted/Restricted.jsx";
+import Restricted from "../../pages/Restricted/Restricted.jsx";
 
 const AccessControlWrapper = ({ children }) => {
   const { user } = useAuth();
