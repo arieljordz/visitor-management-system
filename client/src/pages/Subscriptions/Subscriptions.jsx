@@ -15,6 +15,7 @@ import {
   deleteUser,
 } from "../../services/userService.js";
 import { StatusEnum, UserRoleEnum } from "../../enums/enums.js";
+import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
 
 function Subscriptions() {
   const { user } = useAuth();
@@ -129,7 +130,7 @@ function Subscriptions() {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div>
+    <AccessControlWrapper>
       <div className="content-wrapper">
         {/* Content Header */}
         <Navpath
@@ -196,7 +197,7 @@ function Subscriptions() {
           </div>
         </section>
       </div>
-    </div>
+    </AccessControlWrapper>
   );
 }
 

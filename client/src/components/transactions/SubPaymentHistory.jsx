@@ -1,42 +1,36 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext.jsx";
+import Navpath from "../common/Navpath.jsx";
+import Search from "../common/Search.jsx";
+import Paginations from "../common/Paginations.jsx";
 import { Card, Row, Col } from "react-bootstrap";
-import { useAuth } from "../../context/AuthContext";
-import Navpath from "../../components/common/Navpath";
-import Search from "../../components/common/Search";
-import Paginations from "../../components/common/Paginations";
-import ProofsTable from "../../components/fileMaintenance/tables/ProofsTable";
-import ProofsModal from "../../components/verifications/modals/ProofsModal";
-import { getPaymentProofs } from "../../services/paymentDetailService.js";
+import PaymentHistoryTable from "./tables/PaymentHistoryTable.jsx";
+import { getPaymentDetailsById } from "../../services/paymentDetailService.js";
 import { PaymentStatusEnum } from "../../enums/enums.js";
-import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
+import AccessControlWrapper from "../common/AccessControlWrapper.jsx";
 
-function FMProofs() {
+function SubPaymentHistory() {
   const { user } = useAuth();
-  const [proofs, setProofs] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [loading, setLoading] = useState(false);
 
-  // Modal State
-  const [showModal, setShowModal] = useState(false);
-  const [imageProof, setImageProof] = useState("");
-  const [txnId, setTxnId] = useState("");
-
   useEffect(() => {
     if (user?.userId) {
-      fetchProofs();
+      fetchTransactions();
     }
   }, [user]);
 
-  const fetchProofs = async () => {
+  const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const data = await getPaymentProofs();
-      // console.log("Fetched Proofs:", data);
-      setProofs(data);
+      const data = await getPaymentDetailsById(user.userId);
+      // console.log("Fetched Transactions:", data);
+      setTransactions(data);
     } catch (err) {
-      console.error("Failed to fetch proofs:", err);
+      console.error("Failed to fetch transactions:", err);
     } finally {
       setLoading(false);
     }
@@ -57,55 +51,56 @@ function FMProofs() {
     }
   };
 
-  // Filter proofs by search term
-  const filteredProofs = proofs.filter((obj) => {
+  // Filter transactions by search term
+  const filteredData = transactions.filter((txn) => {
+    const fullName = `${txn.visitorId?.firstName || ""} ${
+      txn.visitorId?.lastName || ""
+    }`.trim();
+
     const values = [
-      obj._id?.slice(-6),
-      obj.transaction,
-      obj.amount?.toString(),
-      obj.paymentMethod,
-      obj.proofOfPayment,
-      new Date(obj.paymentDate).toLocaleString(),
-      obj.status,
+      txn._id?.slice(-6),
+      txn.transaction,
+      txn.amount?.toString(),
+      txn.paymentMethod,
+      new Date(txn.paymentDate).toLocaleString(),
+      txn.status,
+      txn.visitorId?.firstName,
+      txn.visitorId?.lastName,
+      fullName,
+      txn.visitorId?.groupName,
+      txn.userId?.name,
     ];
+
     return values.some((val) =>
-      val?.toLowerCase().includes(searchTerm.toLowerCase())
+      String(val).toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
   // Determine actual items per page
   const itemsPerPageValue =
-    itemsPerPage === "All" ? filteredProofs.length : itemsPerPage;
+    itemsPerPage === "All" ? filteredData.length : itemsPerPage;
 
   // Calculate indices based on itemsPerPageValue
   const indexOfLastItem = currentPage * itemsPerPageValue;
   const indexOfFirstItem = indexOfLastItem - itemsPerPageValue;
 
-  // Slice proofs accordingly
-  const currentData = filteredProofs.slice(indexOfFirstItem, indexOfLastItem);
+  // Slice transactions accordingly
+  const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   // Total pages only if not showing All
   const totalPages =
-    itemsPerPage === "All"
-      ? 1
-      : Math.ceil(filteredProofs.length / itemsPerPage);
+    itemsPerPage === "All" ? 1 : Math.ceil(filteredData.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const handleViewProofImage = (imageUrl, txnId) => {
-    setImageProof(imageUrl);
-    setTxnId(txnId);
-    setShowModal(true);
-  };
 
   return (
     <AccessControlWrapper>
       <div className="content-wrapper">
         {/* Content Header */}
         <Navpath
-          levelOne="Proofs"
+          levelOne="Payment History"
           levelTwo="Home"
-          levelThree="File Maintenance"
+          levelThree="Transactions"
         />
 
         {/* Main Content */}
@@ -113,8 +108,7 @@ function FMProofs() {
           <div className="container-fluid">
             <Row className="justify-content-center">
               <Col md={8} lg={12}>
-                {/* Card with conditional dark mode styling */}
-                <Card>
+                <Card className={`shadow`}>
                   <Card.Body className="main-card">
                     {/* Search and Items per page */}
                     <Search
@@ -126,31 +120,21 @@ function FMProofs() {
                     />
 
                     {/* Table */}
-                    <ProofsTable
+                    <PaymentHistoryTable
                       loading={loading}
                       currentData={currentData}
-                      handleViewProofImage={handleViewProofImage}
                       getBadgeClass={getBadgeClass}
-                      refreshList={fetchProofs}
                     />
 
                     {/* Pagination + Count */}
                     <Paginations
                       loading={loading}
-                      filteredData={filteredProofs}
+                      filteredData={filteredData}
                       currentPage={currentPage}
                       totalPages={totalPages}
                       indexOfFirstItem={indexOfFirstItem}
                       indexOfLastItem={indexOfLastItem}
                       paginate={paginate}
-                    />
-
-                    {/* Modal to view the Proof*/}
-                    <ProofsModal
-                      show={showModal}
-                      setShowModal={setShowModal}
-                      imageProof={imageProof}
-                      txnId={txnId}
                     />
                   </Card.Body>
                 </Card>
@@ -163,4 +147,4 @@ function FMProofs() {
   );
 }
 
-export default FMProofs;
+export default SubPaymentHistory;

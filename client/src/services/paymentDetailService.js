@@ -33,3 +33,14 @@ export const updateVerificationStatus = async (id, verificationStatus, reason = 
   return response;
 };
 
+export const updateSubscriptionStatus = async (id, verificationStatus, reason = "") => {
+  const payload = { verificationStatus };
+
+  if (verificationStatus === "declined" && reason) {
+    payload.reason = reason;
+  }
+
+  const response = await api.put(`/api/subscription-verification/${id}`, payload);
+  return response;
+};
+

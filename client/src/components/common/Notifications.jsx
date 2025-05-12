@@ -90,9 +90,9 @@ const Notifications = ({ user, textColorClass }) => {
     }
   };
 
-  const handleNotificationClick = (message) => {
-    if (user.role === UserRoleEnum.ADMIN && message.toLowerCase().includes("top-up")) {
-      navigate("/admin/verifications");
+  const handleNotificationClick = () => {
+    if (user.role === UserRoleEnum.ADMIN) {
+      navigate("/verifications");
     } else {
       navigate("/dashboard");
     }
@@ -129,7 +129,7 @@ const Notifications = ({ user, textColorClass }) => {
             <div key={n._id} className="d-flex flex-column">
               <button
                 className="dropdown-item d-flex justify-content-between align-items-start"
-                onClick={() => handleNotificationClick(n.message)}
+                onClick={() => handleNotificationClick()}
                 style={{ border: "none", background: "none", textAlign: "left" }}
               >
                 <div className="d-flex align-items-start">

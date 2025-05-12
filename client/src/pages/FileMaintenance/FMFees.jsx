@@ -11,6 +11,7 @@ import FeesTable from "../../components/fileMaintenance/tables/FeesTable";
 import FeeModal from "../../components/fileMaintenance/modals/FeeModal";
 import { getFees, getFeeById, deleteFee } from "../../services/feeService.js";
 import { StatusEnum } from "../../enums/enums.js";
+import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
 
 function FMFees() {
   const { user } = useAuth();
@@ -125,7 +126,7 @@ function FMFees() {
   // console.log("filteredData:", filteredData);
 
   return (
-    <div>
+    <AccessControlWrapper>
       <div className="content-wrapper">
         {/* Content Header */}
         <Navpath
@@ -192,7 +193,7 @@ function FMFees() {
           </div>
         </section>
       </div>
-    </div>
+    </AccessControlWrapper>
   );
 }
 

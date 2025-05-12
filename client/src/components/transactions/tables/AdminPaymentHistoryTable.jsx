@@ -2,6 +2,7 @@ import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 
 const AdminPaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
+    // console.log("currentData:", currentData);
   return loading ? (
     <div className="text-center my-4">
       <Spinner animation="border" />

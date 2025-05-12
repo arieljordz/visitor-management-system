@@ -14,8 +14,8 @@ const PaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
           <tr>
             <th className="text-center">#</th>
             <th className="text-center">TransactionID</th>
-            <th className="text-center">Visitor Type</th>
-            <th className="text-center">Name/Group</th>
+            {/* <th className="text-center">Visitor Type</th>
+            <th className="text-center">Name/Group</th> */}
             <th className="text-center">Transaction</th>
             <th className="text-right">Amount</th>
             <th className="text-center">Payment Method</th>
@@ -31,7 +31,7 @@ const PaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
                 <td className="text-center">
                   {txn._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">
+                {/* <td className="text-center">
                   {txn.visitorId?.visitorType.toUpperCase()}
                 </td>
                 <td className="text-center">
@@ -40,7 +40,7 @@ const PaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
                         txn.visitorId?.lastName.toUpperCase() || ""
                       }`
                     : txn.visitorId?.groupName.toUpperCase()}
-                </td>
+                </td> */}
                 <td
                   className={`text-center ${
                     txn.transaction.toLowerCase() === "credit"

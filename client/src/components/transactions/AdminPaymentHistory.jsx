@@ -1,41 +1,36 @@
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col } from "react-bootstrap";
-import { useAuth } from "../../context/AuthContext";
-import Navpath from "../../components/common/Navpath";
-import Search from "../../components/common/Search";
-import Paginations from "../../components/common/Paginations";
-import AdminGeneratedQRCodeTable from "../../components/adminTransactions/tables/AdminGeneratedQRCodeTable";
-import QRCodeModal from "../../components/adminTransactions/modals/QRCodeModal";
-import { getGeneratedQRCodes } from "../../services/qrService.js";
-import { QRStatusEnum } from "../../enums/enums.js";
+import { useAuth } from "../../context/AuthContext.jsx";
+import Navpath from "../common/Navpath.jsx";
+import Search from "../common/Search.jsx";
+import Paginations from "../common/Paginations.jsx";
+import AdminPaymentHistoryTable from "../../components/transactions/tables/AdminPaymentHistoryTable";
+import { getPaymentDetails } from "../../services/paymentDetailService.js";
+import { PaymentStatusEnum } from "../../enums/enums.js";
+import AccessControlWrapper from "../common/AccessControlWrapper.jsx";
 
-function AdminGeneratedQRCodes() {
+function AdminPaymentHistory() {
   const { user } = useAuth();
-  const [qRCodes, setQRCodes] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [loading, setLoading] = useState(false);
 
-  // Modal State
-  const [showModal, setShowModal] = useState(false);
-  const [qrImageUrl, setQrImageUrl] = useState("");
-  const [txnId, setTxnId] = useState("");
-
   useEffect(() => {
     if (user?.userId) {
-      fetchQRCodes();
+      fetchTransactions();
     }
   }, [user]);
 
-  const fetchQRCodes = async () => {
+  const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const data = await getGeneratedQRCodes();
-      // console.log("Fetched qRCodes:", data);
-      setQRCodes(data);
+      const data = await getPaymentDetails();
+      // console.log("Fetched Transactions:", data);
+      setTransactions(data);
     } catch (err) {
-      console.error("Failed to fetch qRCodes:", err);
+      console.error("Failed to fetch transactions:", err);
     } finally {
       setLoading(false);
     }
@@ -43,21 +38,21 @@ function AdminGeneratedQRCodes() {
 
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
-      case QRStatusEnum.PENDING:
-        return "warning";
-      case QRStatusEnum.ACTIVE:
+      case PaymentStatusEnum.COMPLETED:
         return "success";
-      case QRStatusEnum.USED:
-        return "primary";
-      case QRStatusEnum.EXPIRED:
+      case PaymentStatusEnum.PENDING:
+        return "warning";
+      case PaymentStatusEnum.FAILED:
         return "danger";
+      case PaymentStatusEnum.CANCELLED:
+        return "secondary";
       default:
         return "dark";
     }
   };
 
-  // Filter qRCodes by search term
-  const filteredData = qRCodes.filter((txn) => {
+  // Filter transactions by search term
+  const filteredData = transactions.filter((txn) => {
     const fullName = `${txn.visitorId?.firstName || ""} ${
       txn.visitorId?.lastName || ""
     }`.trim();
@@ -73,8 +68,6 @@ function AdminGeneratedQRCodes() {
       txn.visitorId?.lastName,
       fullName,
       txn.visitorId?.groupName,
-      txn.visitorId?.purpose,
-      txn.visitorId?.visitorType,
       txn.userId?.name,
     ];
 
@@ -91,7 +84,7 @@ function AdminGeneratedQRCodes() {
   const indexOfLastItem = currentPage * itemsPerPageValue;
   const indexOfFirstItem = indexOfLastItem - itemsPerPageValue;
 
-  // Slice qRCodes accordingly
+  // Slice transactions accordingly
   const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   // Total pages only if not showing All
@@ -100,18 +93,12 @@ function AdminGeneratedQRCodes() {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  const handleViewQRCode = (imageUrl, txnId) => {
-    setQrImageUrl(imageUrl);
-    setTxnId(txnId);
-    setShowModal(true);
-  };
-
   return (
-    <div>
+    <AccessControlWrapper>
       <div className="content-wrapper">
         {/* Content Header */}
         <Navpath
-          levelOne="Generated QR Codes"
+          levelOne="Payment History"
           levelTwo="Home"
           levelThree="Transactions"
         />
@@ -134,10 +121,9 @@ function AdminGeneratedQRCodes() {
                     />
 
                     {/* Table */}
-                    <AdminGeneratedQRCodeTable
+                    <AdminPaymentHistoryTable
                       loading={loading}
                       currentData={currentData}
-                      handleViewQRCode={handleViewQRCode}
                       getBadgeClass={getBadgeClass}
                     />
 
@@ -151,13 +137,6 @@ function AdminGeneratedQRCodes() {
                       indexOfLastItem={indexOfLastItem}
                       paginate={paginate}
                     />
-                    {/* Modal to view the QR code */}
-                    <QRCodeModal
-                      show={showModal}
-                      setShowModal={setShowModal}
-                      qrImageUrl={qrImageUrl}
-                      txnId={txnId}
-                    />
                   </Card.Body>
                 </Card>
               </Col>
@@ -165,8 +144,8 @@ function AdminGeneratedQRCodes() {
           </div>
         </section>
       </div>
-    </div>
+    </AccessControlWrapper>
   );
 }
 
-export default AdminGeneratedQRCodes;
+export default AdminPaymentHistory;

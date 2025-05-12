@@ -15,6 +15,7 @@ import {
   deleteClassification,
 } from "../../services/classificationService.js";
 import { StatusEnum } from "../../enums/enums.js";
+import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
 
 function FMClassification() {
   const { user } = useAuth();
@@ -124,7 +125,7 @@ function FMClassification() {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div>
+    <AccessControlWrapper>
       <div className="content-wrapper">
         {/* Content Header */}
         <Navpath
@@ -191,7 +192,7 @@ function FMClassification() {
           </div>
         </section>
       </div>
-    </div>
+    </AccessControlWrapper>
   );
 }
 

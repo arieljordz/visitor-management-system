@@ -52,5 +52,6 @@ export const buildResponse = (user, token) => ({
   role: user.role,
   address: user.address,
   verified: user.verified,
+  subscription: user.subscription,
   sessionToken: user.sessionToken,
 });

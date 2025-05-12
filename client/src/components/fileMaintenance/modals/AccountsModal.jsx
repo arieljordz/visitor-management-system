@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
+import { useAuth } from "../../../context/AuthContext";
 import { updateUser, createUser } from "../../../services/userService.js";
 import { StatusEnum, UserRoleEnum } from "../../../enums/enums.js";
 
 const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
+  const { user } = useAuth();
   const initialFormData = {
     email: "",
     name: "",
     address: "",
-    role: UserRoleEnum.SUBSCRIBER,
+    role: "",
     status: StatusEnum.ACTIVE,
     classification: "",
     subscription: false,
@@ -24,7 +26,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
         email: selectedRow.email || "",
         name: selectedRow.name || "",
         address: selectedRow.address || "",
-        role: selectedRow.role || UserRoleEnum.SUBSCRIBER,
+        role: selectedRow.role || "",
         status: selectedRow.status || StatusEnum.ACTIVE,
         classification: selectedRow.classification || "",
         subscription: selectedRow.subscription || false,
@@ -40,7 +42,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
       email: "",
       name: "",
       address: "",
-      role: UserRoleEnum.SUBSCRIBER,
+      role: "",
       status: StatusEnum.ACTIVE,
       classification: "",
       subscription: false,
@@ -163,15 +165,24 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
                   className="form-control"
                   required
                 >
-                  {/* <option value={UserRoleEnum.ADMIN}>
-                    {UserRoleEnum.ADMIN.toUpperCase()}
-                  </option> */}
-                  <option value={UserRoleEnum.SUBSCRIBER}>
-                    {UserRoleEnum.SUBSCRIBER.toUpperCase()}
-                  </option>
-                  <option value={UserRoleEnum.STAFF}>
-                    {UserRoleEnum.STAFF.toUpperCase()}
-                  </option>
+                   <option value="">-- Select Role --</option>
+                  {user?.role === UserRoleEnum.ADMIN ? (
+                    <>
+                      <option value={UserRoleEnum.ADMIN}>
+                        {UserRoleEnum.ADMIN.toUpperCase()}
+                      </option>
+                      <option value={UserRoleEnum.SUBSCRIBER}>
+                        {UserRoleEnum.SUBSCRIBER.toUpperCase()}
+                      </option>
+                      <option value={UserRoleEnum.STAFF}>
+                        {UserRoleEnum.STAFF.toUpperCase()}
+                      </option>
+                    </>
+                  ) : (
+                    <option value={UserRoleEnum.STAFF}>
+                      {UserRoleEnum.STAFF.toUpperCase()}
+                    </option>
+                  )}
                 </Form.Select>
               </Form.Group>
             </Col>

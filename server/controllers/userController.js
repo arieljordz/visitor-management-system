@@ -128,11 +128,11 @@ export const googleLogin = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // if (isNewUser || !user.verified) {
-    //   await sendVerificationEmail({ name, email });
-    // }
+    if (isNewUser || !user.verified) {
+      await sendVerificationEmail({ name, email });
+    }
 
-    // console.log("safeUser:", safeUser);
+    console.log("safeUser:", safeUser);
     res.status(200).json(buildResponse(safeUser, accessToken));
   } catch (error) {
     console.error("Google Login Error:", error);
@@ -313,6 +313,7 @@ export const createUser = async (req, res) => {
       status = StatusEnum.ACTIVE,
     } = req.body;
 
+    console.log("role:", role);
     let subscriberId = null;
 
     if (role !== UserRoleEnum.SUBSCRIBER) {

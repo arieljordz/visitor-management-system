@@ -329,27 +329,17 @@ export const getGeneratedQRCodes = async (req, res) => {
       .sort({ generatedAt: -1 })
       .lean();
 
-    if (generatedQRCodes.length === 0) {
-      return res.status(404).json({
-        message: "No QR codes found.",
-      });
-    }
-
     return res.status(200).json({
-      message:
-        "Successfully fetched all generated QR codes with user details and visit information.",
+      message: "Fetched all generated QR codes.",
       data: generatedQRCodes,
     });
   } catch (error) {
     console.error("Error fetching QR codes:", error.stack);
 
-    let errorMessage = "Server error while fetching QR codes.";
-    if (error.name === "CastError") {
-      errorMessage = "Invalid data format in request.";
-    }
-
     return res.status(500).json({
-      message: errorMessage,
+      message: error.name === "CastError"
+        ? "Invalid data format in request."
+        : "Server error while fetching QR codes.",
       error: error.message,
     });
   }

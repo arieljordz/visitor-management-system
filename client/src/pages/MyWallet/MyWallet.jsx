@@ -4,6 +4,7 @@ import Navpath from "../../components/common/Navpath";
 import TopUp from "../../components/myWallet/TopUp";
 import { useAuth } from "../../context/AuthContext";
 import { getActivePaymentAccounts } from "../../services/paymentAccountService";
+import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
 
 const MyWallet = () => {
   const { user } = useAuth();
@@ -26,29 +27,31 @@ const MyWallet = () => {
   }, [user]);
 
   return (
-    <div className="content-wrapper">
-      <Navpath levelOne="My Wallet" levelTwo="Home" levelThree="My Wallet" />
+    <AccessControlWrapper>
+      <div className="content-wrapper">
+        <Navpath levelOne="My Wallet" levelTwo="Home" levelThree="My Wallet" />
 
-      <section className="content">
-        <div className="container-fluid">
-          <Row className="justify-content-center">
-            <Col md={8} lg={12}>
-              <Card>
-                <Card.Body className="main-card">
-                  <TopUp
-                    paymentMethod={paymentMethod}
-                    setPaymentMethod={setPaymentMethod}
-                    paymentAccounts={paymentAccounts}
-                    proof={proof}
-                    setProof={setProof}
-                  />
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-        </div>
-      </section>
-    </div>
+        <section className="content">
+          <div className="container-fluid">
+            <Row className="justify-content-center">
+              <Col md={8} lg={12}>
+                <Card>
+                  <Card.Body className="main-card">
+                    <TopUp
+                      paymentMethod={paymentMethod}
+                      setPaymentMethod={setPaymentMethod}
+                      paymentAccounts={paymentAccounts}
+                      proof={proof}
+                      setProof={setProof}
+                    />
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          </div>
+        </section>
+      </div>
+    </AccessControlWrapper>
   );
 };
 

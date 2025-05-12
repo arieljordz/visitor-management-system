@@ -8,6 +8,11 @@ export const getBalance = async (userId) => {
 
 export const topUp = async (userId, formData) => {
   const response = await api.post(`/api/top-up/${userId}`, formData);
-
   return response;
 };
+
+export const submitSubscription = async (userId, formData) => {
+  const response = await api.post(`/api/subscribe/${userId}`, formData);
+  return response;
+};
+

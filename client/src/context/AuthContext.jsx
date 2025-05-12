@@ -11,37 +11,44 @@ export const AuthProvider = ({ children }) => {
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
+  const storeUserData = (data) => {
+    localStorage.setItem("accessToken", data?.token);
+    localStorage.setItem("user", JSON.stringify(data));
+    setUser(data);
+  };
+
+  const handleNavigation = (user, navigate, mode) => {
+    if (mode === "google") {
+      if (!user.verified) {
+        return { success: false, message: "Account not yet verified." };
+      }
+    }
+
+    switch (user.role) {
+      case UserRoleEnum.ADMIN:
+      case UserRoleEnum.SUBSCRIBER:
+        navigate("/dashboard");
+        break;
+      case UserRoleEnum.STAFF:
+        navigate("/scan-qr");
+        break;
+      default:
+        navigate("/");
+    }
+
+    return { success: true, message: "Login successful" };
+  };
+
   const login = async (email, password, navigate) => {
     try {
-      const res = await axios.post(
+      const { data } = await axios.post(
         `${API_URL}/api/auth/login`,
         { email, password },
         { withCredentials: true }
       );
 
-      //   console.log("res:", res);
-      const loggedInUser = res.data;
-      localStorage.setItem("accessToken", res.data?.token);
-      localStorage.setItem("user", JSON.stringify(loggedInUser));
-      setUser(loggedInUser);
-
-      if (loggedInUser.verified) {
-        switch (loggedInUser.role) {
-          case UserRoleEnum.ADMIN:
-          case UserRoleEnum.SUBSCRIBER:
-            navigate("/dashboard");
-            break;
-          case UserRoleEnum.STAFF:
-            navigate("/scan-qr");
-            break;
-          default:
-            navigate("/");
-        }
-      } else {
-        navigate("/");
-      }
-
-      return { success: true, message: "Login successful" };
+      storeUserData(data);
+      return handleNavigation(data, navigate, "manual");
     } catch (err) {
       return { success: false, message: "Login failed" };
     }
@@ -49,36 +56,16 @@ export const AuthProvider = ({ children }) => {
 
   const googleLogin = async (userPayload, navigate) => {
     try {
-      const res = await axios.post(
+      const { data } = await axios.post(
         `${API_URL}/api/auth/google-login`,
         userPayload,
         { withCredentials: true }
       );
 
-      const loggedInUser = res.data;
-      localStorage.setItem("accessToken", res.data?.token);
-      localStorage.setItem("user", JSON.stringify(loggedInUser));
-      setUser(loggedInUser);
-
-      if (loggedInUser.verified) {
-        switch (loggedInUser.role) {
-          case UserRoleEnum.ADMIN:
-          case UserRoleEnum.SUBSCRIBER:
-            navigate("/dashboard");
-            break;
-          case UserRoleEnum.STAFF:
-            navigate("/scan-qr");
-            break;
-          default:
-            navigate("/");
-        }
-      } else {
-        navigate("/");
-      }
-
-      return { success: true, message: "Google login successful" };
+      storeUserData(data);
+      return handleNavigation(data, navigate, "google");
     } catch (err) {
-      console.error("googleLogin error:", err);
+      console.error("Google login error:", err);
       return { success: false, message: "Google login failed" };
     }
   };

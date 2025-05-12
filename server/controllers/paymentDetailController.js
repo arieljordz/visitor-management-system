@@ -205,6 +205,114 @@ export const updateVerificationStatus = async (req, res) => {
   }
 };
 
+export const updateSubscriptionStatus = async (req, res) => {
+  const { id } = req.params;
+  const { verificationStatus, reason = "" } = req.body;
+
+  const io = req.app.get("io");
+
+  const allowedStatuses = [
+    VerificationStatusEnum.VERIFIED,
+    VerificationStatusEnum.DECLINED,
+  ];
+
+  if (!allowedStatuses.includes(verificationStatus)) {
+    return res.status(400).json({ message: "Invalid verification status." });
+  }
+
+  try {
+    // 🔍 Find the payment (must be a CREDIT transaction)
+    const payment = await PaymentDetail.findOne({
+      _id: id,
+      transaction: TransactionEnum.CREDIT,
+    });
+
+    if (!payment) {
+      return res.status(404).json({
+        message: "Payment not found or not a credit transaction.",
+      });
+    }
+
+    if (payment.verificationStatus !== VerificationStatusEnum.PENDING) {
+      return res.status(400).json({
+        message: "Payment has already been verified or declined.",
+      });
+    }
+
+    // 🧑 Get user and their subscription
+    const user = await User.findById(payment.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const userName = user.name?.split(" ")[0] || "A user";
+
+    // ✏️ Update payment
+    payment.verificationStatus = verificationStatus;
+    payment.completedDate = new Date();
+
+    let clientMessage = "";
+    let adminMessage = "";
+
+    if (verificationStatus === VerificationStatusEnum.VERIFIED) {
+      payment.status = PaymentStatusEnum.COMPLETED;
+
+      // 🗓️ Extend or set subscription expiry (e.g., +30 days)
+      const now = new Date();
+      const currentExpiry = user.expiryDate && user.expiryDate > now ? user.expiryDate : now;
+      const newExpiry = new Date(currentExpiry);
+      newExpiry.setDate(newExpiry.getDate() + 30);
+
+      user.subscription = true;
+      user.expiryDate = newExpiry;
+      await user.save();
+
+      clientMessage = `Your subscription has been successfully activated and is valid until ${newExpiry.toLocaleDateString()}.`;
+      adminMessage = `${userName}'s subscription has been verified. Valid until ${newExpiry.toLocaleDateString()}.`;
+    } else if (verificationStatus === VerificationStatusEnum.DECLINED) {
+      payment.status = PaymentStatusEnum.CANCELLED;
+      payment.reason = reason || "No reason provided.";
+
+      clientMessage = `Your subscription payment has been declined. Reason: ${payment.reason}`;
+      adminMessage = `${userName}'s subscription payment was declined. Reason: ${payment.reason}`;
+    }
+
+    await payment.save();
+
+    // 🔔 Notify client
+    await createNotification(
+      payment.userId,
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
+      clientMessage,
+      UserRoleEnum.SUBSCRIBER
+    );
+    emitNotification(io, payment.userId, clientMessage);
+
+    // 🔔 Notify admin
+    await createNotification(
+      payment.userId,
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
+      adminMessage,
+      UserRoleEnum.ADMIN
+    );
+    emitNotification(io, UserRoleEnum.ADMIN, adminMessage);
+
+    return res.status(200).json({
+      message: `Subscription ${verificationStatus.toLowerCase()} successfully.`,
+      data: payment,
+    });
+  } catch (error) {
+    console.error("Error updating subscription status:", error);
+    return res.status(500).json({
+      message: "Server error while updating subscription status.",
+      error: error.message,
+    });
+  }
+};
+
+
 export const verifyPayment = async (req, res) => {
   const { id } = req.params;
 
@@ -330,6 +438,166 @@ export const declinePayment = async (req, res) => {
       UserRoleEnum.SUBSCRIBER
     );
     emitNotification(io, payment.userId, clientMessage);
+
+    return res.status(200).json({
+      message: "Payment declined successfully.",
+      data: payment,
+    });
+  } catch (error) {
+    console.error("Error declining payment:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error.", error: error.message });
+  }
+};
+
+export const verifySubscription = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const payment = await PaymentDetail.findOne({
+      _id: id,
+      transaction: TransactionEnum.CREDIT,
+    });
+
+    if (!payment) {
+      return res
+        .status(404)
+        .json({ message: "Payment not found or not a credit transaction." });
+    }
+
+    if (payment.verificationStatus !== VerificationStatusEnum.PENDING) {
+      return res
+        .status(400)
+        .json({ message: "Payment has already been verified or declined." });
+    }
+
+    // Update payment status
+    payment.verificationStatus = VerificationStatusEnum.VERIFIED;
+    payment.status = PaymentStatusEnum.COMPLETED;
+    payment.completedDate = new Date();
+    await payment.save();
+
+    // Update user subscription
+    const user = await User.findById(payment.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    user.subscription = true;
+
+    // Set expiry date to 30 days from now (or customize duration)
+    const currentDate = new Date();
+    const expiryDate = new Date(currentDate.setDate(currentDate.getDate() + 30));
+    user.expiryDate = expiryDate;
+
+    await user.save();
+
+    const userName = user.name.split(" ")[0] || "A user";
+
+    // Notification messages with improved grammar
+    const clientMessage = `Your subscription of ₱${payment.amount} has been successfully verified. Your subscription is now active until ${expiryDate.toLocaleDateString()}.`;
+    const adminMessage = `Subscription of ₱${payment.amount} for ${userName} has been verified. The user's subscription is now active until ${expiryDate.toLocaleDateString()}.`;
+
+    // Send notifications
+    await createNotification(
+      user._id,
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
+      clientMessage,
+      UserRoleEnum.SUBSCRIBER
+    );
+
+    await createNotification(
+      user._id,
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
+      adminMessage,
+      UserRoleEnum.ADMIN
+    );
+
+    emitNotification(io, user._id, clientMessage);
+    emitNotification(io, UserRoleEnum.ADMIN, adminMessage);
+
+    return res.status(200).json({
+      message: "Payment verified and subscription updated successfully.",
+      data: payment,
+    });
+  } catch (error) {
+    console.error("Error verifying payment:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error.", error: error.message });
+  }
+};
+
+export const declineSubscription = async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  try {
+    const payment = await PaymentDetail.findOne({
+      _id: id,
+      transaction: TransactionEnum.CREDIT,
+    });
+
+    if (!payment) {
+      return res
+        .status(404)
+        .json({ message: "Payment not found or not a credit transaction." });
+    }
+
+    if (payment.verificationStatus !== VerificationStatusEnum.PENDING) {
+      return res
+        .status(400)
+        .json({ message: "Payment has already been verified or declined." });
+    }
+
+    // Update payment status to declined
+    payment.verificationStatus = VerificationStatusEnum.DECLINED;
+    payment.status = PaymentStatusEnum.CANCELLED;
+    payment.completedDate = new Date();
+    if (reason) payment.reason = reason;
+
+    await payment.save();
+
+    const user = await User.findById(payment.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const userName = user.name.split(" ")[0] || "A user";
+
+    // Decline message with reason if provided
+    const clientMessage = `Your subscription of ₱${payment.amount} has been declined${
+      reason ? ` due to: ${reason}` : "."
+    }`;
+
+    const adminMessage = `Subscription of ₱${payment.amount} for ${userName} has been declined${
+      reason ? ` due to: ${reason}` : "."
+    }`;
+
+    // Notify client and admin
+    const io = req.app.get("io");
+
+    await createNotification(
+      payment.userId,
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
+      clientMessage,
+      UserRoleEnum.SUBSCRIBER
+    );
+
+    await createNotification(
+      payment.userId,
+      NotificationEnum.TOP_UP,
+      NotificationEnum.PAYMENT,
+      adminMessage,
+      UserRoleEnum.ADMIN
+    );
+
+    emitNotification(io, payment.userId, clientMessage);
+    emitNotification(io, UserRoleEnum.ADMIN, adminMessage);
 
     return res.status(200).json({
       message: "Payment declined successfully.",

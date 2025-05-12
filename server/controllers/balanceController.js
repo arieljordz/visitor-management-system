@@ -108,3 +108,77 @@ export const topUp = async (req, res) => {
     });
   }
 };
+
+export const submitSubscription = async (req, res) => {
+  const { userId } = req.params;
+  const { topUpAmount, paymentMethod, referenceNumber } = req.body;
+
+  const parsedAmount = parseFloat(topUpAmount);
+  if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    return res.status(400).json({
+      message: "The top-up amount must be a valid, positive number.",
+    });
+  }
+
+  try {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const proofOfPaymentPath = req.file
+      ? path.join("uploads", req.file.filename)
+      : null;
+
+    const transaction = new PaymentDetail({
+      userId: userObjectId,
+      visitorId: null,
+      amount: parsedAmount,
+      paymentMethod: paymentMethod || PaymentMethodEnum.E_WALLET,
+      transaction: TransactionEnum.CREDIT,
+      proofOfPayment: proofOfPaymentPath,
+      referenceNumber,
+      isVerified: false,
+      status: PaymentStatusEnum.PENDING,
+      paymentDate: new Date(),
+      completedDate: null,
+    });
+
+    await transaction.save();
+
+    // 🔍 Get user's name for admin notification
+    const user = await User.findById(userObjectId).lean();
+    const userName = user ? `${user.name.split(" ")[0]}` : "A user";
+
+    const clientMessage = `You have requested a subscription of ₱${parsedAmount} via ${transaction.paymentMethod}. Awaiting verification.`;
+    const adminMessage = `${userName} has requested a subscription of ₱${parsedAmount} via ${transaction.paymentMethod}. Please verify.`;
+
+    // Create notification for client
+    await createNotification(
+      userId,
+      NotificationEnum.SUBSCRIPTION,
+      NotificationEnum.PAYMENT,
+      clientMessage,
+      UserRoleEnum.SUBSCRIBER
+    );
+    emitNotification(req.app.get("io"), userId, clientMessage);
+
+    // Create and emit notification for admin
+    await createNotification(
+      userId,
+      NotificationEnum.SUBSCRIPTION,
+      NotificationEnum.PAYMENT,
+      adminMessage,
+      UserRoleEnum.ADMIN
+    );
+    emitNotification(req.app.get("io"), UserRoleEnum.ADMIN, adminMessage);
+
+    return res.status(200).json({
+      message:
+        "Subscription submitted successfully. Please await admin verification.",
+      transactionId: transaction._id,
+    });
+  } catch (error) {
+    console.error("Error during subscription:", error);
+    return res.status(500).json({
+      message:
+        "An error occurred while processing your subscription request. Please try again later.",
+    });
+  }
+};

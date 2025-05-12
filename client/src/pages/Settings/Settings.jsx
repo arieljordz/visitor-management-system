@@ -5,12 +5,13 @@ import Navpath from "../../components/common/Navpath";
 import FeatureFlagToggle from "./FeatureFlagToggle";
 import MenuSettings from "./MenuSettings";
 import SystemSettings from "./SystemSettings";
+import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
 
 function Settings() {
   const { flags } = useFeatureFlags();
   // console.log("flags:", flags);
   return (
-    <div>
+    <AccessControlWrapper>
       <div className="content-wrapper">
         {/* Content Header */}
         <Navpath levelOne="Settings" levelTwo="Home" levelThree="Settings" />
@@ -86,7 +87,7 @@ function Settings() {
           </div>
         </section>
       </div>
-    </div>
+    </AccessControlWrapper>
   );
 }
 

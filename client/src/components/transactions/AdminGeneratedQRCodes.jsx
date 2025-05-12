@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col } from "react-bootstrap";
-import { useAuth } from "../../context/AuthContext";
-import Navpath from "../../components/common/Navpath";
-import Search from "../../components/common/Search";
-import Paginations from "../../components/common/Paginations";
-import ProofsTable from "../../components/fileMaintenance/tables/ProofsTable";
-import ProofsModal from "../../components/verifications/modals/ProofsModal";
-import { getPaymentProofs } from "../../services/paymentDetailService.js";
-import { PaymentStatusEnum } from "../../enums/enums.js";
-import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import Navpath from "../common/Navpath.jsx";
+import Search from "../common/Search.jsx";
+import Paginations from "../common/Paginations.jsx";
+import AdminGeneratedQRCodeTable from "../../components/transactions/tables/AdminGeneratedQRCodeTable";
+import QRCodeModal from "../../components/transactions/modals/QRCodeModal";
+import { getGeneratedQRCodes } from "../../services/qrService.js";
+import { QRStatusEnum } from "../../enums/enums.js";
+import AccessControlWrapper from "../common/AccessControlWrapper.jsx";
 
-function FMProofs() {
+function AdminGeneratedQRCodes() {
   const { user } = useAuth();
-  const [proofs, setProofs] = useState([]);
+  const [qRCodes, setQRCodes] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -20,23 +20,23 @@ function FMProofs() {
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
-  const [imageProof, setImageProof] = useState("");
+  const [qrImageUrl, setQrImageUrl] = useState("");
   const [txnId, setTxnId] = useState("");
 
   useEffect(() => {
     if (user?.userId) {
-      fetchProofs();
+      fetchQRCodes();
     }
   }, [user]);
 
-  const fetchProofs = async () => {
+  const fetchQRCodes = async () => {
     setLoading(true);
     try {
-      const data = await getPaymentProofs();
-      // console.log("Fetched Proofs:", data);
-      setProofs(data);
+      const data = await getGeneratedQRCodes();
+      // console.log("Fetched qRCodes:", data);
+      setQRCodes(data);
     } catch (err) {
-      console.error("Failed to fetch proofs:", err);
+      console.error("Failed to fetch qRCodes:", err);
     } finally {
       setLoading(false);
     }
@@ -44,56 +44,65 @@ function FMProofs() {
 
   const getBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
-      case PaymentStatusEnum.COMPLETED:
-        return "success";
-      case PaymentStatusEnum.PENDING:
+      case QRStatusEnum.PENDING:
         return "warning";
-      case PaymentStatusEnum.FAILED:
+      case QRStatusEnum.ACTIVE:
+        return "success";
+      case QRStatusEnum.USED:
+        return "primary";
+      case QRStatusEnum.EXPIRED:
         return "danger";
-      case PaymentStatusEnum.CANCELLED:
-        return "secondary";
       default:
         return "dark";
     }
   };
 
-  // Filter proofs by search term
-  const filteredProofs = proofs.filter((obj) => {
+  // Filter qRCodes by search term
+  const filteredData = qRCodes.filter((txn) => {
+    const fullName = `${txn.visitorId?.firstName || ""} ${
+      txn.visitorId?.lastName || ""
+    }`.trim();
+
     const values = [
-      obj._id?.slice(-6),
-      obj.transaction,
-      obj.amount?.toString(),
-      obj.paymentMethod,
-      obj.proofOfPayment,
-      new Date(obj.paymentDate).toLocaleString(),
-      obj.status,
+      txn._id?.slice(-6),
+      txn.transaction,
+      txn.amount?.toString(),
+      txn.paymentMethod,
+      new Date(txn.paymentDate).toLocaleString(),
+      txn.status,
+      txn.visitorId?.firstName,
+      txn.visitorId?.lastName,
+      fullName,
+      txn.visitorId?.groupName,
+      txn.visitorId?.purpose,
+      txn.visitorId?.visitorType,
+      txn.userId?.name,
     ];
+
     return values.some((val) =>
-      val?.toLowerCase().includes(searchTerm.toLowerCase())
+      String(val).toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
   // Determine actual items per page
   const itemsPerPageValue =
-    itemsPerPage === "All" ? filteredProofs.length : itemsPerPage;
+    itemsPerPage === "All" ? filteredData.length : itemsPerPage;
 
   // Calculate indices based on itemsPerPageValue
   const indexOfLastItem = currentPage * itemsPerPageValue;
   const indexOfFirstItem = indexOfLastItem - itemsPerPageValue;
 
-  // Slice proofs accordingly
-  const currentData = filteredProofs.slice(indexOfFirstItem, indexOfLastItem);
+  // Slice qRCodes accordingly
+  const currentData = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
   // Total pages only if not showing All
   const totalPages =
-    itemsPerPage === "All"
-      ? 1
-      : Math.ceil(filteredProofs.length / itemsPerPage);
+    itemsPerPage === "All" ? 1 : Math.ceil(filteredData.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  const handleViewProofImage = (imageUrl, txnId) => {
-    setImageProof(imageUrl);
+  const handleViewQRCode = (imageUrl, txnId) => {
+    setQrImageUrl(imageUrl);
     setTxnId(txnId);
     setShowModal(true);
   };
@@ -103,9 +112,9 @@ function FMProofs() {
       <div className="content-wrapper">
         {/* Content Header */}
         <Navpath
-          levelOne="Proofs"
+          levelOne="Generated QR Codes"
           levelTwo="Home"
-          levelThree="File Maintenance"
+          levelThree="Transactions"
         />
 
         {/* Main Content */}
@@ -126,30 +135,28 @@ function FMProofs() {
                     />
 
                     {/* Table */}
-                    <ProofsTable
+                    <AdminGeneratedQRCodeTable
                       loading={loading}
                       currentData={currentData}
-                      handleViewProofImage={handleViewProofImage}
+                      handleViewQRCode={handleViewQRCode}
                       getBadgeClass={getBadgeClass}
-                      refreshList={fetchProofs}
                     />
 
                     {/* Pagination + Count */}
                     <Paginations
                       loading={loading}
-                      filteredData={filteredProofs}
+                      filteredData={filteredData}
                       currentPage={currentPage}
                       totalPages={totalPages}
                       indexOfFirstItem={indexOfFirstItem}
                       indexOfLastItem={indexOfLastItem}
                       paginate={paginate}
                     />
-
-                    {/* Modal to view the Proof*/}
-                    <ProofsModal
+                    {/* Modal to view the QR code */}
+                    <QRCodeModal
                       show={showModal}
                       setShowModal={setShowModal}
-                      imageProof={imageProof}
+                      qrImageUrl={qrImageUrl}
                       txnId={txnId}
                     />
                   </Card.Body>
@@ -163,4 +170,4 @@ function FMProofs() {
   );
 }
 
-export default FMProofs;
+export default AdminGeneratedQRCodes;

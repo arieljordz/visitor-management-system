@@ -15,15 +15,18 @@ import FMClassification from "../pages/FileMaintenance/FMClassification";
 import FMFees from "../pages/FileMaintenance/FMFees";
 import FMAccounts from "../pages/FileMaintenance/FMAccounts";
 import GenerateReports from "../pages/Reports/GenerateReports";
+import Subscribe from "../pages/Subscriptions/Subscribe";
 import Settings from "../pages/Settings/Settings";
 
 // Staff page
 import ScanQR from "../pages/ScanQR/ScanQR";
 import Subscriptions from "../pages/Subscriptions/Subscriptions";
 
+
 const MainRoutes = () => (
   <Routes>
     {/* Subscriber */}
+    {/* <Route path="/restricted" element={<Restricted/>} /> */}
     <Route path="/dashboard" element={<Dashboard/>} />
     <Route path="/payment-history" element={<PaymentHistory/>} />
     <Route path="/generated-qr-codes" element={<GeneratedQRCodes/>} />
@@ -39,6 +42,7 @@ const MainRoutes = () => (
     <Route path="/file-maintenance/accounts" element={<FMAccounts/>} />
     <Route path="/subscriptions" element={<Subscriptions/>} />
     <Route path="/generate-reports" element={<GenerateReports/>} />
+    <Route path="/subscribe" element={<Subscribe/>} />
     <Route path="/settings" element={<Settings/>} />
 
     {/* Staff */}

@@ -15,6 +15,7 @@ import {
   deletePaymentAccount,
 } from "../../services/paymentAccountService.js";
 import { StatusEnum } from "../../enums/enums.js";
+import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
 
 function FMPaymentAccount() {
   const { user } = useAuth();
@@ -128,7 +129,7 @@ function FMPaymentAccount() {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div>
+    <AccessControlWrapper>
       <div className="content-wrapper">
         {/* Content Header */}
         <Navpath
@@ -195,7 +196,7 @@ function FMPaymentAccount() {
           </div>
         </section>
       </div>
-    </div>
+    </AccessControlWrapper>
   );
 }
 

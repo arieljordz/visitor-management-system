@@ -84,7 +84,7 @@ const SubscriberModal = ({ show, onHide, selectedRow, refreshList }) => {
       resetForm();
     } catch (error) {
       console.error("Error saving user:", error);
-      toast.error("Error saving user.");
+      toast.error(error?.response?.data?.message);
     }
   };
 

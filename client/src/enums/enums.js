@@ -52,6 +52,7 @@ export const TransactionEnum = Object.freeze({
 export const NotificationEnum = Object.freeze({
   TOP_UP: "top-up",
   PAYMENT: "payment",
+  SUBSCRIPTION: "subscription",
 });
 
 export const FeeCodeEnum = Object.freeze({

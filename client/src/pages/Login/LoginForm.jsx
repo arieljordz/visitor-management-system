@@ -30,7 +30,7 @@ const handleGoogleSuccess = async ({ credential }) => {
 
   try {
     const decoded = jwtDecode(credential);
-    console.log("Google JWT decoded:", decoded);
+    // console.log("Google JWT decoded:", decoded);
 
     // Construct the user data expected by your backend
     const userPayload = {
@@ -43,7 +43,7 @@ const handleGoogleSuccess = async ({ credential }) => {
     };
 
     const result = await googleLogin(userPayload, navigate);
-    console.log("result:", result);
+    // console.log("result:", result);
     if (!result.success) {
       setMessage(result.message || "Google login failed");
     }

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
-import { useSpinner } from "../../context/SpinnerContext";
 import {
   getVisitorsByDateRange,
   getPaymentDetailsByDateRange,
@@ -12,13 +11,13 @@ import ReportFilters from "./ReportFilters";
 import ReportActions from "./ReportActions";
 import ReportTable from "./ReportTable";
 import Navpath from "../../components/common/Navpath";
+import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
 
 function GenerateReports() {
-  const { setLoading } = useSpinner();
+  const [loading, setLoading] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [reportType, setReportType] = useState("visitor");
-  const [isGenerating, setIsGenerating] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [columns, setColumns] = useState([]);
 
@@ -27,12 +26,14 @@ function GenerateReports() {
     setReportData(null);
   }, [reportType]);
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (e) => {
+    e.preventDefault();
+
     if (!dateFrom || !dateTo)
       return toast.warning("Please select a date range.");
-    setIsGenerating(true);
-    setLoading(true);
+
     try {
+      setLoading(true);
       let rows = [];
       let title = "";
 
@@ -128,72 +129,73 @@ function GenerateReports() {
       console.error("Error generating report:", error);
       toast.error("Failed to generate report.");
     } finally {
-      setIsGenerating(false);
       setLoading(false);
     }
   };
 
   return (
-    <div className="content-wrapper">
-      <Navpath levelOne="Reports" levelTwo="Home" levelThree="Reports" />
+    <AccessControlWrapper>
+      <div className="content-wrapper">
+        <Navpath levelOne="Reports" levelTwo="Home" levelThree="Reports" />
 
-      <section className="content">
-        <div className="container-fluid">
-          <Row className="justify-content-center">
-            <Col md={8} lg={12}>
-              <Card>
-                <Card.Body className="main-card">
-                  <section className="content">
-                    <div className="container-fluid">
-                      <div className="card card-primary card-outline">
-                        <div className="card-body">
-                          <ReportFilters
-                            dateFrom={dateFrom}
-                            setDateFrom={setDateFrom}
-                            dateTo={dateTo}
-                            setDateTo={setDateTo}
-                            reportType={reportType}
-                            setReportType={setReportType}
-                            onGenerate={handleGenerate}
-                            isGenerating={isGenerating}
-                          />
-                        </div>
-                      </div>
-
-                      {reportData && (
-                        <div className="card mt-3">
-                          <div className="card-header align-items-center">
-                            <h3 className="card-title pt-1">
-                              {reportData.title}
-                            </h3>
-                            <ReportActions
-                              reportData={reportData}
-                              columns={columns}
+        <section className="content">
+          <div className="container-fluid">
+            <Row className="justify-content-center">
+              <Col md={8} lg={12}>
+                <Card>
+                  <Card.Body className="main-card">
+                    <section className="content">
+                      <div className="container-fluid">
+                        <div className="card card-primary card-outline">
+                          <div className="card-body">
+                            <ReportFilters
+                              dateFrom={dateFrom}
+                              setDateFrom={setDateFrom}
+                              dateTo={dateTo}
+                              setDateTo={setDateTo}
+                              reportType={reportType}
+                              setReportType={setReportType}
+                              onGenerate={handleGenerate}
+                              loading={loading}
                             />
                           </div>
-                          <div className="card-body p-0">
-                            {reportData.rows.length === 0 ? (
-                              <div className="alert alert-warning text-center m-3">
-                                No data found for selected range.
-                              </div>
-                            ) : (
-                              <ReportTable
-                                rows={reportData.rows}
+                        </div>
+
+                        {reportData && (
+                          <div className="card mt-3">
+                            <div className="card-header align-items-center">
+                              <h3 className="card-title pt-1">
+                                {reportData.title}
+                              </h3>
+                              <ReportActions
+                                reportData={reportData}
                                 columns={columns}
                               />
-                            )}
+                            </div>
+                            <div className="card-body p-0">
+                              {reportData.rows.length === 0 ? (
+                                <div className="alert alert-warning text-center m-3">
+                                  No data found for selected range.
+                                </div>
+                              ) : (
+                                <ReportTable
+                                  rows={reportData.rows}
+                                  columns={columns}
+                                />
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  </section>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-        </div>
-      </section>
-    </div>
+                        )}
+                      </div>
+                    </section>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          </div>
+        </section>
+      </div>
+    </AccessControlWrapper>
   );
 }
 

@@ -15,6 +15,7 @@ import {
   deleteUser,
 } from "../../services/userService.js";
 import { StatusEnum, UserRoleEnum } from "../../enums/enums.js";
+import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
 
 function FMAccounts() {
   const { user } = useAuth();
@@ -37,10 +38,18 @@ function FMAccounts() {
   const fetchAccounts = async () => {
     setLoading(true);
     try {
-      const data = await getUsersByRole(
-        UserRoleEnum.SUBSCRIBER,
-        UserRoleEnum.STAFF
-      );
+      let data;
+
+      if (user.role === UserRoleEnum.ADMIN) {
+        data = await getUsersByRole(
+          UserRoleEnum.ADMIN,
+          UserRoleEnum.SUBSCRIBER,
+          UserRoleEnum.STAFF
+        );
+      } else {
+        data = await getUsersByRole(UserRoleEnum.STAFF);
+      }
+
       setAccounts(data);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -132,7 +141,7 @@ function FMAccounts() {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div>
+    <AccessControlWrapper>
       <div className="content-wrapper">
         {/* Content Header */}
         <Navpath
@@ -200,7 +209,7 @@ function FMAccounts() {
           </div>
         </section>
       </div>
-    </div>
+    </AccessControlWrapper>
   );
 }
 

@@ -22,7 +22,11 @@ import {
   getGeneratedQRCodesById,
   checkActiveQRCodeForVisit,
 } from "../controllers/qrController.js";
-import { getBalance, topUp } from "../controllers/balanceController.js";
+import { 
+  getBalance,
+  topUp, 
+  submitSubscription
+ } from "../controllers/balanceController.js";
 import {
   getPaymentDetails,
   getPaymentDetailsById,
@@ -31,6 +35,9 @@ import {
   updateVerificationStatus,
   verifyPayment,
   declinePayment,
+  verifySubscription,
+  declineSubscription,
+  updateSubscriptionStatus,
 } from "../controllers/paymentDetailController.js";
 import {
   createPaymentMethod,
@@ -139,6 +146,7 @@ router.get("/check-active-qr/:userId/:visitorId/:visitdetailsId", authenticate, 
 // Balance Routes
 router.get("/check-balance/:userId", authenticate, getBalance);
 router.post("/top-up/:userId", authenticate, auditLogger("TOPUP_BALANCE"), upload.single("proof"), topUp);
+router.post("/subscribe/:userId", authenticate, auditLogger("SUBSCRIBE"), upload.single("proof"), submitSubscription);
 
 // PaymentDetail Routes
 router.get("/get-payment-details", authenticate, checkFeature("enableSubscriptions"), getPaymentDetails);
@@ -146,8 +154,11 @@ router.get("/get-payment-details/:userId", authenticate, checkFeature("enableSub
 router.get("/get-payment-proofs", authenticate, checkFeature("enableSubscriptions"), getPaymentProofs);
 router.delete("/delete-payment-proofs", authenticate, auditLogger("DELETE_PAYMENT"), deletePaymentProofs);
 router.put("/update-verification/:id", authenticate, auditLogger("UPDATE_PAYMENT"), updateVerificationStatus);
+router.put("/subscription-verification/:id", authenticate, auditLogger("UPDATE_PAYMENT"), updateSubscriptionStatus);
 router.put("/payment-verification-verify/:id", authenticate, auditLogger("VERIFY_PAYMENT"), verifyPayment);
 router.put("/payment-verification-decline/:id", authenticate, auditLogger("DECLINE_PAYMENT"), declinePayment);
+router.put("/subscription-verification-verify/:id", authenticate, auditLogger("VERIFY_SUBSCRIPTION"), verifySubscription);
+router.put("/subscription-verification-decline/:id", authenticate, auditLogger("DECLINE_SUBSCRIPTION"), declineSubscription);
 
 // PaymentMethod Routes
 router.post("/create-payment-method", authenticate, auditLogger("CREATE_PAYMENT_METHOD"), createPaymentMethod);

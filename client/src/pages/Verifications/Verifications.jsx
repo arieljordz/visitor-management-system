@@ -3,6 +3,7 @@ import { Row, Col, Card } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
+import { useFeatureFlags } from "../../context/FeatureFlagContext";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
@@ -11,11 +12,13 @@ import ProofsModal from "../../components/verifications/modals/ProofsModal";
 import {
   getPaymentProofs,
   updateVerificationStatus,
+  updateSubscriptionStatus,
 } from "../../services/paymentDetailService.js";
 import { VerificationStatusEnum } from "../../enums/enums.js";
 
 function Verifications() {
   const { user } = useAuth();
+  const { flags } = useFeatureFlags();
   const [proofs, setProofs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -96,7 +99,12 @@ function Verifications() {
         }
 
         try {
-          await updateVerificationStatus(id, verificationStatus, reason);
+          const handler = flags.enableSubscriptions
+            ? updateSubscriptionStatus
+            : updateVerificationStatus;
+
+          await handler(id, verificationStatus, reason);
+
           toast.success(`Payment ${verificationStatus} successfully.`);
           fetchProofs();
         } catch (err) {
