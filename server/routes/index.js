@@ -63,10 +63,10 @@ import {
 } from "../controllers/classificationController.js";
 import {
   getAllVisitors,
-  getVisitorById,
+  getVisitorDetailById,
   getVisitorByUserId,
-  deleteVisitorById,
-  updateVisitorById,
+  deleteVisitDetail,
+  updateVisitor,
   searchVisitor,
   getVisitorNames,
   createVisitorDetail,
@@ -185,10 +185,10 @@ router.put("/update-classification/:id", authenticate, auditLogger("UPDATE_CLASS
 
 // Visitor Routes
 router.get("/get-visitors", authenticate, getAllVisitors);
-router.get("/get-visitor/:id", authenticate, getVisitorById);
+router.get("/get-visitor/:id", authenticate, getVisitorDetailById);
 router.get("/get-visitor-by-user/:userId", authenticate, getVisitorByUserId);
-router.delete("/delete-visitor/:id", authenticate, auditLogger("DELETE_VISITOR"), deleteVisitorById);
-router.put("/update-visitor/:id", authenticate, auditLogger("UPDATE_VISITOR"), updateVisitorById);
+router.delete("/delete-visitor-detail/:id", authenticate, auditLogger("DELETE_VISIT_DETAIL"), deleteVisitDetail);
+router.put("/update-visitor/:id", authenticate, auditLogger("UPDATE_VISITOR_DETAIL"), updateVisitor);
 
 router.get("/search-visitor", authenticate, searchVisitor);
 router.get("/visitors-names", authenticate, getVisitorNames);

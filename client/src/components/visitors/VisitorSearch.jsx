@@ -4,16 +4,17 @@ import VisitorTypeSelector from "./VisitorTypeSelector";
 import VisitorDropdown from "./VisitorDropdown";
 import { searchVisitor, getVisitorNames } from "../../services/visitorService";
 
-const VisitorSearch = ({
-  formData,
-  onSearchComplete,
-  onClearSearch,
-  onChange,
-}) => {
-  const [searchType, setSearchType] = useState("Individual");
+const VisitorSearch = ({ onSearchComplete, onClearSearch, type, selectedRow }) => {
+  const [searchType, setSearchType] = useState(type || "Individual");
   const [options, setOptions] = useState([]);
   const [selectedVisitor, setSelectedVisitor] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (type) {
+      setSearchType(type);
+    }
+  }, [type]);
 
   // Load options whenever type changes
   useEffect(() => {
@@ -73,6 +74,7 @@ const VisitorSearch = ({
           setSelectedVisitor(null);
           onSearchComplete({ type, results: [] });
         }}
+        selectedRow={selectedRow}
       />
 
       <VisitorDropdown

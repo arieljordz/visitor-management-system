@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import moment from "moment";
 import Visitor from "../models/Visitor.js";
 import QRCode from "../models/QRCode.js";
@@ -16,54 +17,148 @@ export const getAllVisitors = async (req, res) => {
 };
 
 // GET visitor by ID
-export const getVisitorById = async (req, res) => {
+export const getVisitorDetailById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const visitor = await Visitor.findById(id);
-    if (!visitor) {
-      return res.status(404).json({ message: "Visitor not found." });
+    const { id: visitDetailId } = req.params;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(visitDetailId)) {
+      return res.status(400).json({ message: "Invalid visit detail ID." });
     }
-    res.status(200).json({ data: visitor });
+
+    // Find visit detail by ID
+    const visitDetail = await VisitDetail.findById(visitDetailId);
+    if (!visitDetail) {
+      return res.status(404).json({ message: "Visit detail not found." });
+    }
+
+    // Find the associated visitor
+    const visitor = await Visitor.findById(visitDetail.visitorId);
+    if (!visitor) {
+      return res.status(404).json({ message: "Associated visitor not found." });
+    }
+
+    res.status(200).json({
+      visitor,
+      visitDetail,
+    });
   } catch (error) {
-    console.error("Error fetching visitor:", error);
-    res.status(500).json({ message: "Server error while fetching visitor." });
+    console.error("Error fetching visitor by visitDetailId:", error);
+    res.status(500).json({ message: "Server error while fetching visitor details." });
   }
 };
 
 // DELETE visitor by ID
-export const deleteVisitorById = async (req, res) => {
+export const deleteVisitDetail = async (req, res) => {
   try {
-    const { id } = req.params;
-    const deletedVisitor = await Visitor.findByIdAndDelete(id);
-    if (!deletedVisitor) {
-      return res.status(404).json({ message: "Visitor not found." });
+    const { id: visitDetailId } = req.params;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(visitDetailId)) {
+      return res.status(400).json({ message: "Invalid visitDetail ID." });
     }
-    res.status(200).json({ message: "Visitor deleted successfully." });
+
+    // Find and delete the specific VisitDetail
+    const deletedVisitDetail = await VisitDetail.findByIdAndDelete(visitDetailId);
+    if (!deletedVisitDetail) {
+      return res.status(404).json({ message: "Visit detail not found." });
+    }
+
+    res.status(200).json({
+      message: "Visit detail deleted successfully.",
+      deletedVisitDetail,
+    });
   } catch (error) {
-    console.error("Error deleting visitor:", error);
-    res.status(500).json({ message: "Server error while deleting visitor." });
+    console.error("Error deleting visit detail:", error);
+    res.status(500).json({ message: "Server error while deleting visit detail." });
   }
 };
 
 // UPDATE visitor by ID
-export const updateVisitorById = async (req, res) => {
+export const updateVisitor = async (req, res) => {
   try {
-    const { id } = req.params;
-    const updatedVisitor = await Visitor.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
+    const { id: visitDetailId } = req.params; 
+    const {
+      visitorType,
+      firstName,
+      lastName,
+      groupName,
+      visitDate,
+      purpose,
+      classification,
+      noOfVisitors,
+    } = req.body;
+
+    // Validate visitDetailId
+    if (!mongoose.Types.ObjectId.isValid(visitDetailId)) {
+      return res.status(400).json({ message: "Invalid visit detail ID." });
+    }
+
+    // Find the visit detail first
+    const visitDetail = await VisitDetail.findById(visitDetailId);
+    if (!visitDetail) {
+      return res.status(404).json({ message: "Visit detail not found." });
+    }
+
+    // Get the related visitor ID from visit detail
+    const visitorId = visitDetail.visitorId;
+    if (!mongoose.Types.ObjectId.isValid(visitorId)) {
+      return res.status(400).json({ message: "Invalid associated visitor ID." });
+    }
+
+    // Validate visitorType-specific fields
+    if (visitorType === VisitorTypeEnum.INDIVIDUAL) {
+      if (!firstName || !lastName) {
+        return res.status(400).json({
+          message: "First name and last name are required for individual visitors.",
+        });
+      }
+    }
+
+    if (visitorType === VisitorTypeEnum.GROUP) {
+      if (!groupName) {
+        return res.status(400).json({
+          message: "Group name is required for group visitors.",
+        });
+      }
+    }
+
+    // Update Visitor
+    const updatedVisitor = await Visitor.findByIdAndUpdate(
+      visitorId,
+      {
+        visitorType,
+        firstName,
+        lastName,
+        groupName,
+      },
+      { new: true, runValidators: true }
+    );
 
     if (!updatedVisitor) {
       return res.status(404).json({ message: "Visitor not found." });
     }
 
+    // Update VisitDetail
+    const updatedVisitDetail = await VisitDetail.findByIdAndUpdate(
+      visitDetailId,
+      {
+        visitDate,
+        purpose,
+        classification,
+        noOfVisitors: noOfVisitors || 1,
+      },
+      { new: true, runValidators: true }
+    );
+
     res.status(200).json({
-      message: "Visitor updated successfully.",
-      data: updatedVisitor,
+      message: "Visitor and visit detail updated successfully.",
+      visitor: updatedVisitor,
+      visitDetail: updatedVisitDetail,
     });
   } catch (error) {
-    console.error("Error updating visitor:", error);
-    res.status(500).json({ message: "Server error while updating visitor." });
+    console.error("Error updating visitor and visit detail:", error);
+    res.status(500).json({ message: "Server error while updating visitor and visit detail." });
   }
 };
 

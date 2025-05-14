@@ -2,7 +2,7 @@ import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { VisitorTypeEnum, QRStatusEnum } from "../../../enums/enums.js";
 
-const VisitorsTable = ({
+const DashboardTable = ({
   loading,
   currentData,
   onGenerateQRClick,
@@ -123,4 +123,4 @@ const VisitorsTable = ({
   );
 };
 
-export default VisitorsTable;
+export default DashboardTable;

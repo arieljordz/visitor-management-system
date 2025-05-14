@@ -18,7 +18,7 @@ const RegisterForm = ({ setIsRegistering }) => {
     confirmPassword: "",
     address: "",
     classification: "",
-    subscription: true,
+    subscription: false,
   });
 
   const register = async () => {

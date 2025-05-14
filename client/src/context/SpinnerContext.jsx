@@ -1,5 +1,4 @@
 import React, { createContext, useState, useContext } from "react";
-import Spinner from "../components/common/Spinner"; 
 
 const SpinnerContext = createContext();
 
@@ -10,7 +9,11 @@ export const SpinnerProvider = ({ children }) => {
 
   return (
     <SpinnerContext.Provider value={{ loading, setLoading }}>
-      {loading && <Spinner />}
+      {loading && (
+        <div className="spinner-overlay">
+          <div className="spinner-border text-light" role="status" />
+        </div>
+      )}
       {children}
     </SpinnerContext.Provider>
   );

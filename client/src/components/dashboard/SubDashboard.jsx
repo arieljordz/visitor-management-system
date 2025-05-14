@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Row, Col, Card, Spinner } from "react-bootstrap";
-import { FaPlus } from "react-icons/fa";
+import { Row, Col, Card, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { useSpinner } from "../../context/SpinnerContext";
@@ -10,8 +9,7 @@ import Swal from "sweetalert2";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
-import VisitorsTable from "../../components/dashboard/tables/VisitorsTable";
-import VisitorsModal from "../../components/dashboard/modals/VisitorsModal";
+import DashboardTable from "./tables/DashboardTable.jsx";
 import QRCodeModal from "../../components/dashboard/modals/QRCodeModal";
 import SubDashboardStats from "./SubDashboardStats.jsx";
 
@@ -195,56 +193,49 @@ const SubDashboard = () => {
           )}
           <Row className="justify-content-center">
             <Col md={8} lg={12}>
-              <Card className="shadow">
+              {/* Card with conditional dark mode styling */}
+              <Card>
                 <Card.Body className="main-card">
-                  <div className="mb-4 text-start">
-                    <Button
-                      variant="success"
-                      onClick={() => setShowVisitorModal(true)}
-                    >
-                      <FaPlus className="mr-1" /> Add Visitor
-                    </Button>
-                  </div>
+                  <section className="content">
+                    <div className="container-fluid">
+                      <div className="card card-primary card-outline">
+                        <Card.Body className="main-card">
+                          <Search
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                            itemsPerPage={itemsPerPage}
+                            setItemsPerPage={setItemsPerPage}
+                            setCurrentPage={setCurrentPage}
+                          />
 
-                  <Search
-                    searchTerm={searchTerm}
-                    setSearchTerm={setSearchTerm}
-                    itemsPerPage={itemsPerPage}
-                    setItemsPerPage={setItemsPerPage}
-                    setCurrentPage={setCurrentPage}
-                  />
+                          <DashboardTable
+                            tableLoading={tableLoading}
+                            currentData={currentData}
+                            getBadgeClass={getBadgeClass}
+                            onGenerateQRClick={handleGenerateQR}
+                            handleViewQRCode={handleViewQRCode}
+                          />
 
-                  <VisitorsTable
-                    tableLoading={tableLoading}
-                    currentData={currentData}
-                    getBadgeClass={getBadgeClass}
-                    onGenerateQRClick={handleGenerateQR}
-                    handleViewQRCode={handleViewQRCode}
-                  />
+                          <Paginations
+                            tableLoading={tableLoading}
+                            filteredData={filteredData}
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            indexOfFirstItem={indexOfFirstItem}
+                            indexOfLastItem={indexOfLastItem}
+                            paginate={setCurrentPage}
+                          />
 
-                  <Paginations
-                    tableLoading={tableLoading}
-                    filteredData={filteredData}
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    indexOfFirstItem={indexOfFirstItem}
-                    indexOfLastItem={indexOfLastItem}
-                    paginate={setCurrentPage}
-                  />
-
-                  <VisitorsModal
-                    user={user}
-                    show={showVisitorModal}
-                    onHide={() => setShowVisitorModal(false)}
-                    refreshList={fetchVisitors}
-                  />
-
-                  <QRCodeModal
-                    show={showModal}
-                    setShowModal={setShowModal}
-                    qrImageUrl={qrViewImageUrl}
-                    txnId={txnId}
-                  />
+                          <QRCodeModal
+                            show={showModal}
+                            setShowModal={setShowModal}
+                            qrImageUrl={qrViewImageUrl}
+                            txnId={txnId}
+                          />
+                        </Card.Body>
+                      </div>
+                    </div>
+                  </section>
                 </Card.Body>
               </Card>
             </Col>

@@ -1,6 +1,6 @@
 import React from "react";
 
-const VisitorTypeSelector = ({ selectedType, onChange }) => {
+const VisitorTypeSelector = ({ selectedType, onChange, selectedRow }) => {
   const types = ["Individual", "Group"];
 
   return (
@@ -15,6 +15,7 @@ const VisitorTypeSelector = ({ selectedType, onChange }) => {
             value={type}
             checked={selectedType === type}
             onChange={() => onChange(type)}
+            disabled={selectedRow !== null}
           />
           <label htmlFor={`radio-${type}`}>{type}</label>
         </div>

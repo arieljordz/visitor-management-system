@@ -45,3 +45,18 @@ export const createVisitorDetail = async (formData) => {
   const response = await api.post("/api/create-visitors-detail", formData);
   return response;
 };
+
+export const getVisitorDetailById = async (id) => {
+  const response = await api.get(`/api/get-visitor/${id}`);
+  return response.data;
+};
+
+export const updateVisitor = async (userId, formData) => {
+  const response = await api.put(`/api/update-visitor/${userId}`, formData);
+  return response;
+};
+
+export const deleteVisitDetail = async (id) => {
+  const response = await api.delete(`/api/delete-visitor-detail/${id}`);
+  return response;
+};

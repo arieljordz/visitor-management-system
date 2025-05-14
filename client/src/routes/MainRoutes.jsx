@@ -1,12 +1,11 @@
 import { Routes, Route } from "react-router-dom";
 
-// Subscriber pages
 import Dashboard from "../pages/Dashboard/Dashboard";
+import Visitors from "../pages/Visitors/Visitors";
 import PaymentHistory from "../pages/Transactions/PaymentHistory";
 import GeneratedQRCodes from "../pages/Transactions/GeneratedQRCodes";
 import MyWallet from "../pages/MyWallet/MyWallet";
-
-// Admin pages
+import Subscriptions from "../pages/Subscriptions/Subscriptions";
 import Verifications from "../pages/Verifications/Verifications";
 import FMProofs from "../pages/FileMaintenance/FMProofs";
 import FMPaymentMethod from "../pages/FileMaintenance/FMPaymentMethod";
@@ -17,22 +16,18 @@ import FMAccounts from "../pages/FileMaintenance/FMAccounts";
 import GenerateReports from "../pages/Reports/GenerateReports";
 import Subscribe from "../pages/Subscriptions/Subscribe";
 import Settings from "../pages/Settings/Settings";
-
-// Staff page
 import ScanQR from "../pages/ScanQR/ScanQR";
-import Subscriptions from "../pages/Subscriptions/Subscriptions";
 
 
 const MainRoutes = () => (
   <Routes>
     {/* Subscriber */}
-    {/* <Route path="/restricted" element={<Restricted/>} /> */}
     <Route path="/dashboard" element={<Dashboard/>} />
+    <Route path="/visitors" element={<Visitors/>} />
     <Route path="/payment-history" element={<PaymentHistory/>} />
     <Route path="/generated-qr-codes" element={<GeneratedQRCodes/>} />
     <Route path="/my-wallet" element={<MyWallet/>} />
-
-    {/* Admin */}
+    <Route path="/subscriptions" element={<Subscriptions/>} />
     <Route path="/verifications" element={<Verifications/>} />
     <Route path="/file-maintenance/proofs" element={<FMProofs/>} />
     <Route path="/file-maintenance/payment-methods" element={<FMPaymentMethod/>} />
@@ -40,12 +35,9 @@ const MainRoutes = () => (
     <Route path="/file-maintenance/classifications" element={<FMClassification/>} />
     <Route path="/file-maintenance/fees" element={<FMFees/>} />
     <Route path="/file-maintenance/accounts" element={<FMAccounts/>} />
-    <Route path="/subscriptions" element={<Subscriptions/>} />
     <Route path="/generate-reports" element={<GenerateReports/>} />
     <Route path="/subscribe" element={<Subscribe/>} />
     <Route path="/settings" element={<Settings/>} />
-
-    {/* Staff */}
     <Route path="/scan-qr" element={<ScanQR/>} />
   </Routes>
 );

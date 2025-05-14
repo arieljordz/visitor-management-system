@@ -19,7 +19,6 @@ const FormInput = ({ label, name, value, onChange, readOnly, placeholder }) => {
 
 const VisitorForm = ({ onChange, visitor, type, formData }) => {
   const isReadOnly = visitor !== null;
-
   if (type === "Individual") {
     return (
       <Row>
