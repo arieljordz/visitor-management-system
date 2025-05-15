@@ -36,3 +36,7 @@ export const logout = async () => {
   return response;
 };
 
+export const activateFreeTrial = async (id) => {
+  const response = await api.post(`/api/activate-free-trial/${id}`);
+  return response;
+};

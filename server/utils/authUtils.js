@@ -15,7 +15,12 @@ export const generateRefreshToken = (userId) => {
   });
 };
 
-export const createSession = async (userId, sessionToken, refreshToken, req) => {
+export const createSession = async (
+  userId,
+  sessionToken,
+  refreshToken,
+  req
+) => {
   try {
     // Deactivate previous sessions
     await Session.updateMany(
@@ -45,13 +50,20 @@ export const createSession = async (userId, sessionToken, refreshToken, req) => 
 
 export const buildResponse = (user, token) => ({
   token,
+  userId: user._id,
   name: user.name,
   email: user.email,
   picture: user.picture,
-  userId: user._id,
   role: user.role,
   address: user.address,
+  classification: user.classification,
   verified: user.verified,
+  status: user.status,
+  subscriberId: user.subscriberId,
   subscription: user.subscription,
+  expiryDate: user.expiryDate,
+  isOnTrial: user.isOnTrial,
+  trialStartedAt: user.trialStartedAt,
+  trialEndsAt: user.trialEndsAt,
   sessionToken: user.sessionToken,
 });

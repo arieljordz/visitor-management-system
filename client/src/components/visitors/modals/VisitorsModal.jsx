@@ -7,6 +7,7 @@ import {
   updateVisitor,
 } from "../../../services/visitorService";
 import { getClassifications } from "../../../services/classificationService";
+import { getDepartments } from "../../../services/departmentService";
 import VisitorSearch from "../VisitorSearch";
 import VisitorDetailsForm from "../VisitorDetailsForm";
 import VisitorForm from "../VisitorForm";
@@ -17,13 +18,16 @@ const INITIAL_FORM_STATE = {
   groupName: "",
   visitDate: "",
   purpose: "",
+  department: "",
   classification: "",
   noOfVisitors: "",
+  expiryStatus: false,
 };
 
 const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
   const { user } = useAuth();
   const [classifications, setClassifications] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [selectedVisitor, setSelectedVisitor] = useState(null);
   const [visitorType, setVisitorType] = useState("Individual");
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
@@ -31,11 +35,12 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
   useEffect(() => {
     if (show) {
       fetchClassifications();
+      fetchDepartments();
       resetForm();
     }
   }, [show]);
 
-  console.log("selectedRow modal:", selectedRow);
+  // console.log("selectedRow modal:", selectedRow);
   useEffect(() => {
     if (selectedRow) {
       setVisitorType(selectedRow.visitor?.visitorType);
@@ -49,8 +54,10 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
               .slice(0, 10)
           : "",
         purpose: selectedRow.visitDetail?.purpose || "",
+        department: selectedRow.visitDetail?.department || "",
         classification: selectedRow.visitDetail?.classification || "",
         noOfVisitors: selectedRow.visitDetail?.noOfVisitors || "",
+        expiryStatus: selectedRow.visitDetail?.expiryStatus || false,
       });
     } else {
       setFormData(INITIAL_FORM_STATE);
@@ -63,6 +70,15 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
       setClassifications(data || []);
     } catch (err) {
       console.error("Error fetching classifications:", err);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const data = await getDepartments();
+      setDepartments(data || []);
+    } catch (err) {
+      console.error("Error fetching departments:", err);
     }
   };
 
@@ -97,8 +113,16 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    console.log("checked:", checked);
+    if (type === "checkbox" && name === "expiryStatus") {
+      setFormData((prev) => ({
+        ...prev,
+        expiryStatus: checked ? true : false,
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -121,11 +145,13 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
           : undefined,
       visitDate: formData.visitDate,
       purpose: formData.purpose,
+      department: formData.department,
       classification: formData.classification,
       noOfVisitors:
         visitorType === "Group"
           ? selectedVisitor?.noOfVisitors || formData.noOfVisitors
           : 1,
+      expiryStatus: formData.expiryStatus,
     };
 
     // console.log("payload:", payload);
@@ -184,6 +210,7 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
           formData={formData}
           onChange={handleChange}
           classifications={classifications}
+          departments={departments}
         />
       </Modal.Body>
 

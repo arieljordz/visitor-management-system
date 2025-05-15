@@ -6,10 +6,14 @@ import Restricted from "../../pages/Restricted/Restricted.jsx";
 const AccessControlWrapper = ({ children }) => {
   const { user } = useAuth();
 
-  const isSubscriberWithoutSubscription =
-    user.role === UserRoleEnum.SUBSCRIBER && !user.subscription;
+  const isSubscriber = user.role === UserRoleEnum.SUBSCRIBER;
+  const hasSubscription = !!user.subscription;
+  const isOnTrial = user.isOnTrial;
 
-  return <>{isSubscriberWithoutSubscription ? <Restricted /> : children}</>;
+  const shouldRestrict =
+    isSubscriber && !hasSubscription && !isOnTrial;
+
+  return <>{shouldRestrict ? <Restricted /> : children}</>;
 };
 
 export default AccessControlWrapper;

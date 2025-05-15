@@ -10,6 +10,7 @@ import Verifications from "../pages/Verifications/Verifications";
 import FMProofs from "../pages/FileMaintenance/FMProofs";
 import FMPaymentMethod from "../pages/FileMaintenance/FMPaymentMethod";
 import FMPaymentAccount from "../pages/FileMaintenance/FMPaymentAccount";
+import FMDepartment from "../pages/FileMaintenance/FMDepartment";
 import FMClassification from "../pages/FileMaintenance/FMClassification";
 import FMFees from "../pages/FileMaintenance/FMFees";
 import FMAccounts from "../pages/FileMaintenance/FMAccounts";
@@ -32,6 +33,7 @@ const MainRoutes = () => (
     <Route path="/file-maintenance/proofs" element={<FMProofs/>} />
     <Route path="/file-maintenance/payment-methods" element={<FMPaymentMethod/>} />
     <Route path="/file-maintenance/payment-accounts" element={<FMPaymentAccount/>} />
+    <Route path="/file-maintenance/departments" element={<FMDepartment/>} />
     <Route path="/file-maintenance/classifications" element={<FMClassification/>} />
     <Route path="/file-maintenance/fees" element={<FMFees/>} />
     <Route path="/file-maintenance/accounts" element={<FMAccounts/>} />

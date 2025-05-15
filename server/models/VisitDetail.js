@@ -9,12 +9,14 @@ const VisitDetailSchema = new mongoose.Schema(
     },
     visitDate: { type: Date, required: true },
     purpose: { type: String, required: true },
+    department: { type: String, required: true },
     classification: { type: String, required: true },
     noOfVisitors: {
       type: Number,
       required: true,
       default: 1,
     },
+    expiryStatus: { type: Boolean, required: true, default: false },
   },
   { timestamps: true }
 );

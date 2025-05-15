@@ -1,24 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { Button, Row, Col, Card } from "react-bootstrap";
+import { Button, Spinner, Row, Col, Card } from "react-bootstrap";
 import { FaPlus } from "react-icons/fa";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import { useAuth } from "../../context/AuthContext";
-import Navpath from "../../components/common/Navpath";
-import Search from "../../components/common/Search";
-import Paginations from "../../components/common/Paginations";
-import VisitorsTable from "../../components/visitors/tables/VisitorsTable";
-import VisitorsModal from "../../components/visitors/modals/VisitorsModal";
+import { useAuth } from "../../context/AuthContext.jsx";
+import Navpath from "../../components/common/Navpath.jsx";
+import Search from "../../components/common/Search.jsx";
+import Paginations from "../../components/common/Paginations.jsx";
+import DepartmentTable from "../../components/fileMaintenance/tables/DepartmentTable.jsx";
+import DepartmentModal from "../../components/fileMaintenance/modals/DepartmentModal.jsx";
 import {
-  getVisitorByUserId,
-  getVisitorDetailById,
-  deleteVisitDetail,
-} from "../../services/visitorService.js";
+  getDepartments,
+  getDepartmentById,
+  deleteDepartment,
+} from "../../services/departmentService.js";
+import { StatusEnum } from "../../enums/enums.js";
 import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
 
-function Visitors() {
+function FMDepartment() {
   const { user } = useAuth();
-  const [visitors, setVisitors] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -30,16 +31,15 @@ function Visitors() {
 
   useEffect(() => {
     if (user?.userId) {
-      fetchVisitors();
+      fetchDepartments();
     }
   }, [user]);
 
-  const fetchVisitors = async () => {
+  const fetchDepartments = async () => {
     setLoading(true);
     try {
-      const data = await getVisitorByUserId(user.userId);
-
-      setVisitors(data);
+      const data = await getDepartments();
+      setDepartments(data);
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
@@ -49,18 +49,18 @@ function Visitors() {
 
   const handleEdit = async (id) => {
     try {
-      const data = await getVisitorDetailById(id);
+      const data = await getDepartmentById(id);
       setSelectedRow(data);
       setShowModal(true);
     } catch (err) {
-      toast.error("Failed to fetch visitor details.");
+      toast.error("Failed to fetch Department.");
     }
   };
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "This record will be permanently deleted.",
+      text: "This Department will be permanently deleted.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, delete it!",
@@ -69,11 +69,11 @@ function Visitors() {
 
     if (result.isConfirmed) {
       try {
-        await deleteVisitDetail(id);
-        toast.success("Successfully deleted record.");
-        fetchVisitors();
+        await deleteDepartment(id);
+        toast.success("Department deleted.");
+        fetchDepartments();
       } catch (err) {
-        toast.error("Failed to delete record.");
+        toast.error("Failed to delete Department.");
       }
     }
   };
@@ -88,17 +88,22 @@ function Visitors() {
     setShowModal(false);
   };
 
-  const filteredData = visitors.filter((obj) => {
+  const getBadgeClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case StatusEnum.ACTIVE:
+        return "success";
+      case StatusEnum.INACTIVE:
+        return "warning";
+      default:
+        return "dark";
+    }
+  };
+
+  const filteredData = departments.filter((obj) => {
     const values = [
       obj._id?.slice(-6),
-      obj.email,
-      obj.name,
-      obj.role,
-      obj.address,
+      obj.description,
       obj.status,
-      obj.department,
-      obj.classification,
-      obj.subscription,
       new Date(obj.createdAt).toLocaleString(),
     ];
 
@@ -124,9 +129,9 @@ function Visitors() {
       <div className="content-wrapper">
         {/* Content Header */}
         <Navpath
-          levelOne="Visitors"
+          levelOne="Department"
           levelTwo="Home"
-          levelThree="Visitors"
+          levelThree="File Maintenance"
         />
 
         {/* Main Content */}
@@ -143,7 +148,7 @@ function Visitors() {
                         onClick={() => setShowModal(true)}
                       >
                         <FaPlus className="mr-1" />
-                        Add Visitor
+                        Add Department
                       </Button>
                     </div>
 
@@ -156,11 +161,12 @@ function Visitors() {
                       onAdd={handleOpen}
                     />
 
-                    <VisitorsTable
+                    <DepartmentTable
                       loading={loading}
                       currentData={currentData}
                       handleEdit={handleEdit}
                       handleDelete={handleDelete}
+                      getBadgeClass={getBadgeClass}
                     />
 
                     <Paginations
@@ -173,11 +179,11 @@ function Visitors() {
                       paginate={paginate}
                     />
 
-                    <VisitorsModal
+                    <DepartmentModal
                       show={showModal}
                       onHide={handleClose}
                       selectedRow={selectedRow}
-                      refreshList={fetchVisitors}
+                      refreshList={fetchDepartments}
                     />
                   </Card.Body>
                 </Card>
@@ -190,4 +196,4 @@ function Visitors() {
   );
 }
 
-export default Visitors;
+export default FMDepartment;

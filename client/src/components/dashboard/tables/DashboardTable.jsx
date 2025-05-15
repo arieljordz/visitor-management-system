@@ -25,9 +25,11 @@ const DashboardTable = ({
             <th className="text-center">Name/Group</th>
             <th className="text-center">No. of Visitors</th>
             <th className="text-center">Purpose</th>
+            <th className="text-center">Department</th>
             <th className="text-center">Classification</th>
             <th className="text-center">Visit Date</th>
-            <th className="text-center">Status</th>
+            <th className="text-center">Expiry Status</th>
+            <th className="text-center">QR Status</th>
             <th className="text-center">QR Code</th>
             <th className="text-center">Generate QR</th>
           </tr>
@@ -56,12 +58,22 @@ const DashboardTable = ({
                     {visitDetail.purpose?.toUpperCase()}
                   </td>
                   <td className="text-center">
+                    {visitDetail.department?.toUpperCase()}
+                  </td>
+                  <td className="text-center">
                     {visitDetail.classification?.toUpperCase()}
                   </td>
                   <td className="text-center">
                     {visitDetail.visitDate
                       ? new Date(visitDetail.visitDate).toLocaleString()
                       : "—"}
+                  </td>
+                  <td className="text-center">
+                    {visitDetail.expiryStatus ? (
+                      <span className="badge bg-primary">No Expiration</span>
+                    ) : (
+                      <span className="badge bg-success">Valid Today</span>
+                    )}
                   </td>
                   <td className="text-center">
                     <span
@@ -112,7 +124,7 @@ const DashboardTable = ({
             )
           ) : (
             <tr>
-              <td colSpan="11" className={`text-center ${"text-muted"}`}>
+              <td colSpan="13" className={`text-center ${"text-muted"}`}>
                 No records found.
               </td>
             </tr>

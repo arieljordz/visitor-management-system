@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
@@ -128,9 +129,9 @@ export const googleLogin = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    if (isNewUser || !user.verified) {
-      await sendVerificationEmail({ name, email });
-    }
+    // if (isNewUser || !user.verified) {
+    //   await sendVerificationEmail({ name, email });
+    // }
 
     console.log("safeUser:", safeUser);
     res.status(200).json(buildResponse(safeUser, accessToken));
@@ -447,11 +448,9 @@ export const getUsersByRole = async (req, res) => {
       (role) => !Object.values(UserRoleEnum).includes(role)
     );
     if (invalidRoles.length > 0) {
-      return res
-        .status(400)
-        .json({
-          message: `Invalid roles provided: ${invalidRoles.join(", ")}`,
-        });
+      return res.status(400).json({
+        message: `Invalid roles provided: ${invalidRoles.join(", ")}`,
+      });
     }
 
     // Fetch users with any of the provided roles
@@ -538,5 +537,46 @@ export const deleteUser = async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to delete user", error: err.message });
+  }
+};
+
+// Free Trial Activation
+export const activateFreeTrial = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("UserId:", id);
+    // ✅ Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid user ID format." });
+    }
+
+
+    const trialDays = 3;
+    const now = new Date();
+    const trialEndsAt = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      {
+        isOnTrial: true,
+        trialStartedAt: now,
+        trialEndsAt,
+        expiryDate: trialEndsAt,
+        subscription: false,
+      },
+      { new: true } // return the updated document
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    return res.status(200).json({
+      message: "Free trial activated successfully.",
+      user: updatedUser,
+    });
+  } catch (err) {
+    console.error("Error activating free trial:", err);
+    return res.status(500).json({ message: "Internal server error." });
   }
 };

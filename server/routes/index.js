@@ -13,6 +13,7 @@ import {
   getUsersByRole,
   updateUser,
   deleteUser,
+  activateFreeTrial,
 } from "../controllers/userController.js";
 import {
   generateQRCodeWithPayment,
@@ -54,6 +55,13 @@ import { createPaymentAccount,
   updatePaymentAccount,
   getActivePaymentAccounts,
 } from "../controllers/paymentAccountController.js";
+import {
+  createDepartment,
+  getDepartments,
+  getDepartmentById,
+  deleteDepartment,
+  updateDepartment,
+} from "../controllers/departmentController.js";
 import {
   createClassification,
   getClassifications,
@@ -134,6 +142,7 @@ router.get("/get-user/:id", authenticate, getUserById);
 router.get("/get-users-by-role", authenticate, getUsersByRole);
 router.put("/update-user/:id", authenticate, auditLogger("UPDATE_USER"), updateUser);
 router.delete("/delete-user/:id", authenticate, auditLogger("DELETE_USER"), deleteUser);
+router.post("/activate-free-trial/:id", authenticate, auditLogger("FREE_TRIAL"), activateFreeTrial);
 
 // QRCode Routes
 router.post("/generate-qr", authenticate, auditLogger("GENERATE_QR_CODE"), generateQRCodeWithPayment);
@@ -175,6 +184,13 @@ router.get("/get-active-payment-accounts", authenticate, getActivePaymentAccount
 router.get("/get-payment-account/:id", authenticate, getPaymentAccountById);
 router.delete("/delete-payment-account/:id", authenticate, auditLogger("DELETE_PAYMENT_ACCOUNT"), deletePaymentAccount);
 router.put("/update-payment-account/:id", authenticate, auditLogger("UPDATE_PAYMENT_ACCOUNT"), updatePaymentAccount);
+
+// Department Routes
+router.post("/create-department", authenticate, auditLogger("CREATE_DEPARTMENT"), createDepartment);
+router.get("/get-departments", authenticate, getDepartments);
+router.get("/get-department/:id", authenticate, getDepartmentById);
+router.delete("/delete-department/:id", authenticate, auditLogger("DELETE_DEPARTMENT"), deleteDepartment);
+router.put("/update-department/:id", authenticate, auditLogger("UPDATE_DEPARTMENT"), updateDepartment);
 
 // Classification Routes
 router.post("/create-classification", authenticate, auditLogger("CREATE_CLASSIFICATION"), createClassification);

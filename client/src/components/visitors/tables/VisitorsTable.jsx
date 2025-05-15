@@ -3,12 +3,7 @@ import { Table, Spinner, Button } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { VisitorTypeEnum } from "../../../enums/enums.js";
 
-const VisitorsTable = ({
-  loading,
-  currentData,
-  handleEdit,
-  handleDelete,
-}) => {
+const VisitorsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
   // console.log("currentData:", currentData);
   return loading ? (
     <div className="text-center my-4">
@@ -25,8 +20,10 @@ const VisitorsTable = ({
             <th className="text-center">Name/Group</th>
             <th className="text-center">No. of Visitors</th>
             <th className="text-center">Purpose</th>
+            <th className="text-center">Department</th>
             <th className="text-center">Classification</th>
             <th className="text-center">Visit Date</th>
+            <th className="text-center">Expiry Status</th>
             <th className="text-center">Action</th>
           </tr>
         </thead>
@@ -54,6 +51,9 @@ const VisitorsTable = ({
                     {visitDetail.purpose?.toUpperCase()}
                   </td>
                   <td className="text-center">
+                    {visitDetail.department?.toUpperCase()}
+                  </td>
+                  <td className="text-center">
                     {visitDetail.classification?.toUpperCase()}
                   </td>
                   <td className="text-center">
@@ -61,34 +61,41 @@ const VisitorsTable = ({
                       ? new Date(visitDetail.visitDate).toLocaleString()
                       : "—"}
                   </td>
-                <td className="text-center">
-                  <div className="d-flex justify-content-center">
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      className="d-flex align-items-center"
-                      onClick={() => handleEdit(visitDetail._id)}
-                    >
-                      <FaEdit />
-                      <span>Edit</span>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      className="d-flex align-items-center ml-2"
-                      onClick={() => handleDelete(visitDetail._id)}
-                    >
-                      <FaTrash />
-                      <span>Delete</span>
-                    </Button>
-                  </div>
-                </td>
+                  <td className="text-center">
+                    {visitDetail.expiryStatus ? (
+                      <span className="badge bg-primary">No Expiration</span>
+                    ) : (
+                      <span className="badge bg-success">Valid Today</span>
+                    )}
+                  </td>
+                  <td className="text-center">
+                    <div className="d-flex justify-content-center">
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        className="d-flex align-items-center"
+                        onClick={() => handleEdit(visitDetail._id)}
+                      >
+                        <FaEdit />
+                        <span>Edit</span>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        className="d-flex align-items-center ml-2"
+                        onClick={() => handleDelete(visitDetail._id)}
+                      >
+                        <FaTrash />
+                        <span>Delete</span>
+                      </Button>
+                    </div>
+                  </td>
                 </tr>
               ))
             )
           ) : (
             <tr>
-              <td colSpan="9" className={`text-center ${"text-muted"}`}>
+              <td colSpan="11" className={`text-center ${"text-muted"}`}>
                 No records found.
               </td>
             </tr>

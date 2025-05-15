@@ -85,8 +85,10 @@ export const updateVisitor = async (req, res) => {
       groupName,
       visitDate,
       purpose,
+      department,
       classification,
       noOfVisitors,
+      expiryStatus,
     } = req.body;
 
     // Validate visitDetailId
@@ -145,8 +147,10 @@ export const updateVisitor = async (req, res) => {
       {
         visitDate,
         purpose,
+        department,
         classification,
         noOfVisitors: noOfVisitors || 1,
+        expiryStatus,
       },
       { new: true, runValidators: true }
     );
@@ -202,12 +206,15 @@ export const createVisitorDetail = async (req, res) => {
       groupName,
       visitDate,
       purpose,
+      department,
       classification,
       noOfVisitors,
+      expiryStatus,
     } = req.body;
 
+    console.log("req.body:", req.body);
     // Validate required fields
-    if (!userId || !visitorType || !visitDate || !purpose || !classification || !noOfVisitors) {
+    if (!userId || !visitorType || !visitDate || !purpose || !department || !classification || !noOfVisitors) {
       return res.status(400).json({ message: "Missing required fields." });
     }
 
@@ -274,8 +281,10 @@ export const createVisitorDetail = async (req, res) => {
         userId,
         visitDate,
         purpose,
+        department,
         classification,
         noOfVisitors: visitorType === VisitorTypeEnum.GROUP ? noOfVisitors : undefined,
+        expiryStatus,
       });
 
       const savedVisit = await newVisit.save();
@@ -303,8 +312,10 @@ export const createVisitorDetail = async (req, res) => {
       userId,
       visitDate,
       purpose,
+      department,
       classification,
       noOfVisitors: visitorType === VisitorTypeEnum.GROUP ? noOfVisitors : undefined,
+      expiryStatus,
     });
 
     const savedVisit = await newVisit.save();
@@ -401,7 +412,9 @@ export const getVisitorByUserId = async (req, res) => {
           _id: visit._id,
           visitDate: visit.visitDate,
           purpose: visit.purpose,
+          department: visit.department,
           classification: visit.classification,
+          expiryStatus: visit.expiryStatus,
           noOfVisitors:
             visitor.visitorType === VisitorTypeEnum.GROUP ? visit.noOfVisitors : null,
           activeQRCode: qrCodeMap.get(visit._id.toString()) || null,

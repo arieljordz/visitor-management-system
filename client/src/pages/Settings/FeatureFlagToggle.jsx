@@ -25,9 +25,10 @@ const FeatureFlagToggle = () => {
 
   const formatKeyLabel = (key) => {
     return key
+      .replace(/^enable/i, "") // Remove 'enable' at the start (case-insensitive)
       .replace(/([a-z])([A-Z])/g, "$1 $2") // Add space between camelCase boundaries
-      .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2") // Handle acronym + Capital case transitions
-      .replace(/^./, str => str.toUpperCase()); // Capitalize the first letter
+      .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2") // Handle acronym + Capital transitions
+      .replace(/^./, (str) => str.toUpperCase()); // Capitalize the first letter
   };
 
   if (loading || !flags || Object.keys(flags).length === 0)
