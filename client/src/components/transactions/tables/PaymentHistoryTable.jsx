@@ -1,5 +1,6 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
+import { formatDate } from "../../../utils/globalUtils";
 
 const PaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
   // console.log("currentData:", currentData);
@@ -62,11 +63,7 @@ const PaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
                 <td className="text-center">
                   {txn.paymentMethod.toUpperCase()}
                 </td>
-                <td className="text-center">
-                  {txn.paymentDate
-                    ? new Date(txn.paymentDate).toLocaleString()
-                    : "—"}
-                </td>
+                <td className="text-center">{formatDate(txn.paymentDate)}</td>
                 <td className="text-center">
                   <span className={`badge bg-${getBadgeClass(txn.status)}`}>
                     {txn.status}

@@ -1,6 +1,7 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { formatDate } from "../../../utils/globalUtils";
 
 const AccountsTable = ({
   loading,
@@ -37,11 +38,7 @@ const AccountsTable = ({
                 <td className="text-center">{user.name?.toUpperCase()}</td>
                 <td className="text-center">{user.address?.toUpperCase()}</td>
                 <td className="text-center">{user.role?.toUpperCase()}</td>
-                <td className="text-center">
-                  {user.createdAt
-                    ? new Date(user.createdAt).toLocaleString()
-                    : "—"}
-                </td>
+                <td className="text-center">{formatDate(user.createdAt)}</td>
                 <td className="text-center">
                   <span className={`badge bg-${getBadgeClass(user.status)}`}>
                     {user.status}

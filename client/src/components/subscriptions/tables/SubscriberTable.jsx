@@ -1,6 +1,7 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { formatDate } from "../../../utils/globalUtils";
 
 const SubscriberTable = ({
   loading,
@@ -53,11 +54,7 @@ const SubscriberTable = ({
                     </span>
                   )}
                 </td>
-                <td className="text-center">
-                  {user.expiryDate
-                    ? new Date(user.expiryDate).toLocaleString()
-                    : "—"}
-                </td>
+                <td className="text-center">{formatDate(user.expiryDate)}</td>
                 <td className="text-center">
                   <span className={`badge bg-${getBadgeClass(user.status)}`}>
                     {user.status}

@@ -5,7 +5,7 @@ import Navpath from "../../components/common/Navpath";
 
 const plans = [
   {
-    name: "Free",
+    name: "Free Trial",
     price: "₱0/month",
     features: ["Valid for 3 Days", "Access dashboard", "Generate QR"],
   },
@@ -28,7 +28,7 @@ const PlanCard = ({ plan, onSelect }) => (
           ))}
         </ul>
         <Button variant="primary" onClick={() => onSelect(plan.name)}>
-          Select
+          {plan.name}
         </Button>
       </Card.Body>
     </Card>

@@ -22,6 +22,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const userRole = user?.role || UserRoleEnum.SUBSCRIBER;
+  const subscription = user?.subscription || false;
 
   useEffect(() => {
     fetchMenuConfig();
@@ -29,8 +30,10 @@ const Sidebar = () => {
 
   const fetchMenuConfig = async () => {
     try {
-      const menuConfig = await getMenuByRole(userRole);
+      const menuConfig = await getMenuByRole(userRole, subscription);
       setModules(menuConfig.data.menuItems);
+      // console.log("menuItems:", menuConfig.data.menuItems);
+      // console.log("menuItems:", JSON.stringify(menuConfig.data.menuItems));
     } catch (err) {
       console.error("Failed to load menu config:", err);
       setModules([]);

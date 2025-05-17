@@ -1,6 +1,7 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { formatDate } from "../../../utils/globalUtils";
 
 const PaymentAccountTable = ({
   loading,
@@ -39,13 +40,13 @@ const PaymentAccountTable = ({
                 </td>
                 <td className="text-center">{row.method.toUpperCase()}</td>
                 <td className="text-center">{row.accountName.toUpperCase()}</td>
-                <td className="text-center">{row.accountNumber.toUpperCase()}</td>
-                <td className="text-center">{row.bankName.toUpperCase() || "—"}</td>
                 <td className="text-center">
-                  {row.createdAt
-                    ? new Date(row.createdAt).toLocaleString()
-                    : "—"}
+                  {row.accountNumber.toUpperCase()}
                 </td>
+                <td className="text-center">
+                  {row.bankName.toUpperCase() || "—"}
+                </td>
+                <td className="text-center">{formatDate(row.createdAt)}</td>
                 <td className="text-center">
                   <span className={`badge bg-${getBadgeClass(row.status)}`}>
                     {row.status}

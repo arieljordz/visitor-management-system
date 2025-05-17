@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const handleNavigation = (user, navigate, mode) => {
+    console.log("userdata:", user);
     if (mode === "google") {
       if (!user.verified) {
         return { success: false, message: "Account not yet verified." };
@@ -70,8 +71,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = (newUserData) => {
+    const updatedUser = { ...user, ...newUserData };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, googleLogin, setUser }}>
+    <AuthContext.Provider value={{ user, login, googleLogin, setUser, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

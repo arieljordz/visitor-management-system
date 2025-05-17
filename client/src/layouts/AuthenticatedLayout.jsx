@@ -6,6 +6,8 @@ import Footer from "../components/common/Footer";
 import MainRoutes from "../routes/MainRoutes";
 import { useAuth } from "../context/AuthContext";
 import { FeatureFlagProvider } from "../context/FeatureFlagContext";
+import { UserRoleEnum } from "../enums/enums.js";
+import SubscribeButton from "../components/common/SubscribeButton";
 
 const AuthenticatedLayout = () => {
   const { user } = useAuth();
@@ -17,12 +19,29 @@ const AuthenticatedLayout = () => {
     }
   }, [user, navigate]);
 
+  const showSubscribeButton = () => {
+    if (!user) return false;
+    const { role, subscription } = user;
+
+    // Hide button for admin, staff, or subscribed users
+    if (
+      role === UserRoleEnum.ADMIN ||
+      role === UserRoleEnum.STAFF ||
+      (role === UserRoleEnum.SUBSCRIBER && subscription)
+    ) {
+      return false;
+    }
+
+    return true;
+  };
+
   return (
     <div className="wrapper">
       <FeatureFlagProvider>
         <Navbar />
         <Sidebar />
         <MainRoutes />
+        {showSubscribeButton() && <SubscribeButton />}
         <Footer />
       </FeatureFlagProvider>
     </div>

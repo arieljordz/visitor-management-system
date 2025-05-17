@@ -1,8 +1,9 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
+import { formatDate } from "../../../utils/globalUtils";
 
 const AdminPaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
-    // console.log("currentData:", currentData);
+  // console.log("currentData:", currentData);
   return loading ? (
     <div className="text-center my-4">
       <Spinner animation="border" />
@@ -27,8 +28,12 @@ const AdminPaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
             currentData.map((txn, index) => (
               <tr key={txn._id}>
                 <td className="text-center">{index + 1}</td>
-                <td className="text-center">{txn._id.slice(-6).toUpperCase()}</td>
-                <td className="text-center">{txn.userId?.name.toUpperCase()}</td>
+                <td className="text-center">
+                  {txn._id.slice(-6).toUpperCase()}
+                </td>
+                <td className="text-center">
+                  {txn.userId?.name.toUpperCase()}
+                </td>
                 <td
                   className={`text-center ${
                     txn.transaction.toLowerCase() === "credit"
@@ -50,11 +55,7 @@ const AdminPaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
                 <td className="text-center">
                   {txn.paymentMethod.toUpperCase()}
                 </td>
-                <td className="text-center">
-                  {txn.paymentDate
-                    ? new Date(txn.paymentDate).toLocaleString()
-                    : "—"}
-                </td>
+                <td className="text-center">{formatDate(txn.paymentDate)}</td>
                 <td className="text-center">
                   <span className={`badge bg-${getBadgeClass(txn.status)}`}>
                     {txn.status}

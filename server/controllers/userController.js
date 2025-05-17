@@ -13,6 +13,7 @@ import {
   buildResponse,
 } from "../utils/authUtils.js";
 import { sendEmail } from "../utils/mailer.js";
+import { evaluateUserStatus } from "../utils/statusUtils.js";
 import { StatusEnum, UserRoleEnum, PasswordEnum } from "../enums/enums.js";
 import { sendVerificationEmail } from "../services/sendEmailService.js";
 
@@ -44,6 +45,9 @@ export const login = async (req, res) => {
     if (user.status !== StatusEnum.ACTIVE) {
       return res.status(403).json({ message: "Account is inactive" });
     }
+
+    // ** New Step: Evaluate and update user subscription, trial, and QR code status **
+    await evaluateUserStatus(user);
 
     // Step 5: Generate session and tokens
     const sessionToken = uuidv4();
@@ -115,6 +119,9 @@ export const googleLogin = async (req, res) => {
       await user.save(); // Save new user before creating session
     }
 
+    // Evaluate and update subscription, trial, and QR codes before token generation
+    await evaluateUserStatus(user);
+
     const accessToken = generateAccessToken(user._id, sessionToken);
 
     // Save session token and refresh token
@@ -129,11 +136,12 @@ export const googleLogin = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    // Optionally send verification email here if needed
     // if (isNewUser || !user.verified) {
-    //   await sendVerificationEmail({ name, email });
+    // await sendVerificationEmail({ name, email });
     // }
 
-    console.log("safeUser:", safeUser);
+    // console.log("safeUser:", safeUser);
     res.status(200).json(buildResponse(safeUser, accessToken));
   } catch (error) {
     console.error("Google Login Error:", error);
@@ -355,6 +363,11 @@ export const createUser = async (req, res) => {
     const savedUser = await newUser.save();
     const { password: _, ...safeUser } = savedUser.toObject();
 
+    // Optionally send verification email here if needed
+    // if (!savedUser.verified) {
+    // await sendVerificationEmail({ name: savedUser.name, email: savedUser.email });
+    // }
+
     res.status(201).json({
       message: "User created successfully",
       data: safeUser,
@@ -545,35 +558,43 @@ export const activateFreeTrial = async (req, res) => {
   try {
     const { id } = req.params;
     console.log("UserId:", id);
+
     // ✅ Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid user ID format." });
     }
 
-
-    const trialDays = 3;
-    const now = new Date();
-    const trialEndsAt = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
-
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      {
-        isOnTrial: true,
-        trialStartedAt: now,
-        trialEndsAt,
-        expiryDate: trialEndsAt,
-        subscription: false,
-      },
-      { new: true } // return the updated document
-    );
-
-    if (!updatedUser) {
+    // ✅ Find the user
+    const user = await User.findById(id);
+    if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
 
+    // ✅ Check if user has already taken the trial
+    if (user.isOnTrial || user.trialStartedAt || user.trialEndsAt) {
+      return res
+        .status(400)
+        .json({ message: "Free trial has already been used." });
+    }
+
+    // ✅ Activate trial
+    const trialDays = 3;
+    const now = new Date();
+    const trialEndsAt = new Date(
+      now.getTime() + trialDays * 24 * 60 * 60 * 1000
+    );
+
+    user.isOnTrial = true;
+    user.trialStartedAt = now;
+    user.trialEndsAt = trialEndsAt;
+    user.expiryDate = trialEndsAt;
+    user.subscription = false;
+
+    await user.save();
+
     return res.status(200).json({
       message: "Free trial activated successfully.",
-      user: updatedUser,
+      user,
     });
   } catch (err) {
     console.error("Error activating free trial:", err);

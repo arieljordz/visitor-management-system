@@ -1,5 +1,6 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
+import { formatDate } from "../../../utils/globalUtils";
 
 const AdminGeneratedQRCodeTable = ({
   loading,
@@ -37,8 +38,12 @@ const AdminGeneratedQRCodeTable = ({
                 <td className="text-center">
                   {txn._id.slice(-6).toUpperCase()}
                 </td>
-                <td className="text-center">{txn.visitorId?.visitorType?.toUpperCase()}</td>
-                <td className="text-center">{txn.userId?.name?.toUpperCase()}</td>
+                <td className="text-center">
+                  {txn.visitorId?.visitorType?.toUpperCase()}
+                </td>
+                <td className="text-center">
+                  {txn.userId?.name?.toUpperCase()}
+                </td>
                 <td className="text-center">
                   {txn.visitorId?.visitorType === "Individual"
                     ? `${txn.visitorId?.firstName?.toUpperCase() || ""} ${
@@ -46,8 +51,14 @@ const AdminGeneratedQRCodeTable = ({
                       }`
                     : txn.visitorId?.groupName?.toUpperCase()}
                 </td>
-                <td className="text-center">{txn.visitdetailsId?.noOfVisitors ? txn.visitdetailsId?.noOfVisitors : 1}</td>
-                <td className="text-center">{txn.visitdetailsId?.purpose?.toUpperCase()}</td>
+                <td className="text-center">
+                  {txn.visitdetailsId?.noOfVisitors
+                    ? txn.visitdetailsId?.noOfVisitors
+                    : 1}
+                </td>
+                <td className="text-center">
+                  {txn.visitdetailsId?.purpose?.toUpperCase()}
+                </td>
                 <td className="text-center">
                   {/* Check if qrImageUrl exists and render the image */}
                   {txn.qrImageUrl ? (
@@ -66,11 +77,7 @@ const AdminGeneratedQRCodeTable = ({
                     "No QR Image"
                   )}
                 </td>
-                <td className="text-center">
-                  {txn.createdAt
-                    ? new Date(txn.createdAt).toLocaleString()
-                    : "—"}
-                </td>
+                <td className="text-center">{formatDate(txn.createdAt)}</td>
                 <td className="text-center">
                   <span className={`badge bg-${getBadgeClass(txn.status)}`}>
                     {txn.status}

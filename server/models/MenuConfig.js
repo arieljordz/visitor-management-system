@@ -13,7 +13,7 @@ const MenuItemSchema = new mongoose.Schema({
 });
 
 const MenuConfigSchema = new mongoose.Schema({
-  role: { type: String, required: true, unique: true }, // e.g. 'admin', 'client', 'staff'
+  role: { type: String, required: true, unique: true }, // e.g. 'admin', 'subscriber', 'staff'
   menuItems: [MenuItemSchema],
 });
 

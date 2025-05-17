@@ -1,6 +1,7 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { VisitorTypeEnum, QRStatusEnum } from "../../../enums/enums.js";
+import { formatDate } from "../../../utils/globalUtils";
 
 const DashboardTable = ({
   loading,
@@ -64,9 +65,7 @@ const DashboardTable = ({
                     {visitDetail.classification?.toUpperCase()}
                   </td>
                   <td className="text-center">
-                    {visitDetail.visitDate
-                      ? new Date(visitDetail.visitDate).toLocaleString()
-                      : "—"}
+                    {formatDate(visitDetail.visitDate)}
                   </td>
                   <td className="text-center">
                     {visitDetail.expiryStatus ? (

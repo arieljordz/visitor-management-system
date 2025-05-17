@@ -14,7 +14,7 @@ const MenuSettings = () => {
   const handleRoleChange = async (value) => {
     setRole(value);
     try {
-      const response = await getMenuByRole(value);
+      const response = await getMenuByRole(value, true);
       console.log("response:", response);
       if (response && Array.isArray(response.data.menuItems)) {
         const cleanedMenuItems = response.data.menuItems.map((item) => ({

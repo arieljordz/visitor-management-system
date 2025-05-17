@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
-import { formatDateNow } from "../../../utils/globalUtils";
+import { formatDate } from "../../../utils/globalUtils";
 
 const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -30,7 +30,7 @@ const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
 
-      const formattedDate = formatDateNow();
+      const formattedDate = formatDate();
 
       const link = document.createElement("a");
       link.href = blobUrl;

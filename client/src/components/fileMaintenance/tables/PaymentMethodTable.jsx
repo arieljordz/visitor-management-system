@@ -1,6 +1,7 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { formatDate } from "../../../utils/globalUtils";
 
 const PaymentMethodTable = ({
   loading,
@@ -35,11 +36,7 @@ const PaymentMethodTable = ({
                   {row._id.slice(-6).toUpperCase()}
                 </td>
                 <td className="text-center">{row.description}</td>
-                <td className="text-center">
-                  {row.createdAt
-                    ? new Date(row.createdAt).toLocaleString()
-                    : "—"}
-                </td>
+                <td className="text-center">{formatDate(row.createdAt)}</td>
                 <td className="text-center">
                   <span className={`badge bg-${getBadgeClass(row.status)}`}>
                     {row.status}

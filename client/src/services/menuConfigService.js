@@ -5,8 +5,10 @@ export const createMenuConfig = async (formData) => {
   return response;
 };
 
-export const getMenuByRole = async (role) => {
-  const response = await api.get(`/api/get-menu-config/${role}`);
+export const getMenuByRole = async (role, subscription) => {
+  const response = await api.get(`/api/get-menu-config/${role}`, {
+    params: { subscription },
+  });
   return response;
 };
 

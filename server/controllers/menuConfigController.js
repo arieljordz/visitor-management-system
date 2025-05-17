@@ -18,11 +18,67 @@ export const createMenuConfig = async (req, res) => {
   }
 };
 
+// export const getMenuByRole = async (req, res) => {
+//   try {
+//     const menu = await MenuConfig.findOne({ role: req.params.role });
+//     if (!menu) return res.status(404).json({ message: "Menu not found" });
+//     res.json(menu);
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 export const getMenuByRole = async (req, res) => {
   try {
-    const menu = await MenuConfig.findOne({ role: req.params.role });
-    if (!menu) return res.status(404).json({ message: "Menu not found" });
-    res.json(menu);
+    const { role } = req.params;
+    const subscription = req.query.subscription === "true";
+
+    const menuDoc = await MenuConfig.findOne({ role }).lean(); // lean makes everything plain objects
+
+    if (!menuDoc) return res.status(404).json({ message: "Menu not found" });
+
+    let menuItems = menuDoc.menuItems;
+
+    if (!subscription) {
+      const restrictedTopLevel = ["Payment History", "Reports"];
+      const allowedFileMaintenanceSubmenu = ["Accounts"];
+
+      menuItems = menuItems
+        .map((item) => {
+          // Skip restricted top-level items
+          if (restrictedTopLevel.includes(item.label)) return null;
+
+          // Handle File Maintenance separately
+          if (item.label === "File Maintenance") {
+            const filteredSubmenu = (item.submenu || []).filter((sub) =>
+              allowedFileMaintenanceSubmenu.includes(sub.label)
+            );
+
+            if (filteredSubmenu.length > 0) {
+              return {
+                ...item,
+                submenu: filteredSubmenu,
+                path: item.path?.trim() || "#", // ensure path is valid
+              };
+            } else {
+              return null;
+            }
+          }
+
+          // Optionally filter other submenus
+          if (item.submenu && item.submenu.length > 0) {
+            const filteredSub = item.submenu.filter(
+              (sub) => !restrictedTopLevel.includes(sub.label)
+            );
+            return filteredSub.length > 0 ? { ...item, submenu: filteredSub } : { ...item, submenu: [] };
+          }
+
+          return item;
+        })
+        .filter(Boolean);
+    }
+
+    res.json({ ...menuDoc, menuItems });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
 import routes from "./routes/index.js";
-import { startQRStatusJob } from "./schedulers/qrStatusUpdater.js";
+import { startStatusJob } from "./schedulers/statusCronJob.js";
 
 // Load environment variables
 dotenv.config();
@@ -95,7 +95,7 @@ mongoose
     server.listen(PORT, () => {
       console.log(`🚀 Server running at http://localhost:${PORT}`);
       // 🔁 Start the scheduled job for QR status updates
-      startQRStatusJob();
+      startStatusJob();
     });
   })
   .catch((err) => {

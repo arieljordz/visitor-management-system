@@ -10,13 +10,7 @@ import PaymentPreview from "./PaymentPreview";
 import { getActivePaymentAccounts } from "../../services/paymentAccountService";
 import { submitSubscription } from "../../services/balanceService";
 
-function PaymentPage({
-  setStep,
-  selectedPlan,
-  steps,
-  setSuccessTitle,
-  setSuccessMessages,
-}) {
+function PaymentPage({ setStep, selectedPlan, steps }) {
   const { user } = useAuth();
   const { setLoading } = useSpinner();
 
@@ -82,6 +76,11 @@ function PaymentPage({
       return;
     }
 
+    if (amount < 999) {
+      toast.warning("Amount must be at least 999.");
+      return;
+    }
+    
     const formData = new FormData();
     formData.append("topUpAmount", parseFloat(topUpAmount).toFixed(2));
     formData.append("paymentMethod", paymentMethod);
@@ -93,12 +92,6 @@ function PaymentPage({
       await submitSubscription(user.userId, formData);
       resetForm();
       toast.success("Subscription submitted. Awaiting admin verification.");
-      setStep(steps.SUCCESS);
-      setSuccessTitle("✅ Payment Submitted");
-      setSuccessMessages([
-        "Your subscription is currently pending verification.",
-        "We will notify you once it's approved.",
-      ]);
     } catch (error) {
       console.error("Top-up error:", error);
       toast.error(error.response?.data?.message || "Top-up failed. Try again.");

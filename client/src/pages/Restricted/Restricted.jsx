@@ -39,11 +39,6 @@ function Restricted() {
                       <li>Remove limitations</li>
                       <li>Priority support</li>
                     </ul>
-                    <div className="d-flex justify-content-start mt-4">
-                      <Button variant="primary" href="/subscribe">
-                        Subscribe Now
-                      </Button>
-                    </div>
                   </Card.Body>
                 </Card>
               </Col>

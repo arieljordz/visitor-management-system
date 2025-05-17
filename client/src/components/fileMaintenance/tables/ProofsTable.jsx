@@ -3,6 +3,7 @@ import { Table, Spinner, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { deletePaymentProofs } from "../../../services/paymentDetailService.js";
+import { formatDate } from "../../../utils/globalUtils";
 
 const ProofsTable = ({
   loading,
@@ -151,11 +152,7 @@ const ProofsTable = ({
                   <td className="text-center">
                     {txn.paymentMethod.toUpperCase()}
                   </td>
-                  <td className="text-center">
-                    {txn.paymentDate
-                      ? new Date(txn.paymentDate).toLocaleString()
-                      : "—"}
-                  </td>
+                  <td className="text-center">{formatDate(txn.paymentDate)}</td>
                   <td className="text-center">
                     <span className={`badge bg-${getBadgeClass(txn.status)}`}>
                       {txn.status}

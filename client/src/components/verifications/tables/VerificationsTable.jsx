@@ -1,6 +1,7 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { formatDate } from "../../../utils/globalUtils";
 
 const VerificationsTable = ({
   loading,
@@ -74,11 +75,7 @@ const VerificationsTable = ({
                 <td className="text-center">
                   {txn.referenceNumber.toUpperCase()}
                 </td>
-                <td className="text-center">
-                  {txn.paymentDate
-                    ? new Date(txn.paymentDate).toLocaleString()
-                    : "—"}
-                </td>
+                <td className="text-center">{formatDate(txn.paymentDate)}</td>
                 <td className="text-center">{txn.reason}</td>
                 <td className="text-center">
                   <span

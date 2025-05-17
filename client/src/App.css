@@ -43,3 +43,12 @@ body,
 .border-custom-color {
   border-color: #6c757d !important;
 }
+
+.subscribe-floating-btn {
+  position: fixed;
+  bottom: 65px;
+  right: 15px;
+  z-index: 1050;
+  font-size: 16px;
+}
+

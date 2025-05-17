@@ -2,6 +2,7 @@ import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { VisitorTypeEnum } from "../../../enums/enums.js";
+import { formatDate } from "../../../utils/globalUtils";
 
 const VisitorsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
   // console.log("currentData:", currentData);
@@ -57,9 +58,7 @@ const VisitorsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
                     {visitDetail.classification?.toUpperCase()}
                   </td>
                   <td className="text-center">
-                    {visitDetail.visitDate
-                      ? new Date(visitDetail.visitDate).toLocaleString()
-                      : "—"}
+                    {formatDate(visitDetail.visitDate)}
                   </td>
                   <td className="text-center">
                     {visitDetail.expiryStatus ? (

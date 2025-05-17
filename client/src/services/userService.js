@@ -38,5 +38,5 @@ export const logout = async () => {
 
 export const activateFreeTrial = async (id) => {
   const response = await api.post(`/api/activate-free-trial/${id}`);
-  return response;
+  return response.data;
 };
