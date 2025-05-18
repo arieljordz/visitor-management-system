@@ -1,20 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, Button, Row, Col } from "react-bootstrap";
 import { useAuth } from "../../context/AuthContext";
 import Navpath from "../../components/common/Navpath";
-
-const plans = [
-  {
-    name: "Free Trial",
-    price: "₱0/month",
-    features: ["Valid for 3 Days", "Access dashboard", "Generate QR"],
-  },
-  {
-    name: "Premium",
-    price: "₱999/month",
-    features: ["Valid for 1 Month", "All features", "Priority support"],
-  },
-];
+import { getFeeByCodeAndStatus } from "../../services/feeService.js";
+import { FeeCodeEnum } from "../../enums/enums.js";
 
 const PlanCard = ({ plan, onSelect }) => (
   <Col md={6}>
@@ -36,6 +25,41 @@ const PlanCard = ({ plan, onSelect }) => (
 );
 
 const ChoosePlanPage = ({ onSelect }) => {
+  const [fee, setFee] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFee = async () => {
+      try {
+        const data = await getFeeByCodeAndStatus(FeeCodeEnum.PREM01);
+        setFee(data);
+      } catch (error) {
+        console.error("Error fetching fee:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFee();
+  }, []);
+
+  const plans = [
+    {
+      name: "Free Trial",
+      price: "₱0.00/month",
+      features: ["Valid for 3 Days", "Access dashboard", "Generate QR"],
+    },
+    {
+      name: "Premium",
+      price: fee ? `₱${fee.fee.toFixed(2)}/month` : "Loading...",
+      features: ["Valid for 1 Month", "All features", "Priority support"],
+    },
+  ];
+
+  if (loading) {
+    return <div>Loading plans...</div>;
+  }
+
   return (
     <div className="content-wrapper">
       <Navpath levelOne="Subscribe" levelTwo="Home" levelThree="Subscribe" />

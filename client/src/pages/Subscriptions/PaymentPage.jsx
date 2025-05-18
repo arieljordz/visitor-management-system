@@ -88,8 +88,9 @@ function PaymentPage({ setStep, selectedPlan, steps }) {
 
     const fee = await getFeeByCodeAndStatus(FeeCodeEnum.PREM01);
 
-    if (amount < fee) {
-      toast.warning(`Amount must be at least ${fee}.`);
+    console.log("fee:", fee.fee);
+    if (amount < fee.fee) {
+      toast.warning(`Amount must be at least ₱${fee.fee.toFixed(2)}.`);
       return;
     }
 

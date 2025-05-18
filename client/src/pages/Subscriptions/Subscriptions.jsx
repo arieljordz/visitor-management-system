@@ -107,7 +107,7 @@ function Subscriptions() {
       obj.role,
       obj.address,
       obj.status,
-      obj.classification,
+      obj.categoryType,
       obj.subscription,
       new Date(obj.createdAt).toLocaleString(),
     ];

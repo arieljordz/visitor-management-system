@@ -3,6 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert } from "react-bootstrap";
 import { GoogleLogin } from "@react-oauth/google";
+import { FaEye, FaEyeSlash } from "react-icons/fa"; 
 import { useAuth } from "../../context/AuthContext";
 import { useSpinner } from "../../context/SpinnerContext";
 import { UserRoleEnum, PasswordEnum } from "../../enums/enums.js";
@@ -14,6 +15,7 @@ const LoginForm = ({ setIsRegistering }) => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
@@ -80,15 +82,21 @@ const LoginForm = ({ setIsRegistering }) => {
           />
         </Form.Group>
 
-        <Form.Group className="mb-3">
+        <Form.Group className="mb-3 position-relative password-group">
           <Form.Label>Password</Form.Label>
           <Form.Control
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
             required
           />
+          <span
+            className="password-toggle-icon"
+            onClick={() => setShowPassword((prev) => !prev)}
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </span>
         </Form.Group>
 
         <Button type="submit" className="w-100" variant="primary">

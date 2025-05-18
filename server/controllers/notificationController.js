@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Notification from "../models/Notification.js";
+import { UserRoleEnum } from "../enums/enums.js";
 
 // Create a new notification
 export const createNotification = async (req, res) => {
@@ -28,7 +29,7 @@ export const createNotification = async (req, res) => {
 export const getNotificationsById = async (req, res) => {
   const { userId } = req.params;
   try {
-    const notifications = await Notification.find({ userId, role: "client" })
+    const notifications = await Notification.find({ userId, role: UserRoleEnum.SUBSCRIBER })
       .populate("userId", "name email")
       .sort({ dateCreated: -1 })
       .limit(5);

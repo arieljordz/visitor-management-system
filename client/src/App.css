@@ -52,3 +52,20 @@ body,
   font-size: 16px;
 }
 
+.password-group {
+  position: relative;
+}
+
+.password-toggle-icon {
+  position: absolute;
+  top: 38px;
+  right: 12px;
+  cursor: pointer;
+  z-index: 2;
+  color: #6c757d; /* Bootstrap secondary */
+}
+
+.password-toggle-icon:hover {
+  color: #495057; /* Darker on hover */
+}
+

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Form, Row, Col, Button, Alert } from "react-bootstrap";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import { useSpinner } from "../../context/SpinnerContext";
@@ -10,6 +11,8 @@ const API_URL = import.meta.env.VITE_BASE_API_URL;
 const RegisterForm = ({ setIsRegistering }) => {
   const { setUser } = useAuth();
   const { setLoading } = useSpinner();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState({
     email: "",
@@ -119,10 +122,10 @@ const RegisterForm = ({ setIsRegistering }) => {
             </Form.Group>
           </Col>
           <Col md={6}>
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-3 position-relative password-group">
               <Form.Label>Password</Form.Label>
               <Form.Control
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
@@ -130,13 +133,19 @@ const RegisterForm = ({ setIsRegistering }) => {
                 placeholder="Enter your password"
                 required
               />
+              <span
+                className="password-toggle-icon"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
             </Form.Group>
           </Col>
           <Col md={6}>
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-3 position-relative password-group">
               <Form.Label>Confirm Password</Form.Label>
               <Form.Control
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 value={formData.confirmPassword}
                 onChange={(e) =>
                   setFormData({ ...formData, confirmPassword: e.target.value })
@@ -144,6 +153,12 @@ const RegisterForm = ({ setIsRegistering }) => {
                 placeholder="Confirm your password"
                 required
               />
+              <span
+                className="password-toggle-icon"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
             </Form.Group>
           </Col>
           <Col md={12}>
@@ -169,7 +184,7 @@ const RegisterForm = ({ setIsRegistering }) => {
                 onChange={(e) =>
                   setFormData({ ...formData, categoryType: e.target.value })
                 }
-                placeholder="Enter your categoryType"
+                placeholder="Enter your category type"
                 required
               />
             </Form.Group>

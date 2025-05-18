@@ -24,7 +24,7 @@ const SubscriberTable = ({
             <th className="text-center">Full Name</th>
             <th className="text-center">Address</th>
             <th className="text-center">Role</th>
-            <th className="text-center">Classification</th>
+            <th className="text-center">Category Type</th>
             <th className="text-center">Subscribed</th>
             <th className="text-center">Expiry Date</th>
             <th className="text-center">Status</th>
@@ -41,7 +41,7 @@ const SubscriberTable = ({
                 <td className="text-center">{user.address?.toUpperCase()}</td>
                 <td className="text-center">{user.role?.toUpperCase()}</td>
                 <td className="text-center">
-                  {user.classification?.toUpperCase()}
+                  {user.categoryType?.toUpperCase()}
                 </td>
                 <td className="text-center">
                   {typeof user.subscription === "boolean" && (

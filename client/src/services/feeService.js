@@ -29,6 +29,6 @@ export const deleteFee = async (id) => {
 
 export const getFeeByCodeAndStatus = async (feeCode) => {
   const response = await api.get(`/api/get-fee-code/${feeCode}`);
-  return response;
+  return response.data.data || [];
 };
 
