@@ -1,6 +1,7 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { formatDate } from "../../../utils/globalUtils";
+import { VisitorTypeEnum } from "../../../enums/enums.js";
 
 const GeneratedQRCodeTable = ({
   loading,
@@ -19,7 +20,7 @@ const GeneratedQRCodeTable = ({
         <thead>
           <tr>
             <th className="text-center">#</th>
-            <th className="text-center">TransactionID</th>
+            <th className="text-center">ID</th>
             <th className="text-center">Visitor Type</th>
             <th className="text-center">Client Name</th>
             <th className="text-center">Name/Group</th>
@@ -43,7 +44,7 @@ const GeneratedQRCodeTable = ({
                 </td>
                 <td className="text-center">{txn.userId.name.toUpperCase()}</td>
                 <td className="text-center">
-                  {txn.visitorId?.visitorType === "Individual"
+                  {txn.visitorId?.visitorType === VisitorTypeEnum.INDIVIDUAL
                     ? `${txn.visitorId?.firstName.toUpperCase() || ""} ${
                         txn.visitorId?.lastName.toUpperCase() || ""
                       }`

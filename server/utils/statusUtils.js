@@ -4,8 +4,8 @@ import QRCode from "../models/QRCode.js";
 export const evaluateUserStatus = async (user) => {
   let updated = false;
   const now = moment().tz("Asia/Manila").startOf("day"); // PH timezone start of day
-  console.log("user.dateNow:", now);
-  console.log("user.expiryDate:", user.expiryDate);
+  // console.log("user.dateNow:", now);
+  // console.log("user.expiryDate:", user.expiryDate);
   // Expire subscription
   if (
     user.subscription &&
@@ -16,7 +16,7 @@ export const evaluateUserStatus = async (user) => {
     updated = true;
   }
 
-  console.log("user.trialEndsAt:", user.trialEndsAt);
+  // console.log("user.trialEndsAt:", user.trialEndsAt);
   // Expire trial
   if (
     user.isOnTrial &&

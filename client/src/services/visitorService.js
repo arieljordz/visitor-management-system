@@ -1,4 +1,5 @@
 import api from "../api/api.js";
+import { VisitorTypeEnum } from "../enums/enums.js";
 
 export const getVisitorByUserId = async (userId) => {
   const response = await api.get(`/api/get-visitor-by-user/${userId}`);
@@ -21,7 +22,7 @@ export const getVisitorNames = async (visitorType) => {
     const response = await api.get(`/api/visitors-names?type=${visitorType}`);
     const data = response.data;
 
-    if (visitorType === "Individual") {
+    if (visitorType === VisitorTypeEnum.INDIVIDUAL) {
       return data.map((visitor) => ({
         value: `${visitor.firstName}-${visitor.lastName}`,
         label: `${visitor.firstName} ${visitor.lastName}`,

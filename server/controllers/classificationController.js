@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Classification from "../models/Classification.js";
 import { StatusEnum } from "../enums/enums.js";
 
@@ -5,6 +6,11 @@ import { StatusEnum } from "../enums/enums.js";
 export const createClassification = async (req, res) => {
   try {
     const { description, status } = req.body;
+    const userId = req.user?._id;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(401).json({ message: "Unauthorized or invalid user." });
+    }
 
     if (!description || !description.trim()) {
       return res.status(400).json({ message: "Description is required." });
@@ -12,44 +18,56 @@ export const createClassification = async (req, res) => {
 
     const trimmedDescription = description.trim();
 
-    // Check for duplicate (case-insensitive)
+    // Check for duplicate (case-insensitive, per user)
     const existing = await Classification.findOne({
+      userId,
       description: { $regex: new RegExp(`^${trimmedDescription}$`, "i") },
     });
+
     if (existing) {
-      return res
-        .status(409)
-        .json({ message: "Classification already exists." });
+      return res.status(409).json({
+        message: "Classification already exists for this user.",
+      });
     }
 
     const newClassification = new Classification({
+      userId,
       description: trimmedDescription,
       status:
         status?.toLowerCase() === StatusEnum.INACTIVE
           ? StatusEnum.INACTIVE
-          : StatusEnum.ACTIVE, // defaults to "active"
+          : StatusEnum.ACTIVE,
     });
 
     const saved = await newClassification.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Classification added successfully.",
       data: saved,
     });
   } catch (error) {
     console.error("Error adding classification:", error);
-    res.status(500).json({ message: "Server error." });
+    return res.status(500).json({ message: "Server error." });
   }
 };
 
 // Get all classifications
 export const getClassifications = async (req, res) => {
   try {
-    const classifications = await Classification.find().sort({ createdAt: -1 });
-    res.status(200).json({ data: classifications });
+    const userId = req.user?._id;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(401).json({ message: "Unauthorized or invalid user." });
+    }
+
+    const classifications = await Classification.find({ userId }).sort({
+      createdAt: -1,
+    });
+
+    return res.status(200).json({ data: classifications });
   } catch (error) {
     console.error("Error fetching classifications:", error);
-    res.status(500).json({ message: "Server error." });
+    return res.status(500).json({ message: "Server error." });
   }
 };
 

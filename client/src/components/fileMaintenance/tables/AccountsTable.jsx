@@ -10,6 +10,7 @@ const AccountsTable = ({
   handleDelete,
   getBadgeClass,
 }) => {
+  // console.log("currentData:", currentData);
   return loading ? (
     <div className="text-center my-4">
       <Spinner animation="border" />
@@ -22,6 +23,7 @@ const AccountsTable = ({
             <th className="text-center">#</th>
             <th className="text-center">Email</th>
             <th className="text-center">Full Name</th>
+            <th className="text-center">Subscriber</th>
             <th className="text-center">Address</th>
             <th className="text-center">Role</th>
             <th className="text-center">Date Created</th>
@@ -36,6 +38,11 @@ const AccountsTable = ({
                 <td className="text-center">{index + 1}</td>
                 <td className="text-center">{user.email}</td>
                 <td className="text-center">{user.name?.toUpperCase()}</td>
+                <td className="text-center">
+                  {user.subscriberId?.name
+                    ? user.subscriberId.name.toUpperCase()
+                    : "—"}
+                </td>
                 <td className="text-center">{user.address?.toUpperCase()}</td>
                 <td className="text-center">{user.role?.toUpperCase()}</td>
                 <td className="text-center">{formatDate(user.createdAt)}</td>
@@ -70,7 +77,7 @@ const AccountsTable = ({
             ))
           ) : (
             <tr>
-              <td colSpan="8" className={`text-center text-muted`}>
+              <td colSpan="9" className={`text-center text-muted`}>
                 No records found.
               </td>
             </tr>

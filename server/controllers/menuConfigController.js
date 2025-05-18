@@ -1,5 +1,5 @@
 import MenuConfig from "../models/MenuConfig.js";
-
+import { UserRoleEnum, MenuEnum, SubMenuEnum } from "../enums/enums.js";
 
 export const createMenuConfig = async (req, res) => {
   const { role, menuItems } = req.body;
@@ -7,7 +7,9 @@ export const createMenuConfig = async (req, res) => {
     // Check if the role already has a menu config
     const existingConfig = await MenuConfig.findOne({ role });
     if (existingConfig) {
-      return res.status(400).json({ message: "Menu config for this role already exists" });
+      return res
+        .status(400)
+        .json({ message: "Menu config for this role already exists" });
     }
 
     const newMenuConfig = new MenuConfig({ role, menuItems });
@@ -39,43 +41,47 @@ export const getMenuByRole = async (req, res) => {
 
     let menuItems = menuDoc.menuItems;
 
-    if (!subscription) {
-      const restrictedTopLevel = ["Payment History", "Reports"];
-      const allowedFileMaintenanceSubmenu = ["Accounts"];
+    if (role !== UserRoleEnum.ADMIN) {
+      if (!subscription) {
+        const restrictedTopLevel = [MenuEnum.PAYMENT_HISTORY, MenuEnum.REPORTS];
+        const allowedFileMaintenanceSubmenu = [SubMenuEnum.ACCOUNTS];
 
-      menuItems = menuItems
-        .map((item) => {
-          // Skip restricted top-level items
-          if (restrictedTopLevel.includes(item.label)) return null;
+        menuItems = menuItems
+          .map((item) => {
+            // Skip restricted top-level items
+            if (restrictedTopLevel.includes(item.label)) return null;
 
-          // Handle File Maintenance separately
-          if (item.label === "File Maintenance") {
-            const filteredSubmenu = (item.submenu || []).filter((sub) =>
-              allowedFileMaintenanceSubmenu.includes(sub.label)
-            );
+            // Handle File Maintenance separately
+            if (item.label === MenuEnum.FILE_MAINTENANCE) {
+              const filteredSubmenu = (item.submenu || []).filter((sub) =>
+                allowedFileMaintenanceSubmenu.includes(sub.label)
+              );
 
-            if (filteredSubmenu.length > 0) {
-              return {
-                ...item,
-                submenu: filteredSubmenu,
-                path: item.path?.trim() || "#", // ensure path is valid
-              };
-            } else {
-              return null;
+              if (filteredSubmenu.length > 0) {
+                return {
+                  ...item,
+                  submenu: filteredSubmenu,
+                  path: item.path?.trim() || "#", // ensure path is valid
+                };
+              } else {
+                return null;
+              }
             }
-          }
 
-          // Optionally filter other submenus
-          if (item.submenu && item.submenu.length > 0) {
-            const filteredSub = item.submenu.filter(
-              (sub) => !restrictedTopLevel.includes(sub.label)
-            );
-            return filteredSub.length > 0 ? { ...item, submenu: filteredSub } : { ...item, submenu: [] };
-          }
+            // Optionally filter other submenus
+            if (item.submenu && item.submenu.length > 0) {
+              const filteredSub = item.submenu.filter(
+                (sub) => !restrictedTopLevel.includes(sub.label)
+              );
+              return filteredSub.length > 0
+                ? { ...item, submenu: filteredSub }
+                : { ...item, submenu: [] };
+            }
 
-          return item;
-        })
-        .filter(Boolean);
+            return item;
+          })
+          .filter(Boolean);
+      }
     }
 
     res.json({ ...menuDoc, menuItems });

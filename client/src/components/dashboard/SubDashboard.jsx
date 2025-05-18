@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Card, Spinner } from "react-bootstrap";
+import { Row, Col, Card } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { useSpinner } from "../../context/SpinnerContext";
+import { useDashboard } from "../../context/DashboardContext.jsx";
 import { useFeatureFlags } from "../../context/FeatureFlagContext";
 import Swal from "sweetalert2";
-
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import DashboardTable from "./tables/DashboardTable.jsx";
 import QRCodeModal from "../../components/dashboard/modals/QRCodeModal";
-import SubDashboardStats from "./SubDashboardStats.jsx";
-
+import DashboardStats from "./DashboardStats.jsx";
 import { getVisitorByUserId } from "../../services/visitorService.js";
 import {
   generateQRCodeWithPayment,
@@ -25,6 +24,7 @@ import { FeeCodeEnum, QRStatusEnum } from "../../enums/enums.js";
 
 const SubDashboard = () => {
   const { user } = useAuth();
+  const { refreshDashboard } = useDashboard();
   const { setLoading } = useSpinner();
   const { flags } = useFeatureFlags();
   const [proofs, setVisitors] = useState([]);
@@ -35,10 +35,8 @@ const SubDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  const [showVisitorModal, setShowVisitorModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const [dashboardLoading, setDashboardLoading] = useState(false);
 
   useEffect(() => {
     if (user?.userId) {
@@ -100,6 +98,7 @@ const SubDashboard = () => {
       await generateFn({ userId: user.userId, visitorId, visitdetailsId });
 
       toast.success("Successfully generated QR code for the visitor.");
+      refreshDashboard();
       fetchVisitors();
     } catch (error) {
       console.error("Generation of QR failed:", error);
@@ -150,7 +149,7 @@ const SubDashboard = () => {
       txn.lastName,
       txn.groupName,
       txn.purpose,
-      txn.classification,
+      txn.categoryType,
       txn.visitDate,
     ];
     return values.some((val) =>
@@ -182,15 +181,7 @@ const SubDashboard = () => {
       {/* Main content */}
       <section className="content">
         <div className="container-fluid">
-          {dashboardLoading ? (
-            <div className="text-center my-4">
-              <Spinner animation="border" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </Spinner>
-            </div>
-          ) : (
-            <SubDashboardStats user={user} />
-          )}
+          <DashboardStats />
           <Row className="justify-content-center">
             <Col md={8} lg={12}>
               {/* Card with conditional dark mode styling */}

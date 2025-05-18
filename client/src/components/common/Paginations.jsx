@@ -10,11 +10,12 @@ const Paginations = ({
   indexOfLastItem,
   paginate,
 }) => {
+  // console.log("filteredData:", filteredData);
   if (loading || filteredData.length === 0) return null;
 
   return (
     <div className="d-flex justify-content-between align-items-center mt-3 flex-column flex-sm-row gap-2">
-      <div className={`text-muted`}>
+      {/* <div className={`text-muted`}>
         Showing{" "}
         {filteredData.length === 1
           ? "1 row"
@@ -26,6 +27,33 @@ const Paginations = ({
         {filteredData.length === 1
           ? "1 entry"
           : `${filteredData.length} entries`}
+      </div> */}
+
+      <div className="text-muted">
+        {(() => {
+          const totalVisitDetails = filteredData.reduce((sum, item) => {
+            return (
+              sum +
+              (Array.isArray(item.visitDetails) ? item.visitDetails.length : 0)
+            );
+          }, 0);
+
+          const useVisitDetails = totalVisitDetails > 0;
+          const totalEntries = useVisitDetails
+            ? totalVisitDetails
+            : filteredData.length;
+
+          const start = totalEntries === 1 ? 1 : indexOfFirstItem + 1;
+          const end = Math.min(indexOfLastItem, totalEntries);
+
+          return (
+            <>
+              Showing {totalEntries === 1 ? "1 row" : `${start}–${end} rows`}{" "}
+              out of{" "}
+              {totalEntries === 1 ? "1 entry" : `${totalEntries} entries`}
+            </>
+          );
+        })()}
       </div>
 
       {totalPages > 1 && (

@@ -1,5 +1,6 @@
 import React from "react";
 import { Col, Form, Row } from "react-bootstrap";
+import { VisitorTypeEnum } from "../../enums/enums.js";
 
 const FormInput = ({ label, name, value, onChange, readOnly, placeholder }) => {
   return (
@@ -19,7 +20,7 @@ const FormInput = ({ label, name, value, onChange, readOnly, placeholder }) => {
 
 const VisitorForm = ({ onChange, visitor, type, formData }) => {
   const isReadOnly = visitor !== null;
-  if (type === "Individual") {
+  if (type === VisitorTypeEnum.INDIVIDUAL) {
     return (
       <Row>
         <FormInput

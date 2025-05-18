@@ -20,7 +20,7 @@ const ClassificationTable = ({
         <thead>
           <tr>
             <th className="text-center">#</th>
-            <th className="text-center">ClassificationID</th>
+            <th className="text-center">ID</th>
             <th className="text-center">Description</th>
             <th className="text-center">Date Created</th>
             <th className="text-center">Status</th>

@@ -3,9 +3,10 @@ import { Form } from "react-bootstrap";
 import VisitorTypeSelector from "./VisitorTypeSelector";
 import VisitorDropdown from "./VisitorDropdown";
 import { searchVisitor, getVisitorNames } from "../../services/visitorService";
+import { VisitorTypeEnum } from "../../enums/enums.js";
 
 const VisitorSearch = ({ onSearchComplete, onClearSearch, type, selectedRow }) => {
-  const [searchType, setSearchType] = useState(type || "Individual");
+  const [searchType, setSearchType] = useState(type || VisitorTypeEnum.INDIVIDUAL);
   const [options, setOptions] = useState([]);
   const [selectedVisitor, setSelectedVisitor] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -45,14 +46,14 @@ const VisitorSearch = ({ onSearchComplete, onClearSearch, type, selectedRow }) =
     }
 
     const params =
-      searchType === "Individual"
+      searchType === VisitorTypeEnum.INDIVIDUAL
         ? {
-            visitorType: "Individual",
+            visitorType: VisitorTypeEnum.INDIVIDUAL,
             firstName: visitor.firstName,
             lastName: visitor.lastName,
           }
         : {
-            visitorType: "Group",
+            visitorType: VisitorTypeEnum.GROUP,
             groupName: visitor.groupName,
           };
 

@@ -54,7 +54,9 @@ const SubscriberTable = ({
                     </span>
                   )}
                 </td>
-                <td className="text-center">{formatDate(user.expiryDate)}</td>
+                <td className="text-center">
+                  {user.expiryDate ? formatDate(user.expiryDate) : "—"}
+                </td>
                 <td className="text-center">
                   <span className={`badge bg-${getBadgeClass(user.status)}`}>
                     {user.status}

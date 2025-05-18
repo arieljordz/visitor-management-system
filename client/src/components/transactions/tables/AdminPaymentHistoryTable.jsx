@@ -14,7 +14,7 @@ const AdminPaymentHistoryTable = ({ loading, currentData, getBadgeClass }) => {
         <thead>
           <tr>
             <th className="text-center">#</th>
-            <th className="text-center">TransactionID</th>
+            <th className="text-center">ID</th>
             <th className="text-center">Owner Name</th>
             <th className="text-center">Transaction</th>
             <th className="text-right">Amount</th>

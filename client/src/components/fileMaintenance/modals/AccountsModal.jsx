@@ -13,7 +13,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
     address: "",
     role: "",
     status: StatusEnum.ACTIVE,
-    classification: "",
+    categoryType: "",
     subscription: false,
     verified: true,
   };
@@ -28,7 +28,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
         address: selectedRow.address || "",
         role: selectedRow.role || "",
         status: selectedRow.status || StatusEnum.ACTIVE,
-        classification: selectedRow.classification || "",
+        categoryType: selectedRow.categoryType || "",
         subscription: selectedRow.subscription || false,
         verified: selectedRow.verified || true,
       });
@@ -44,7 +44,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
       address: "",
       role: "",
       status: StatusEnum.ACTIVE,
-      classification: "",
+      categoryType: "",
       subscription: false,
       verified: true,
     });
@@ -189,13 +189,13 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
 
             {/* <Col md={12}>
               <Form.Group className="mb-3">
-                <Form.Label>Classification</Form.Label>
+                <Form.Label>Category Type</Form.Label>
                 <Form.Control
                   type="text"
-                  name="classification"
-                  value={formData.classification}
+                  name="categoryType"
+                  value={formData.categoryType}
                   onChange={handleChange}
-                  placeholder="Enter classification"
+                  placeholder="Enter categoryType"
                   required
                 />
               </Form.Group>

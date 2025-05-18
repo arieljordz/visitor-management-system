@@ -20,7 +20,7 @@ const DepartmentTable = ({
         <thead>
           <tr>
             <th className="text-center">#</th>
-            <th className="text-center">DepartmentID</th>
+            <th className="text-center">ID</th>
             <th className="text-center">Description</th>
             <th className="text-center">Date Created</th>
             <th className="text-center">Status</th>

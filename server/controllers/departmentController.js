@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Department from "../models/Department.js";
 import { StatusEnum } from "../enums/enums.js";
 
@@ -5,6 +6,11 @@ import { StatusEnum } from "../enums/enums.js";
 export const createDepartment = async (req, res) => {
   try {
     const { description, status } = req.body;
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(403).json({ message: "User not authenticated." });
+    }
 
     if (!description || !description.trim()) {
       return res.status(400).json({ message: "Description is required." });
@@ -12,10 +18,12 @@ export const createDepartment = async (req, res) => {
 
     const trimmedDescription = description.trim();
 
-    // Check for duplicate (case-insensitive)
+    // Check for duplicate (case-insensitive) under same user
     const existing = await Department.findOne({
+      userId,
       description: { $regex: new RegExp(`^${trimmedDescription}$`, "i") },
     });
+
     if (existing) {
       return res
         .status(409)
@@ -23,11 +31,12 @@ export const createDepartment = async (req, res) => {
     }
 
     const newDepartment = new Department({
+      userId,
       description: trimmedDescription,
       status:
         status?.toLowerCase() === StatusEnum.INACTIVE
           ? StatusEnum.INACTIVE
-          : StatusEnum.ACTIVE, // defaults to "active"
+          : StatusEnum.ACTIVE,
     });
 
     const saved = await newDepartment.save();
@@ -37,7 +46,7 @@ export const createDepartment = async (req, res) => {
       data: saved,
     });
   } catch (error) {
-    console.error("Error adding Department:", error);
+    console.error("Error adding department:", error);
     res.status(500).json({ message: "Server error." });
   }
 };
@@ -45,10 +54,17 @@ export const createDepartment = async (req, res) => {
 // Get all Departments
 export const getDepartments = async (req, res) => {
   try {
-    const departments = await Department.find().sort({ createdAt: -1 });
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(403).json({ message: "User not authenticated." });
+    }
+
+    const departments = await Department.find({ userId }).sort({ createdAt: -1 });
+
     res.status(200).json({ data: departments });
   } catch (error) {
-    console.error("Error fetching Departments:", error);
+    console.error("Error fetching departments:", error);
     res.status(500).json({ message: "Server error." });
   }
 };

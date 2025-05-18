@@ -20,7 +20,7 @@ const FeesTable = ({
         <thead>
           <tr>
             <th className="text-center">#</th>
-            <th className="text-center">FeeID</th>
+            <th className="text-center">ID</th>
             <th className="text-center">Fee Code</th>
             <th className="text-center">Fee Description</th>
             <th className="text-center">Amount Fee</th>

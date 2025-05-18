@@ -56,7 +56,7 @@ export const buildResponse = (user, token) => ({
   picture: user.picture,
   role: user.role,
   address: user.address,
-  classification: user.classification,
+  categoryType: user.categoryType,
   verified: user.verified,
   status: user.status,
   subscriberId: user.subscriberId,

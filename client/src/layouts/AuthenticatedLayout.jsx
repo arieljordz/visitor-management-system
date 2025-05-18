@@ -8,6 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import { FeatureFlagProvider } from "../context/FeatureFlagContext";
 import { UserRoleEnum } from "../enums/enums.js";
 import SubscribeButton from "../components/common/SubscribeButton";
+import { DashboardProvider } from "../context/DashboardContext.jsx";
 
 const AuthenticatedLayout = () => {
   const { user } = useAuth();
@@ -37,13 +38,15 @@ const AuthenticatedLayout = () => {
 
   return (
     <div className="wrapper">
-      <FeatureFlagProvider>
-        <Navbar />
-        <Sidebar />
-        <MainRoutes />
-        {showSubscribeButton() && <SubscribeButton />}
-        <Footer />
-      </FeatureFlagProvider>
+      <DashboardProvider>
+        <FeatureFlagProvider>
+          <Navbar />
+          <Sidebar />
+          <MainRoutes />
+          {showSubscribeButton() && <SubscribeButton />}
+          <Footer />
+        </FeatureFlagProvider>
+      </DashboardProvider>
     </div>
   );
 };

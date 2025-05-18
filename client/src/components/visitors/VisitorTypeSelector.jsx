@@ -1,7 +1,8 @@
 import React from "react";
+import { VisitorTypeEnum } from "../../enums/enums.js";
 
 const VisitorTypeSelector = ({ selectedType, onChange, selectedRow }) => {
-  const types = ["Individual", "Group"];
+  const types = [VisitorTypeEnum.INDIVIDUAL, VisitorTypeEnum.GROUP];
 
   return (
     <div className="form-group mb-3">

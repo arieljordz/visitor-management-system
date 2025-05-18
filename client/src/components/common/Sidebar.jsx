@@ -41,7 +41,11 @@ const Sidebar = () => {
   };
 
   const toggleMenu = (menuLabel) => {
-    setOpenMenus((prev) => ({ ...prev, [menuLabel]: !prev[menuLabel] }));
+    setOpenMenus((prev) => {
+      const isCurrentlyOpen = prev[menuLabel];
+      // Toggle current: if open, close it. Otherwise, close others and open this one.
+      return isCurrentlyOpen ? {} : { [menuLabel]: true };
+    });
   };
 
   const handleMainClick = (item) => {
@@ -52,7 +56,7 @@ const Sidebar = () => {
     }
   };
 
-  const handleNavigation = async (path) => {
+  const handleNavigation = async (path, fromSubmenu = false) => {
     if (path === "/") {
       const isConfirmed = await Swal.fire({
         title: "Are you sure?",
@@ -68,6 +72,9 @@ const Sidebar = () => {
         navigate(path);
       }
     } else {
+      if (!fromSubmenu) {
+        setOpenMenus({}); // Close all only on top-level click
+      }
       navigate(path);
     }
   };
@@ -140,7 +147,7 @@ const Sidebar = () => {
                     isOpen={openMenus[item.label]}
                     isActive={isActive}
                     onMainClick={() => handleMainClick(item)}
-                    onSubClick={handleNavigation}
+                    onSubClick={(path) => handleNavigation(path, true)} // <-- pass true to indicate it's a submenu
                   />
                 );
               })}

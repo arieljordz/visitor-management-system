@@ -9,6 +9,8 @@ import PaymentProofUpload from "./PaymentProofUpload";
 import PaymentPreview from "./PaymentPreview";
 import { getActivePaymentAccounts } from "../../services/paymentAccountService";
 import { submitSubscription } from "../../services/balanceService";
+import { getFeeByCodeAndStatus } from "../../services/feeService.js";
+import { FeeCodeEnum } from "../../enums/enums.js";
 
 function PaymentPage({ setStep, selectedPlan, steps }) {
   const { user } = useAuth();
@@ -66,23 +68,33 @@ function PaymentPage({ setStep, selectedPlan, steps }) {
 
   const isValid = () => {
     const amount = parseFloat(topUpAmount);
-    return amount > 0 && referenceNumber && proof && paymentMethod;
+    return (
+      !isNaN(amount) &&
+      amount > 0 &&
+      referenceNumber?.trim() &&
+      proof &&
+      paymentMethod
+    );
   };
 
   const handleTopUp = async (e) => {
     e.preventDefault();
+    const amount = parseFloat(topUpAmount);
+
     if (!isValid()) {
       toast.warning("Please complete all fields before submitting.");
       return;
     }
 
-    if (amount < 999) {
-      toast.warning("Amount must be at least 999.");
+    const fee = await getFeeByCodeAndStatus(FeeCodeEnum.PREM01);
+
+    if (amount < fee) {
+      toast.warning(`Amount must be at least ${fee}.`);
       return;
     }
-    
+
     const formData = new FormData();
-    formData.append("topUpAmount", parseFloat(topUpAmount).toFixed(2));
+    formData.append("topUpAmount", amount.toFixed(2));
     formData.append("paymentMethod", paymentMethod);
     formData.append("proof", proof);
     formData.append("referenceNumber", referenceNumber);

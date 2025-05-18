@@ -55,8 +55,30 @@ export const NotificationEnum = Object.freeze({
   SUBSCRIPTION: "subscription",
 });
 
+export const MenuEnum = Object.freeze({
+  DASHBOARD: "Dashboard",
+  GENERATED_QR: "Generated QR Codes",
+  PAYMENT_HISTORY: "Payment History",
+  SUBSCRIPTIONS: "Subscriptions",
+  VERIFICATIONS: "Verifications",
+  REPORTS: "Reports",
+  FILE_MAINTENANCE: "File Maintenance",
+  SETTINGS: "Settings",
+  LOGOUT: "Logout",
+});
+
+export const SubMenuEnum = Object.freeze({
+  PAYMENT_METHODS: "Payment Methods",
+  PAYMENT_ACCOUNTS: "Payment Accounts",
+  DEPARTMENTS: "Departments",
+  CLASSIFICATIONS: "Classifications",
+  FEES: "Fees",
+  ACCOUNTS: "Accounts",
+});
+
 export const FeeCodeEnum = Object.freeze({
   GENQR01: "GENQR01",
+  PREM01: "PREM01",
 });
 
 export const PasswordEnum = Object.freeze({

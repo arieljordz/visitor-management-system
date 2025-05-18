@@ -42,7 +42,7 @@ export const getGeneratedQRCodesById = async (userId) => {
   return response.data.data || [];
 };
 
-export const scanQRCode = async (qrData) => {
-  const response = await api.get(`/api/scan-qr/${qrData}`);
+export const scanQRCode = async (qrData, userId) => {
+  const response = await api.get(`/api/scan-qr/${qrData}/${userId}`);
   return response.data;
 };

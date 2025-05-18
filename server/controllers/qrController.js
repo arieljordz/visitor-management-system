@@ -210,7 +210,10 @@ export const generateQRCodeSubscription = async (req, res) => {
     // Check for duplicate QR for same visit date
     const duplicateQR = activeQRCodes.find((qr) => {
       const qrVisitDate = qr.visitdetailsId?.visitDate;
-      return qrVisitDate && moment(qrVisitDate).startOf("day").isSame(targetVisitDate);
+      return (
+        qrVisitDate &&
+        moment(qrVisitDate).startOf("day").isSame(targetVisitDate)
+      );
     });
 
     if (duplicateQR) {
@@ -256,7 +259,12 @@ export const generateQRCodeSubscription = async (req, res) => {
 
 export const scanQRCode = async (req, res) => {
   try {
-    const { qrData } = req.params;
+    const { qrData, userId } = req.params;
+
+    // ✅ Validate userId is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID." });
+    }
 
     if (!qrData) {
       return res.status(400).json({ message: "QR data is required." });
@@ -264,54 +272,92 @@ export const scanQRCode = async (req, res) => {
 
     const qrCodeDoc = await QRCode.findOne({ qrData })
       .populate("visitorId")
-      .populate("userId", "name email")
+      .populate("userId", "name email") // the user who created/owns the QR
       .populate("visitdetailsId");
 
     if (!qrCodeDoc) {
       return res.status(404).json({ message: "QR code not found." });
     }
 
-    if ([QRStatusEnum.USED, QRStatusEnum.EXPIRED].includes(qrCodeDoc.status)) {
-      return res
-        .status(400)
-        .json({ message: `QR code has already been ${qrCodeDoc.status}.` });
+    // ✅ Check if the staff scanning the QR is the one it was assigned to
+    if (qrCodeDoc.userId._id.toString() !== userId) {
+      return res.status(403).json({
+        message: "You are not authorized to scan this QR code.",
+      });
     }
 
-    const visitDate = moment(qrCodeDoc.visitdetailsId.visitDate).startOf("day");
+    // ✅ Check status
+    if ([QRStatusEnum.USED, QRStatusEnum.EXPIRED].includes(qrCodeDoc.status)) {
+      return res.status(400).json({
+        message: `QR code has already been ${qrCodeDoc.status}.`,
+      });
+    }
+
+    // ✅ Check visit details
+    const visitDetail = qrCodeDoc.visitdetailsId;
+    if (!visitDetail) {
+      return res
+        .status(400)
+        .json({ message: "Visit details missing for QR code." });
+    }
+
+    // ✅ Check date
+    const visitDate = moment(visitDetail.visitDate).startOf("day");
     const today = moment().startOf("day");
 
     if (visitDate.isBefore(today)) {
       qrCodeDoc.status = QRStatusEnum.EXPIRED;
       await qrCodeDoc.save();
-      return res
-        .status(400)
-        .json({ message: "QR code is expired. Visit date has passed." });
+
+      return res.status(400).json({
+        message: "QR code is expired. Visit date has passed.",
+      });
     }
 
     if (!visitDate.isSame(today)) {
-      return res
-        .status(400)
-        .json({ message: "Visit date does not match today's date." });
+      return res.status(400).json({
+        message: "Visit date does not match today's date.",
+      });
     }
 
+    // ✅ Mark QR as used
     qrCodeDoc.status = QRStatusEnum.USED;
     await qrCodeDoc.save();
 
     const visitor = qrCodeDoc.visitorId;
+    if (!visitor) {
+      return res
+        .status(400)
+        .json({ message: "Visitor information is missing." });
+    }
+
     const visitorName =
       visitor.visitorType === VisitorTypeEnum.INDIVIDUAL
         ? `${visitor.firstName} ${visitor.lastName}`
         : visitor.groupName;
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "QR code scanned successfully.",
       data: {
-        clientName: qrCodeDoc.userId.name,
-        visitorName,
-        visitDate: moment(qrCodeDoc.visitdetailsId.visitDate).format(
-          "YYYY-MM-DD"
-        ),
-        purpose: qrCodeDoc.visitdetailsId.purpose,
+        hostName: qrCodeDoc.userId?.name || null,
+        visitor: {
+          id: visitor._id,
+          visitorType: visitor.visitorType,
+          visitorName,
+          firstName: visitor.firstName || null,
+          lastName: visitor.lastName || null,
+          groupName: visitor.groupName || null,
+        },
+        visitDetail: {
+          visitDate: visitDetail.visitDate,
+          purpose: visitDetail.purpose,
+          department: visitDetail.department,
+          classification: visitDetail.classification,
+          noOfVisitors: visitDetail.noOfVisitors,
+          expiryStatus: visitDetail.expiryStatus,
+          createdAt: visitDetail.createdAt,
+          updatedAt: visitDetail.updatedAt,
+        },
       },
     });
   } catch (error) {
@@ -337,9 +383,10 @@ export const getGeneratedQRCodes = async (req, res) => {
     console.error("Error fetching QR codes:", error.stack);
 
     return res.status(500).json({
-      message: error.name === "CastError"
-        ? "Invalid data format in request."
-        : "Server error while fetching QR codes.",
+      message:
+        error.name === "CastError"
+          ? "Invalid data format in request."
+          : "Server error while fetching QR codes.",
       error: error.message,
     });
   }

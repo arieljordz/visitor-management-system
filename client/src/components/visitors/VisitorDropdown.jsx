@@ -1,6 +1,7 @@
 import React from "react";
 import Select from "react-select";
 import { Form } from "react-bootstrap";
+import { VisitorTypeEnum } from "../../enums/enums.js";
 
 const VisitorDropdown = ({
   searchType,
@@ -9,7 +10,7 @@ const VisitorDropdown = ({
   selectedVisitor,
   onChange,
 }) => {
-  const isIndividual = searchType === "Individual";
+  const isIndividual = searchType === VisitorTypeEnum.INDIVIDUAL;
 
   const customStyles = {
     option: (provided, state) => ({

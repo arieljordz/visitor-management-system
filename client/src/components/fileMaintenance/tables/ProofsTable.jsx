@@ -91,7 +91,7 @@ const ProofsTable = ({
                   onChange={handleSelectAll}
                 />
               </th>
-              <th className="text-center">TransactionID</th>
+              <th className="text-center">ID</th>
               <th className="text-center">Transaction</th>
               <th className="text-center">Proof</th>
               <th className="text-right">Amount</th>

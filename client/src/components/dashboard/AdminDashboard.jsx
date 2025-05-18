@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Spinner } from "react-bootstrap";
 import Navpath from "../../components/common/Navpath";
-import AdminDashboardStats from "./AdminDashboardStats";
+import DashboardStats from "./DashboardStats";
 
 const AdminDashboard = () => {
-  const [dashboardLoading, setDashboardLoading] = useState(false);
-
   return (
     <div className="content-wrapper">
       {/* Content Header */}
@@ -14,15 +11,7 @@ const AdminDashboard = () => {
       {/* Main content */}
       <section className="content">
         <div className="container-fluid">
-          {dashboardLoading ? (
-            <div className="text-center my-4">
-              <Spinner animation="border" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </Spinner>
-            </div>
-          ) : (
-            <AdminDashboardStats />
-          )}
+          <DashboardStats />
         </div>
       </section>
     </div>

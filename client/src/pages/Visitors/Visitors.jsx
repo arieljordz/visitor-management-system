@@ -97,7 +97,7 @@ function Visitors() {
       obj.address,
       obj.status,
       obj.department,
-      obj.classification,
+      obj.categoryType,
       obj.subscription,
       new Date(obj.createdAt).toLocaleString(),
     ];

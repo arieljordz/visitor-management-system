@@ -1,10 +1,11 @@
 import React from "react";
 import moment from "moment";
-import { Form, Row, Col, Card } from "react-bootstrap";
+import { Card, Row, Col } from "react-bootstrap";
 
 const QRDetails = ({ responseMessage }) => {
+  const { hostName, visitor, visitDetail } = responseMessage.data;
+
   console.log("responseMessage:", responseMessage);
-  const { clientName, visitorName, visitDate, purpose } = responseMessage.data;
 
   return (
     <Card className="border-success shadow-sm mt-4">
@@ -14,30 +15,44 @@ const QRDetails = ({ responseMessage }) => {
       <Card.Body>
         <Row className="mb-3">
           <Col md={6}>
-            <Form.Label className="fw-semibold">Owner Name</Form.Label>
-            <div className="form-control-plaintext border rounded px-3 py-2 bg-light">
-              {clientName}
-            </div>
+            <h6 className="text-muted">Host Name</h6>
+            <p className="border rounded px-3 py-2 bg-light mb-0">{hostName}</p>
           </Col>
           <Col md={6}>
-            <Form.Label className="fw-semibold">Visitor Name</Form.Label>
-            <div className="form-control-plaintext border rounded px-3 py-2 bg-light">
-              {visitorName}
-            </div>
+            <h6 className="text-muted">Visitor Name</h6>
+            <p className="border rounded px-3 py-2 bg-light mb-0">
+              {visitor.visitorName}
+            </p>
           </Col>
         </Row>
-        <Row>
+
+        <Row className="mb-3">
           <Col md={6}>
-            <Form.Label className="fw-semibold">Visit Date</Form.Label>
-            <div className="form-control-plaintext border rounded px-3 py-2 bg-light">
-              {moment(visitDate).format("MMMM DD, YYYY")}
-            </div>
+            <h6 className="text-muted">Visit Date</h6>
+            <p className="border rounded px-3 py-2 bg-light mb-0">
+              {moment(visitDetail.visitDate).format("MMMM DD, YYYY")}
+            </p>
           </Col>
           <Col md={6}>
-            <Form.Label className="fw-semibold">Purpose</Form.Label>
-            <div className="form-control-plaintext border rounded px-3 py-2 bg-light">
-              {purpose}
-            </div>
+            <h6 className="text-muted">Purpose</h6>
+            <p className="border rounded px-3 py-2 bg-light mb-0">
+              {visitDetail.purpose}
+            </p>
+          </Col>
+        </Row>
+
+        <Row>
+          <Col md={6}>
+            <h6 className="text-muted">Department</h6>
+            <p className="border rounded px-3 py-2 bg-light mb-0">
+              {visitDetail.department}
+            </p>
+          </Col>
+          <Col md={6}>
+            <h6 className="text-muted">Classification</h6>
+            <p className="border rounded px-3 py-2 bg-light mb-0">
+              {visitDetail.classification}
+            </p>
           </Col>
         </Row>
       </Card.Body>

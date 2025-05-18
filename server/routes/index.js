@@ -11,6 +11,7 @@ import {
   getUsers,
   getUserById,
   getUsersByRole,
+  getUsersStaff,
   updateUser,
   deleteUser,
   activateFreeTrial,
@@ -34,10 +35,6 @@ import {
   getPaymentProofs,
   deletePaymentProofs,
   updateVerificationStatus,
-  verifyPayment,
-  declinePayment,
-  verifySubscription,
-  declineSubscription,
   updateSubscriptionStatus,
 } from "../controllers/paymentDetailController.js";
 import {
@@ -138,8 +135,8 @@ router.put("/logout-user", authenticate, auditLogger("LOGOUT_USER"), logout);
 router.post("/create-user", auditLogger("REGISTER_USER"), createUser);
 router.get("/get-users", authenticate, getUsers);
 router.get("/get-user/:id", authenticate, getUserById);
-// router.get("/get-user-by-role/:role", authenticate, getUsersByRole);
 router.get("/get-users-by-role", authenticate, getUsersByRole);
+router.get("/get-users-staff", authenticate, getUsersStaff);
 router.put("/update-user/:id", authenticate, auditLogger("UPDATE_USER"), updateUser);
 router.delete("/delete-user/:id", authenticate, auditLogger("DELETE_USER"), deleteUser);
 router.post("/activate-free-trial/:id", authenticate, auditLogger("FREE_TRIAL"), activateFreeTrial);
@@ -147,7 +144,7 @@ router.post("/activate-free-trial/:id", authenticate, auditLogger("FREE_TRIAL"),
 // QRCode Routes
 router.post("/generate-qr", authenticate, auditLogger("GENERATE_QR_CODE"), generateQRCodeWithPayment);
 router.post("/generate-qr-subscription", authenticate, auditLogger("GENERATE_QR_CODE"), generateQRCodeSubscription);
-router.get("/scan-qr/:qrData", authenticate, auditLogger("SCAN_QR_CODE"), scanQRCode);
+router.get("/scan-qr/:qrData/:userId", authenticate, auditLogger("SCAN_QR_CODE"), scanQRCode);
 router.get("/get-generated-qr", authenticate, getGeneratedQRCodes);
 router.get("/get-generated-qr/:userId", authenticate, getGeneratedQRCodesById);
 router.get("/check-active-qr/:userId/:visitorId/:visitdetailsId", authenticate, checkActiveQRCodeForVisit);
@@ -164,10 +161,6 @@ router.get("/get-payment-proofs", authenticate, checkFeature("enableSubscription
 router.delete("/delete-payment-proofs", authenticate, auditLogger("DELETE_PAYMENT"), deletePaymentProofs);
 router.put("/update-verification/:id", authenticate, auditLogger("UPDATE_PAYMENT"), updateVerificationStatus);
 router.put("/subscription-verification/:id", authenticate, auditLogger("UPDATE_PAYMENT"), updateSubscriptionStatus);
-router.put("/payment-verification-verify/:id", authenticate, auditLogger("VERIFY_PAYMENT"), verifyPayment);
-router.put("/payment-verification-decline/:id", authenticate, auditLogger("DECLINE_PAYMENT"), declinePayment);
-router.put("/subscription-verification-verify/:id", authenticate, auditLogger("VERIFY_SUBSCRIPTION"), verifySubscription);
-router.put("/subscription-verification-decline/:id", authenticate, auditLogger("DECLINE_SUBSCRIPTION"), declineSubscription);
 
 // PaymentMethod Routes
 router.post("/create-payment-method", authenticate, auditLogger("CREATE_PAYMENT_METHOD"), createPaymentMethod);

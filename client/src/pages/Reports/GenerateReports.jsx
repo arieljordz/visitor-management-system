@@ -6,12 +6,13 @@ import {
   getPaymentDetailsByDateRange,
   getAuditLogsByDateRange,
 } from "../../services/reportService";
-import { formatDate } from "../../utils/globalUtils";
+import { formatDate, formatDateTime } from "../../utils/globalUtils";
 import ReportFilters from "./ReportFilters";
 import ReportActions from "./ReportActions";
 import ReportTable from "./ReportTable";
 import Navpath from "../../components/common/Navpath";
 import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
+import { VisitorTypeEnum } from "../../enums/enums.js";
 
 function GenerateReports() {
   const [loading, setLoading] = useState(false);
@@ -46,21 +47,23 @@ function GenerateReports() {
             { header: "Name", key: "name" },
             { header: "Visitor Type", key: "visitorType" },
             { header: "Purpose", key: "purpose" },
-            { header: "Classification", key: "classification" },
+            { header: "Department", key: "department" },
+            { header: "Category Type", key: "categoryType" },
             { header: "No. of Visitors", key: "noOfVisitors" },
             { header: "Date", key: "date" },
           ]);
           rows = visitors.map((item, index) => ({
             id: index + 1,
             name:
-              item.visitorId?.visitorType === "Individual"
+              item.visitorId?.visitorType === VisitorTypeEnum.INDIVIDUAL
                 ? `${item.visitorId?.firstName?.toUpperCase()} ${item.visitorId?.lastName?.toUpperCase()}`
                 : item.visitorId?.groupName?.toUpperCase(),
             visitorType: item.visitorId?.visitorType?.toUpperCase(),
             purpose: item.purpose.toUpperCase(),
-            classification: item.classification?.toUpperCase(),
+            department: item.department?.toUpperCase(),
+            categoryType: item.categoryType?.toUpperCase(),
             noOfVisitors: item.noOfVisitors ? item.noOfVisitors : 1,
-            date: formatDate(item.visitDate),
+            date: formatDateTime(item.visitDate),
           }));
           title = `Visitor Report - ${formatDate(
             new Date(dateFrom)
@@ -87,7 +90,7 @@ function GenerateReports() {
             amount: `PHP ${parseFloat(item.amount).toFixed(2)}`,
             method: item.paymentMethod.toUpperCase(),
             status: item.status.toUpperCase(),
-            date: formatDate(item.paymentDate),
+            date: formatDateTime(item.paymentDate),
           }));
           title = `Payment Report - ${formatDate(
             new Date(dateFrom)
@@ -117,7 +120,7 @@ function GenerateReports() {
                 : item.userId?.email,
             action: item.action?.toUpperCase(),
             ipAddress: item.ipAddress?.toUpperCase(),
-            date: formatDate(item.createdAt),
+            date: formatDateTime(item.createdAt),
           }));
           title = `Audit Log Report - ${formatDate(
             new Date(dateFrom)

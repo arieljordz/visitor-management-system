@@ -6,11 +6,12 @@ import { getClassifications } from "../../../services/classificationService";
 import VisitorSearch from "../VisitorSearch";
 import VisitorDetailsForm from "../VisitorDetailsForm";
 import VisitorForm from "../VisitorForm";
+import { VisitorTypeEnum } from "../../../enums/enums.js";
 
 const VisitorsModal = ({ user, show, onHide, refreshList }) => {
   const [classifications, setClassifications] = useState([]);
   const [selectedVisitor, setSelectedVisitor] = useState(null);
-  const [visitorType, setVisitorType] = useState("Individual");
+  const [visitorType, setVisitorType] = useState(VisitorTypeEnum.INDIVIDUAL);
   const [formData, setFormData] = useState({
     visitDate: "",
     purpose: "",
@@ -37,7 +38,7 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
 
   const resetState = () => {
     setSelectedVisitor(null);
-    setVisitorType("Individual");
+    setVisitorType(VisitorTypeEnum.INDIVIDUAL);
     setFormData({
       firstName: "",
       lastName: "",
@@ -58,10 +59,10 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
       // Also populate formData for clarity
       setFormData((prev) => ({
         ...prev,
-        firstName: type === "Individual" ? visitor.firstName : "",
-        lastName: type === "Individual" ? visitor.lastName : "",
-        groupName: type === "Group" ? visitor.groupName : "",
-        noOfVisitors: type === "Group" ? visitor.noOfVisitors : "",
+        firstName: type === VisitorTypeEnum.INDIVIDUAL ? visitor.firstName : "",
+        lastName: type === VisitorTypeEnum.INDIVIDUAL ? visitor.lastName : "",
+        groupName: type === VisitorTypeEnum.GROUP ? visitor.groupName : "",
+        noOfVisitors: type === VisitorTypeEnum.GROUP ? visitor.noOfVisitors : "",
       }));
     } else {
       setSelectedVisitor(null);
@@ -70,7 +71,7 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
 
   const handleClearSearch = () => {
     setSelectedVisitor(null);
-    setVisitorType("Individual");
+    setVisitorType(VisitorTypeEnum.INDIVIDUAL);
   };
 
   const handleChange = (e) => {
@@ -84,22 +85,22 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
         userId: user.userId,
         visitorType,
         firstName:
-          visitorType === "Individual"
+          visitorType === VisitorTypeEnum.INDIVIDUAL
             ? selectedVisitor?.firstName || formData.firstName
             : undefined,
         lastName:
-          visitorType === "Individual"
+          visitorType === VisitorTypeEnum.INDIVIDUAL
             ? selectedVisitor?.lastName || formData.lastName
             : undefined,
         groupName:
-          visitorType === "Group"
+          visitorType === VisitorTypeEnum.GROUP
             ? selectedVisitor?.groupName || formData.groupName
             : undefined,
         visitDate: formData.visitDate,
         purpose: formData.purpose,
         classification: formData.classification,
         noOfVisitors:
-          visitorType === "Group"
+          visitorType === VisitorTypeEnum.GROUP
             ? selectedVisitor?.noOfVisitors || formData.noOfVisitors
             : 1,
       };

@@ -8,14 +8,12 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Optional: list of endpoints that should skip auth handling
-const skipAuthEndpoints = ["/api/logout-user", "/api/get-settings"];
+const skipAuthEndpoints = ["/api/logout-user", "/api/get-settings", "/api/get-feature-flags"];
 
-// Attach Authorization token to every request
+// Attach Authorization token to requests
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
-    // console.log("api token:", token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -24,37 +22,26 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Handle responses, including token expiration
+// Handle token expiration and session
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    const isAuthError =
+
+    const isTokenExpired =
       error.response?.status === 401 &&
       error.response?.data?.message === "Token expired. Please login again.";
 
-    // Skip auth handling if endpoint is in the skip list
     const shouldSkipAuthHandling = skipAuthEndpoints.some((endpoint) =>
       originalRequest?.url?.includes(endpoint)
     );
 
-    // console.log("isAuthError:", isAuthError);
-    // console.log("originalRequest:", originalRequest);
-    // console.log("originalRequest._retry:", originalRequest._retry);
-    // console.log("shouldSkipAuthHandling:", shouldSkipAuthHandling);
-
-    // Handle token expiration and retry logic
-    if (isAuthError && originalRequest && !originalRequest._retry) {
+    // Attempt token refresh
+    if (isTokenExpired && !originalRequest._retry && !shouldSkipAuthHandling) {
       originalRequest._retry = true;
 
       try {
-        const res = await axios.post(
-          `${API_URL}/api/refresh-token`,
-          {},
-          { withCredentials: true }
-        );
-
-        // console.log("api user:", res);
+        const res = await axios.post(`${API_URL}/api/refresh-token`, {}, { withCredentials: true });
 
         const { accessToken: newToken, user: updatedUser } = res.data;
 
@@ -64,33 +51,30 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        if (!shouldSkipAuthHandling) {
-          console.log("Error 401 shouldSkipAuthHandling");
-          return handleSessionExpired(refreshError);
-        }
-        return Promise.reject(refreshError);
+        return logoutAndRedirect(refreshError);
       }
     }
 
-    // Catch-all for other 401s
+    // For any other 401 error, logout unless explicitly skipped
     if (error.response?.status === 401 && !shouldSkipAuthHandling) {
-      console.log("Error 401");
-      return handleSessionExpired(error);
+      return logoutAndRedirect(error);
     }
 
     return Promise.reject(error);
   }
 );
 
-// Handle session expiration
-function handleSessionExpired(error) {
+// Logout handler
+function logoutAndRedirect(error) {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
+
   Swal.fire({
     icon: "warning",
     title: "Session Expired",
-    text: "Please login again.",
+    text: "You have been logged out. Please login again.",
     confirmButtonText: "OK",
   }).then(() => {
-    localStorage.removeItem("user");
     window.location.href = "/";
   });
 

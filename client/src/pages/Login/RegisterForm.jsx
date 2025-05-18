@@ -17,7 +17,7 @@ const RegisterForm = ({ setIsRegistering }) => {
     password: "",
     confirmPassword: "",
     address: "",
-    classification: "",
+    categoryType: "",
     subscription: false,
   });
 
@@ -38,7 +38,7 @@ const RegisterForm = ({ setIsRegistering }) => {
         picture: null,
         role: UserRoleEnum.SUBSCRIBER,
         address: formData.address,
-        classification: formData.classification,
+        categoryType: formData.categoryType,
         subscription: formData.subscription,
         verified: false,
         status: StatusEnum.ACTIVE,
@@ -53,7 +53,7 @@ const RegisterForm = ({ setIsRegistering }) => {
         role: data.role,
         address: data.address,
         verified: data.verified,
-        classification: data.classification,
+        categoryType: data.categoryType,
         subscription: data.subscription,
       };
 
@@ -68,7 +68,7 @@ const RegisterForm = ({ setIsRegistering }) => {
         password: "",
         confirmPassword: "",
         address: "",
-        classification: "",
+        categoryType: "",
         subscription: true,
       });
 
@@ -162,14 +162,14 @@ const RegisterForm = ({ setIsRegistering }) => {
           </Col>
           <Col md={12}>
             <Form.Group className="mb-3">
-              <Form.Label>Classification</Form.Label>
+              <Form.Label>Category Type</Form.Label>
               <Form.Control
                 type="text"
-                value={formData.classification}
+                value={formData.categoryType}
                 onChange={(e) =>
-                  setFormData({ ...formData, classification: e.target.value })
+                  setFormData({ ...formData, categoryType: e.target.value })
                 }
-                placeholder="Enter your classification"
+                placeholder="Enter your categoryType"
                 required
               />
             </Form.Group>

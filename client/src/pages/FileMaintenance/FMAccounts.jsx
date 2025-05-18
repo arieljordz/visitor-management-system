@@ -11,6 +11,7 @@ import AccountsTable from "../../components/fileMaintenance/tables/AccountsTable
 import AccountsModal from "../../components/fileMaintenance/modals/AccountsModal";
 import {
   getUsersByRole,
+  getUsersStaff,
   getUserById,
   deleteUser,
 } from "../../services/userService.js";
@@ -47,7 +48,7 @@ function FMAccounts() {
           UserRoleEnum.STAFF
         );
       } else {
-        data = await getUsersByRole(UserRoleEnum.STAFF);
+        data = await getUsersStaff(user.userId);
       }
 
       setAccounts(data);
@@ -118,7 +119,8 @@ function FMAccounts() {
       obj.role,
       obj.address,
       obj.status,
-      obj.classification,
+      obj.department,
+      obj.categoryType,
       obj.subscription,
       new Date(obj.createdAt).toLocaleString(),
     ];

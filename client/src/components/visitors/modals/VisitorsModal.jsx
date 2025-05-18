@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../context/AuthContext";
+import { useDashboard } from "../../../context/DashboardContext.jsx";
 import {
   createVisitorDetail,
   updateVisitor,
@@ -11,6 +12,7 @@ import { getDepartments } from "../../../services/departmentService";
 import VisitorSearch from "../VisitorSearch";
 import VisitorDetailsForm from "../VisitorDetailsForm";
 import VisitorForm from "../VisitorForm";
+import { VisitorTypeEnum } from "../../../enums/enums.js";
 
 const INITIAL_FORM_STATE = {
   firstName: "",
@@ -26,10 +28,11 @@ const INITIAL_FORM_STATE = {
 
 const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
   const { user } = useAuth();
+  const { refreshDashboard } = useDashboard();
   const [classifications, setClassifications] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [selectedVisitor, setSelectedVisitor] = useState(null);
-  const [visitorType, setVisitorType] = useState("Individual");
+  const [visitorType, setVisitorType] = useState(VisitorTypeEnum.INDIVIDUAL);
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
 
   useEffect(() => {
@@ -84,7 +87,7 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
 
   const resetForm = () => {
     setSelectedVisitor(null);
-    setVisitorType("Individual");
+    setVisitorType(VisitorTypeEnum.INDIVIDUAL);
     setFormData(INITIAL_FORM_STATE);
   };
 
@@ -97,10 +100,10 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
 
       setFormData((prev) => ({
         ...prev,
-        firstName: type === "Individual" ? visitor.firstName : "",
-        lastName: type === "Individual" ? visitor.lastName : "",
-        groupName: type === "Group" ? visitor.groupName : "",
-        noOfVisitors: type === "Group" ? visitor.noOfVisitors : "",
+        firstName: type === VisitorTypeEnum.INDIVIDUAL ? visitor.firstName : "",
+        lastName: type === VisitorTypeEnum.INDIVIDUAL ? visitor.lastName : "",
+        groupName: type === VisitorTypeEnum.GROUP ? visitor.groupName : "",
+        noOfVisitors: type === VisitorTypeEnum.GROUP ? visitor.noOfVisitors : "",
       }));
     } else {
       setSelectedVisitor(null);
@@ -109,7 +112,7 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
 
   const handleClearSearch = () => {
     setSelectedVisitor(null);
-    setVisitorType("Individual");
+    setVisitorType(VisitorTypeEnum.INDIVIDUAL);
   };
 
   const handleChange = (e) => {
@@ -132,15 +135,15 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
       userId: user.userId,
       visitorType,
       firstName:
-        visitorType === "Individual"
+        visitorType === VisitorTypeEnum.INDIVIDUAL
           ? selectedVisitor?.firstName || formData.firstName
           : undefined,
       lastName:
-        visitorType === "Individual"
+        visitorType === VisitorTypeEnum.INDIVIDUAL
           ? selectedVisitor?.lastName || formData.lastName
           : undefined,
       groupName:
-        visitorType === "Group"
+        visitorType === VisitorTypeEnum.GROUP
           ? selectedVisitor?.groupName || formData.groupName
           : undefined,
       visitDate: formData.visitDate,
@@ -148,7 +151,7 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
       department: formData.department,
       classification: formData.classification,
       noOfVisitors:
-        visitorType === "Group"
+        visitorType === VisitorTypeEnum.GROUP
           ? selectedVisitor?.noOfVisitors || formData.noOfVisitors
           : 1,
       expiryStatus: formData.expiryStatus,
@@ -164,6 +167,7 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
         toast.success("Visitor created successfully.");
       }
       refreshList();
+      refreshDashboard();
       onHide();
       resetForm();
     } catch (err) {

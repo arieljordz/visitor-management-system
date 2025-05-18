@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const handleNavigation = (user, navigate, mode) => {
-    console.log("userdata:", user);
+    // console.log("userdata:", user);
     if (mode === "google") {
       if (!user.verified) {
         return { success: false, message: "Account not yet verified." };

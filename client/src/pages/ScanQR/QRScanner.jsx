@@ -1,16 +1,49 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
+import { useAuth } from "../../context/AuthContext";
 import { scanQRCode } from "../../services/qrService.js";
-import moment from "moment";
 import QRDetails from "./QRDetails.jsx";
 
 const QRScanner = () => {
+  const { user } = useAuth();
   const [scanResult, setScanResult] = useState(null);
   const [responseMessage, setResponseMessage] = useState(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [facingMode, setFacingMode] = useState("environment");
   const html5QrCodeRef = useRef(null);
 
+  // Handle successful QR scan
+  const handleScanSuccess = async (decodedText) => {
+    setScanResult(decodedText);
+    await closeCamera();
+
+    try {
+      const response = await scanQRCode(decodedText, user.subscriberId);
+      const { message, data } = response;
+
+      if (!data) {
+        setResponseMessage({
+          type: "error",
+          text: message || "Invalid QR code.",
+        });
+        return;
+      }
+
+      setResponseMessage({
+        type: "success",
+        text: "Visitor verified successfully.",
+        data,
+      });
+    } catch (error) {
+      setResponseMessage({
+        type: "error",
+        text:
+          error?.response?.data?.message || "An error occurred while scanning.",
+      });
+    }
+  };
+
+  // Open camera and start scanning
   const openCamera = async () => {
     if (html5QrCodeRef.current) return;
 
@@ -22,79 +55,38 @@ const QRScanner = () => {
       await html5QrCode.start(
         { facingMode },
         { fps: 10, qrbox: 250 },
-        async (decodedText) => {
-          setScanResult(decodedText);
-          await closeCamera();
-
-          try {
-            const response = await scanQRCode(decodedText);
-            console.log("response:", response);
-            const { status, data, message } = response;
-
-            if (status === "error" || !data) {
-              setResponseMessage({
-                type: "error",
-                text: message || "Invalid QR.",
-              });
-              return;
-            }
-
-            const visitDate = moment(data.visitDate).startOf("day");
-            const today = moment().startOf("day");
-            const isToday = visitDate.isSame(today);
-            const isExpired = data.status === "expired";
-
-            if (isExpired) {
-              setResponseMessage({
-                type: "error",
-                text: "QR Code is expired.",
-              });
-            } else if (!isToday) {
-              setResponseMessage({
-                type: "warning",
-                text: "Visit date does not match today's date.",
-              });
-            } else {
-              setResponseMessage({
-                type: "success",
-                text: "Visitor verified successfully.",
-                data,
-              });
-            }
-          } catch (error) {
-            setResponseMessage({
-              type: "error",
-              text:
-                error?.response?.data?.message ||
-                "An error occurred during scanning.",
-            });
-          }
-        },
+        handleScanSuccess,
         (errorMessage) => {
-          console.warn("QR error:", errorMessage);
+          console.warn("QR scan error:", errorMessage);
         }
       );
-
       setIsCameraOpen(true);
+      setResponseMessage(null); // clear previous messages on new scan session
+      setScanResult(null);
     } catch (err) {
       console.error("Camera start error:", err);
+      setResponseMessage({
+        type: "error",
+        text: "Failed to start camera. Please check permissions and try again.",
+      });
     }
   };
 
+  // Stop camera and clear resources
   const closeCamera = async () => {
-    const html5QrCode = html5QrCodeRef.current;
-    if (html5QrCode) {
-      try {
-        await html5QrCode.stop();
-        await html5QrCode.clear();
-      } catch (err) {
-        console.error("Error stopping QR scanner:", err);
-      }
-      html5QrCodeRef.current = null;
-      setIsCameraOpen(false);
+    if (!html5QrCodeRef.current) return;
+
+    try {
+      await html5QrCodeRef.current.stop();
+      await html5QrCodeRef.current.clear();
+    } catch (err) {
+      console.error("Error stopping QR scanner:", err);
     }
+    html5QrCodeRef.current = null;
+    setIsCameraOpen(false);
   };
 
+  // Switch between front and rear camera
   const toggleCamera = async () => {
     const newFacingMode = facingMode === "environment" ? "user" : "environment";
     await closeCamera();
@@ -102,9 +94,10 @@ const QRScanner = () => {
     setTimeout(openCamera, 500); // slight delay to avoid race conditions
   };
 
+  // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      closeCamera(); // Cleanup on unmount
+      closeCamera();
     };
   }, []);
 

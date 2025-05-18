@@ -3,6 +3,7 @@ import { Row, Col, Card } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
+import { useDashboard } from "../../context/DashboardContext.jsx";
 import { useFeatureFlags } from "../../context/FeatureFlagContext";
 import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
@@ -18,6 +19,7 @@ import { VerificationStatusEnum } from "../../enums/enums.js";
 
 function Verifications() {
   const { user } = useAuth();
+  const { refreshDashboard } = useDashboard();
   const { flags } = useFeatureFlags();
   const [proofs, setProofs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -106,6 +108,7 @@ function Verifications() {
           await handler(id, verificationStatus, reason);
 
           toast.success(`Payment ${verificationStatus} successfully.`);
+          refreshDashboard();
           fetchProofs();
         } catch (err) {
           toast.error(err.response?.data?.message || "Something went wrong.");

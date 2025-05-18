@@ -83,7 +83,7 @@ export const googleLogin = async (req, res) => {
     picture,
     role = UserRoleEnum.SUBSCRIBER,
     address,
-    classification = "N/A",
+    categoryType = "N/A",
     subscription = false,
     expiryDate = null,
     verified = true,
@@ -109,7 +109,7 @@ export const googleLogin = async (req, res) => {
         picture,
         role,
         address,
-        classification,
+        categoryType,
         subscription,
         expiryDate,
         verified,
@@ -151,23 +151,36 @@ export const googleLogin = async (req, res) => {
 
 export const refreshToken = async (req, res) => {
   const token = req.cookies.refreshToken;
-  if (!token) return res.status(401).json({ message: "No refresh token" });
+  if (!token) {
+    return res.status(401).json({ message: "No refresh token" });
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
     const user = await User.findById(decoded.userId);
+
     if (!user || user.refreshToken !== token) {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
-    const sessionToken = uuidv4(); // Optional: rotate session
+    const sessionToken = uuidv4(); // Rotate session token (optional)
     user.sessionToken = sessionToken;
     await user.save();
 
     const accessToken = generateAccessToken(user._id, sessionToken);
-    res.json({ token: accessToken });
+
+    res.json({
+      accessToken,
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        // any other fields you want to send
+      },
+    });
   } catch (err) {
-    res.status(403).json({ message: "Token expired or invalid" });
+    return res.status(403).json({ message: "Token expired or invalid" });
   }
 };
 
@@ -269,38 +282,47 @@ export const resetPassword = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user?._id;
 
-    // Extract token from Authorization header
+    // Validate Authorization header
     const authHeader = req.headers.authorization;
-    if (!authHeader)
-      return res.status(401).json({ message: "Authorization header missing" });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Authorization header missing or malformed" });
+    }
 
     const token = authHeader.split(" ")[1];
-    if (!token)
-      return res.status(401).json({ message: "Invalid token format" });
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Decode token to extract sessionToken
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: "Invalid or expired token" });
+    }
+
     const sessionToken = decoded.sessionToken;
 
-    // Invalidate session in the Session collection
+    // Deactivate session
     const sessionUpdate = await Session.updateOne(
       { userId, sessionToken, isActive: true },
       { $set: { isActive: false } }
     );
 
     if (sessionUpdate.matchedCount === 0) {
-      return res
-        .status(404)
-        .json({ message: "Session not found or already logged out." });
+      return res.status(404).json({ message: "Session not found or already logged out" });
     }
+
+    // Optionally clear the refresh token cookie
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      sameSite: "Strict",
+      secure: process.env.NODE_ENV === "production",
+    });
 
     return res.json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Logout Error:", error);
-    return res
-      .status(500)
-      .json({ message: "Logout failed", error: error.message });
+    return res.status(500).json({ message: "Logout failed", error: error.message });
   }
 };
 
@@ -315,14 +337,14 @@ export const createUser = async (req, res) => {
       role = UserRoleEnum.SUBSCRIBER,
       address,
       userId,
-      classification,
+      categoryType,
       subscription = false,
       expiryDate = null,
       verified = false,
       status = StatusEnum.ACTIVE,
     } = req.body;
 
-    console.log("role:", role);
+    // console.log("role:", role);
     let subscriberId = null;
 
     if (role !== UserRoleEnum.SUBSCRIBER) {
@@ -353,7 +375,7 @@ export const createUser = async (req, res) => {
       role,
       address,
       subscriberId,
-      classification,
+      categoryType,
       subscription,
       expiryDate,
       verified,
@@ -467,9 +489,9 @@ export const getUsersByRole = async (req, res) => {
     }
 
     // Fetch users with any of the provided roles
-    const usersByRoles = await User.find({ role: { $in: roles } }).select(
-      "-password"
-    );
+    const usersByRoles = await User.find({ role: { $in: roles } })
+      .select("-password")
+      .populate("subscriberId", "name email");
 
     if (usersByRoles.length === 0) {
       return res
@@ -482,6 +504,38 @@ export const getUsersByRole = async (req, res) => {
     console.error("Get Users by Roles Error:", error);
     res.status(500).json({
       message: "Failed to retrieve users by roles",
+      error: error.message,
+    });
+  }
+};
+
+export const getUsersStaff = async (req, res) => {
+  try {
+    const { id } = req.query;
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid or missing user ID." });
+    }
+
+    // Find users with role 'staff' and subscriberId === id
+    const staffUsers = await User.find({
+      role: UserRoleEnum.STAFF,
+      subscriberId: id,
+    })
+      .select("-password")
+      .populate("subscriberId", "name email");
+
+    if (staffUsers.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No staff users found for this subscriber." });
+    }
+
+    res.status(200).json({ data: staffUsers });
+  } catch (error) {
+    console.error("Get Staff Users Error:", error);
+    res.status(500).json({
+      message: "Failed to retrieve staff users for subscriber.",
       error: error.message,
     });
   }
@@ -587,7 +641,7 @@ export const activateFreeTrial = async (req, res) => {
     user.isOnTrial = true;
     user.trialStartedAt = now;
     user.trialEndsAt = trialEndsAt;
-    user.expiryDate = trialEndsAt;
+    // user.expiryDate = trialEndsAt;
     user.subscription = false;
 
     await user.save();

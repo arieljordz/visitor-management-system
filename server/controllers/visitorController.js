@@ -86,7 +86,7 @@ export const updateVisitor = async (req, res) => {
       visitDate,
       purpose,
       department,
-      classification,
+      categoryType,
       noOfVisitors,
       expiryStatus,
     } = req.body;
@@ -148,7 +148,7 @@ export const updateVisitor = async (req, res) => {
         visitDate,
         purpose,
         department,
-        classification,
+        categoryType,
         noOfVisitors: noOfVisitors || 1,
         expiryStatus,
       },
@@ -212,7 +212,7 @@ export const createVisitorDetail = async (req, res) => {
       expiryStatus,
     } = req.body;
 
-    console.log("req.body:", req.body);
+    // console.log("req.body:", req.body);
     // Validate required fields
     if (!userId || !visitorType || !visitDate || !purpose || !department || !classification || !noOfVisitors) {
       return res.status(400).json({ message: "Missing required fields." });

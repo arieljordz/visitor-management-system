@@ -44,7 +44,7 @@ export const getPaymentDetailsByDateRange = async (req, res) => {
     end.setHours(23, 59, 59, 999); // extend end date to end-of-day
 
     const payments = await PaymentDetail.find({
-      transaction: TransactionEnum.DEBIT,
+      transaction: TransactionEnum.CREDIT,
       paymentDate: {
         $gte: start,
         $lte: end,
