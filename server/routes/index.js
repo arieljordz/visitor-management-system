@@ -200,8 +200,8 @@ router.delete("/delete-visitor-detail/:id", authenticate, auditLogger("DELETE_VI
 router.put("/update-visitor/:id", authenticate, auditLogger("UPDATE_VISITOR_DETAIL"), updateVisitor);
 
 router.get("/search-visitor", authenticate, searchVisitor);
-router.get("/visitors-names", authenticate, getVisitorNames);
-router.post("/create-visitors-detail", authenticate, auditLogger("CREATE_VISITOR_DETAIL"), createVisitorDetail);
+router.get("/visitors-names/:id", authenticate, getVisitorNames);
+router.post("/create-visitors-detail", authenticate, auditLogger("CREATE_VISITOR_DETAIL"), upload.single("visitorImage"), createVisitorDetail);
 
 // Fee Routes
 router.post("/create-fee", authenticate, auditLogger("CREATE_FEE"), createFee);

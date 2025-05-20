@@ -31,6 +31,7 @@ const VisitorSchema = new mongoose.Schema(
         return this.visitorType === VisitorTypeEnum.GROUP; 
       },
     },
+    visitorImage:{ type: String, required: true },
   },
   { timestamps: true }
 );

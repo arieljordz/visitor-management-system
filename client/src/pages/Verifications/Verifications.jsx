@@ -28,7 +28,7 @@ function Verifications() {
   const [loading, setLoading] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
-  const [imageProof, setImageProof] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [txnId, setTxnId] = useState("");
 
   useEffect(() => {
@@ -63,7 +63,7 @@ function Verifications() {
   };
 
   const handleViewProofImage = (imageUrl, txnId) => {
-    setImageProof(imageUrl);
+    setImageUrl(imageUrl);
     setTxnId(txnId);
     setShowModal(true);
   };
@@ -201,7 +201,7 @@ function Verifications() {
                     <ProofsModal
                       show={showModal}
                       setShowModal={setShowModal}
-                      imageProof={imageProof}
+                      imageUrl={imageUrl}
                       txnId={txnId}
                     />
                   </Card.Body>

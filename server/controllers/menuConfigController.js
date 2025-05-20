@@ -35,7 +35,7 @@ export const getMenuByRole = async (req, res) => {
     const { role } = req.params;
     const subscription = req.query.subscription === "true";
 
-    const menuDoc = await MenuConfig.findOne({ role }).lean(); // lean makes everything plain objects
+    const menuDoc = await MenuConfig.findOne({ role }).lean();
 
     if (!menuDoc) return res.status(404).json({ message: "Menu not found" });
 
@@ -43,32 +43,36 @@ export const getMenuByRole = async (req, res) => {
 
     if (role !== UserRoleEnum.ADMIN) {
       if (!subscription) {
-        const restrictedTopLevel = [MenuEnum.PAYMENT_HISTORY, MenuEnum.REPORTS];
-        const allowedFileMaintenanceSubmenu = [SubMenuEnum.ACCOUNTS];
+        // Restrict these for non-subscribers
+        let restrictedTopLevel = [MenuEnum.PAYMENT_HISTORY, MenuEnum.REPORTS];
+
+        // Allow Reports for STAFF role even without subscription
+        if (role === UserRoleEnum.STAFF) {
+          restrictedTopLevel = restrictedTopLevel.filter(
+            (item) => item !== MenuEnum.REPORTS
+          );
+        }
+
+        const allowedFileMaintenanceSubmenu = [
+          SubMenuEnum.DEPARTMENTS,
+          SubMenuEnum.CLASSIFICATIONS,
+          SubMenuEnum.ACCOUNTS,
+        ];
 
         menuItems = menuItems
           .map((item) => {
-            // Skip restricted top-level items
             if (restrictedTopLevel.includes(item.label)) return null;
 
-            // Handle File Maintenance separately
             if (item.label === MenuEnum.FILE_MAINTENANCE) {
               const filteredSubmenu = (item.submenu || []).filter((sub) =>
                 allowedFileMaintenanceSubmenu.includes(sub.label)
               );
 
-              if (filteredSubmenu.length > 0) {
-                return {
-                  ...item,
-                  submenu: filteredSubmenu,
-                  path: item.path?.trim() || "#", // ensure path is valid
-                };
-              } else {
-                return null;
-              }
+              return filteredSubmenu.length > 0
+                ? { ...item, submenu: filteredSubmenu, path: item.path?.trim() || "#" }
+                : null;
             }
 
-            // Optionally filter other submenus
             if (item.submenu && item.submenu.length > 0) {
               const filteredSub = item.submenu.filter(
                 (sub) => !restrictedTopLevel.includes(sub.label)

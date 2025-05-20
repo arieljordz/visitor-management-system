@@ -36,6 +36,14 @@ function PaymentPage({ setStep, selectedPlan, steps }) {
     fetchAccounts();
   }, [user]);
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
   const selectedGroup = paymentAccounts.find(
     (group) => group._id.toLowerCase() === paymentMethod.toLowerCase()
   );
@@ -116,11 +124,15 @@ function PaymentPage({ setStep, selectedPlan, steps }) {
   const handleProofChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setProof(file);
 
-    const reader = new FileReader();
-    reader.onloadend = () => setPreviewUrl(reader.result);
-    reader.readAsDataURL(file);
+    // Revoke previous preview URL if any to avoid memory leaks
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setProof(file);
+    setPreviewUrl(objectUrl);
   };
 
   const resetForm = () => {

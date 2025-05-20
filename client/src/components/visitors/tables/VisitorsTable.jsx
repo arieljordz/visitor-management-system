@@ -16,7 +16,7 @@ const VisitorsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
         <thead>
           <tr>
             <th className="text-center">#</th>
-            <th className="text-center">Visitor ID</th>
+            <th className="text-center">ID</th>
             <th className="text-center">Type</th>
             <th className="text-center">Name/Group</th>
             <th className="text-center">No. of Visitors</th>
@@ -30,71 +30,74 @@ const VisitorsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
         </thead>
         <tbody>
           {currentData.length > 0 ? (
-            currentData.map((visitor, index) =>
-              visitor.visitDetails?.map((visitDetail, visitIndex) => (
-                <tr key={visitDetail._id}>
-                  <td className="text-center">{visitIndex + 1}</td>
-                  <td className="text-center">
-                    {visitor._id.slice(-6).toUpperCase()}
-                  </td>
-                  <td className="text-center">
-                    {visitor.visitorType?.toUpperCase()}
-                  </td>
-                  <td className="text-center">
-                    {visitor.visitorType === VisitorTypeEnum.GROUP
-                      ? visitor.groupName?.toUpperCase()
-                      : `${visitor.firstName?.toUpperCase()} ${visitor.lastName?.toUpperCase()}`}
-                  </td>
-                  <td className="text-center">
-                    {visitDetail.noOfVisitors || "1"}
-                  </td>
-                  <td className="text-center">
-                    {visitDetail.purpose?.toUpperCase()}
-                  </td>
-                  <td className="text-center">
-                    {visitDetail.department?.toUpperCase()}
-                  </td>
-                  <td className="text-center">
-                    {visitDetail.classification?.toUpperCase()}
-                  </td>
-                  <td className="text-center">
-                    {formatDate(visitDetail.visitDate)}
-                  </td>
-                  <td className="text-center">
-                    {visitDetail.expiryStatus ? (
-                      <span className="badge bg-primary">No Expiration</span>
-                    ) : (
-                      <span className="badge bg-success">Valid Today</span>
-                    )}
-                  </td>
-                  <td className="text-center">
-                    <div className="d-flex justify-content-center">
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        className="d-flex align-items-center"
-                        onClick={() => handleEdit(visitDetail._id)}
-                      >
-                        <FaEdit />
-                        <span>Edit</span>
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        className="d-flex align-items-center ml-2"
-                        onClick={() => handleDelete(visitDetail._id)}
-                      >
-                        <FaTrash />
-                        <span>Delete</span>
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )
+            (() => {
+              let counter = 1;
+              return currentData.flatMap((visitor) =>
+                visitor.visitDetails?.map((visitDetail) => (
+                  <tr key={visitDetail._id}>
+                    <td className="text-center">{counter++}</td>
+                    <td className="text-center">
+                      {visitDetail._id.slice(-6).toUpperCase()}
+                    </td>
+                    <td className="text-center">
+                      {visitor.visitorType?.toUpperCase()}
+                    </td>
+                    <td className="text-center">
+                      {visitor.visitorType === VisitorTypeEnum.GROUP
+                        ? visitor.groupName?.toUpperCase()
+                        : `${visitor.firstName?.toUpperCase()} ${visitor.lastName?.toUpperCase()}`}
+                    </td>
+                    <td className="text-center">
+                      {visitDetail.noOfVisitors || "1"}
+                    </td>
+                    <td className="text-center">
+                      {visitDetail.purpose?.toUpperCase()}
+                    </td>
+                    <td className="text-center">
+                      {visitDetail.department?.toUpperCase()}
+                    </td>
+                    <td className="text-center">
+                      {visitDetail.classification?.toUpperCase()}
+                    </td>
+                    <td className="text-center">
+                      {formatDate(visitDetail.visitDate)}
+                    </td>
+                    <td className="text-center">
+                      {visitDetail.expiryStatus ? (
+                        <span className="badge bg-primary">No Expiration</span>
+                      ) : (
+                        <span className="badge bg-success">Valid Today</span>
+                      )}
+                    </td>
+                    <td className="text-center">
+                      <div className="d-flex justify-content-center">
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          className="d-flex align-items-center"
+                          onClick={() => handleEdit(visitDetail._id)}
+                        >
+                          <FaEdit />
+                          <span>Edit</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          className="d-flex align-items-center ml-2"
+                          onClick={() => handleDelete(visitDetail._id)}
+                        >
+                          <FaTrash />
+                          <span>Delete</span>
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              );
+            })()
           ) : (
             <tr>
-              <td colSpan="11" className={`text-center ${"text-muted"}`}>
+              <td colSpan="11" className="text-center text-muted">
                 No records found.
               </td>
             </tr>

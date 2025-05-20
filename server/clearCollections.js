@@ -15,6 +15,8 @@ async function clearCollections() {
     const collectionsToClear = [
       'auditlogs',
       'balances',
+      'classifications',
+      'departments',
       'notifications',
       'paymentdetails',
       'qrcodes',

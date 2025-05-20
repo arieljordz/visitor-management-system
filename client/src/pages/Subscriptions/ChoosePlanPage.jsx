@@ -26,13 +26,19 @@ const PlanCard = ({ plan, onSelect }) => (
 
 const ChoosePlanPage = ({ onSelect }) => {
   const [fee, setFee] = useState(null);
+  const [fee1, setFee1] = useState(null);
+  const [fee2, setFee2] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchFee = async () => {
       try {
         const data = await getFeeByCodeAndStatus(FeeCodeEnum.PREM01);
+        const data1 = await getFeeByCodeAndStatus(FeeCodeEnum.PREM02);
+        const data2 = await getFeeByCodeAndStatus(FeeCodeEnum.PREM03);
         setFee(data);
+        setFee1(data1);
+        setFee2(data2);
       } catch (error) {
         console.error("Error fetching fee:", error);
       } finally {
@@ -47,12 +53,22 @@ const ChoosePlanPage = ({ onSelect }) => {
     {
       name: "Free Trial",
       price: "₱0.00/month",
-      features: ["Valid for 3 Days", "Access dashboard", "Generate QR"],
+      features: ["Valid for 3 Days", "Access dashboard", "Generate QR", "Limitted to 10 Visitors"],
     },
     {
-      name: "Premium",
+      name: "Premium 1",
       price: fee ? `₱${fee.fee.toFixed(2)}/month` : "Loading...",
-      features: ["Valid for 1 Month", "All features", "Priority support"],
+      features: ["Valid for 1 Month", "All features", "Priority support", "Limitted to 200 Visitors"],
+    },
+        {
+      name: "Premium 2",
+      price: fee ? `₱${fee1.fee.toFixed(2)}/month` : "Loading...",
+      features: ["Valid for 1 Month", "All features", "Priority support", "Limitted to 500 Visitors"],
+    },
+        {
+      name: "Premium 3",
+      price: fee ? `₱${fee2.fee.toFixed(2)}/month` : "Loading...",
+      features: ["Valid for 1 Month", "All features", "Priority support", "Limitted to 2000 Visitors"],
     },
   ];
 

@@ -8,7 +8,7 @@ const DepartmentSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    description: { type: String, required: true, unique: true },
+    description: { type: String, required: true },
     status: {
       type: String,
       enum: Object.values(StatusEnum),

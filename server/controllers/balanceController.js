@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import path from "path";
+import fs from "fs";
 import {
   TransactionEnum,
   PaymentMethodEnum,
@@ -14,6 +15,7 @@ import {
   createNotification,
   emitNotification,
 } from "../services/notificationService.js";
+import cloudinary from "../utils/cloudinaryUtils.js";
 
 // Get user balance handler
 export const getBalance = async (req, res) => {
@@ -122,9 +124,17 @@ export const submitSubscription = async (req, res) => {
 
   try {
     const userObjectId = new mongoose.Types.ObjectId(userId);
-    const proofOfPaymentPath = req.file
-      ? path.join("uploads", req.file.filename)
-      : null;
+
+    // ⬇️ Upload image to Cloudinary if provided
+    let proofOfPaymentPath = null;
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "subscriptions",
+      });
+      proofOfPaymentPath = result.secure_url;
+      // ✅ Delete temp file after successful upload
+      fs.unlinkSync(req.file.path);
+    }
 
     const transaction = new PaymentDetail({
       userId: userObjectId,

@@ -35,15 +35,12 @@ function Visitors() {
   }, [user]);
 
   const fetchVisitors = async () => {
-    setLoading(true);
     try {
       const data = await getVisitorByUserId(user.userId);
 
       setVisitors(data);
     } catch (err) {
       console.error("Fetch error:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -123,11 +120,7 @@ function Visitors() {
     <AccessControlWrapper>
       <div className="content-wrapper">
         {/* Content Header */}
-        <Navpath
-          levelOne="Visitors"
-          levelTwo="Home"
-          levelThree="Visitors"
-        />
+        <Navpath levelOne="Visitors" levelTwo="Home" levelThree="Visitors" />
 
         {/* Main Content */}
         <section className="content">

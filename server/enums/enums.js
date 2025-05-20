@@ -79,6 +79,13 @@ export const SubMenuEnum = Object.freeze({
 export const FeeCodeEnum = Object.freeze({
   GENQR01: "GENQR01",
   PREM01: "PREM01",
+  PREM02: "PREM02",
+  PREM03: "PREM03",
+});
+
+export const ValidityEnum = Object.freeze({
+  NO_EXPIRATION: "No Expiration",
+  VALID_TODAY: "Valid Today",
 });
 
 export const PasswordEnum = Object.freeze({

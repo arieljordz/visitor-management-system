@@ -3,6 +3,7 @@ import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../context/AuthContext";
 import { updateUser, createUser } from "../../../services/userService.js";
+import { getDepartments } from "../../../services/departmentService.js";
 import { StatusEnum, UserRoleEnum } from "../../../enums/enums.js";
 
 const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
@@ -13,12 +14,30 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
     address: "",
     role: "",
     status: StatusEnum.ACTIVE,
+    department: "",
     categoryType: "",
     subscription: false,
     verified: true,
   };
 
   const [formData, setFormData] = useState(initialFormData);
+  const [departments, setDepartments] = useState([]);
+
+  useEffect(() => {
+    if (show) {
+      fetchDepartments();
+      resetForm();
+    }
+  }, [show]);
+
+  const fetchDepartments = async () => {
+    try {
+      const data = await getDepartments();
+      setDepartments(data || []);
+    } catch (err) {
+      console.error("Error fetching departments:", err);
+    }
+  };
 
   useEffect(() => {
     if (selectedRow) {
@@ -28,6 +47,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
         address: selectedRow.address || "",
         role: selectedRow.role || "",
         status: selectedRow.status || StatusEnum.ACTIVE,
+        department: selectedRow.department || "",
         categoryType: selectedRow.categoryType || "",
         subscription: selectedRow.subscription || false,
         verified: selectedRow.verified || true,
@@ -44,6 +64,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
       address: "",
       role: "",
       status: StatusEnum.ACTIVE,
+      department: "",
       categoryType: "",
       subscription: false,
       verified: true,
@@ -52,7 +73,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
+    
     setFormData((prev) => {
       if (type === "checkbox") {
         if (name === "status") {
@@ -72,7 +93,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isUpdate = Boolean(selectedRow?._id);
-
+    // console.log("formData:", formData);
     try {
       if (isUpdate) {
         await updateUser(selectedRow._id, formData);
@@ -156,6 +177,26 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
             </Col>
 
             <Col md={12}>
+              <Form.Group>
+                <Form.Label>Department</Form.Label>
+                <Form.Select
+                  name="department"
+                  value={formData.department}
+                  onChange={handleChange}
+                  className="form-control"
+                  required
+                >
+                  <option value="">-- Select Department --</option>
+                  {departments.map((c, i) => (
+                    <option key={i} value={c.description}>
+                      {c.description}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+
+            <Col md={12}>
               <Form.Group className="mb-3">
                 <Form.Label>Role</Form.Label>
                 <Form.Select
@@ -165,24 +206,19 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
                   className="form-control"
                   required
                 >
-                   <option value="">-- Select Role --</option>
-                  {user?.role === UserRoleEnum.ADMIN ? (
-                    <>
-                      <option value={UserRoleEnum.ADMIN}>
-                        {UserRoleEnum.ADMIN.toUpperCase()}
-                      </option>
-                      <option value={UserRoleEnum.SUBSCRIBER}>
-                        {UserRoleEnum.SUBSCRIBER.toUpperCase()}
-                      </option>
-                      <option value={UserRoleEnum.STAFF}>
-                        {UserRoleEnum.STAFF.toUpperCase()}
-                      </option>
-                    </>
-                  ) : (
-                    <option value={UserRoleEnum.STAFF}>
-                      {UserRoleEnum.STAFF.toUpperCase()}
+                  <option value="">-- Select Role --</option>
+                  {(user?.role === UserRoleEnum.ADMIN
+                    ? [
+                        UserRoleEnum.ADMIN,
+                        UserRoleEnum.SUBSCRIBER,
+                        UserRoleEnum.STAFF,
+                      ]
+                    : [UserRoleEnum.STAFF]
+                  ).map((role) => (
+                    <option key={role} value={role}>
+                      {role.toUpperCase()}
                     </option>
-                  )}
+                  ))}
                 </Form.Select>
               </Form.Group>
             </Col>

@@ -8,7 +8,11 @@ const api = axios.create({
   withCredentials: true,
 });
 
-const skipAuthEndpoints = ["/api/logout-user", "/api/get-settings", "/api/get-feature-flags"];
+const skipAuthEndpoints = [
+  "/api/logout-user",
+  "/api/get-settings",
+  "/api/get-feature-flags",
+];
 
 // Attach Authorization token to requests
 api.interceptors.request.use(
@@ -36,12 +40,20 @@ api.interceptors.response.use(
       originalRequest?.url?.includes(endpoint)
     );
 
+    console.log("isTokenExpired:", isTokenExpired);
+    console.log("shouldSkipAuthHandling:", shouldSkipAuthHandling);
+    console.log("originalRequest:", originalRequest._retry);
+
     // Attempt token refresh
     if (isTokenExpired && !originalRequest._retry && !shouldSkipAuthHandling) {
       originalRequest._retry = true;
 
       try {
-        const res = await axios.post(`${API_URL}/api/refresh-token`, {}, { withCredentials: true });
+        const res = await axios.post(
+          `${API_URL}/api/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
 
         const { accessToken: newToken, user: updatedUser } = res.data;
 

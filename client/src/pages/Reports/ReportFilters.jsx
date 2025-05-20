@@ -14,6 +14,18 @@ const ReportFilters = ({
 }) => {
   const { user } = useAuth();
 
+  const reportOptionsByRole = {
+    [UserRoleEnum.ADMIN]: ["visitor", "payment", "audit"],
+    [UserRoleEnum.SUBSCRIBER]: ["visitor", "payment"],
+    [UserRoleEnum.STAFF]: ["visitor"],
+  };
+
+  const reportLabels = {
+    visitor: "Visitor Report",
+    payment: "Payment Report",
+    audit: "Audit Logs",
+  };
+
   return (
     <form onSubmit={onGenerate}>
       <div className="row align-items-end g-3">
@@ -25,11 +37,11 @@ const ReportFilters = ({
             value={reportType}
             onChange={(e) => setReportType(e.target.value)}
           >
-            <option value="visitor">Visitor Report</option>
-            <option value="payment">Payment Report</option>
-            {user?.role === UserRoleEnum.ADMIN && (
-              <option value="audit">Audit Logs</option>
-            )}
+            {(reportOptionsByRole[user?.role] || []).map((type) => (
+              <option key={type} value={type}>
+                {reportLabels[type]}
+              </option>
+            ))}
           </select>
         </div>
 

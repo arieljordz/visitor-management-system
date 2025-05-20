@@ -2,11 +2,20 @@ import React, { useState, useEffect } from "react";
 import { Form } from "react-bootstrap";
 import VisitorTypeSelector from "./VisitorTypeSelector";
 import VisitorDropdown from "./VisitorDropdown";
+import { useAuth } from "../../context/AuthContext";
 import { searchVisitor, getVisitorNames } from "../../services/visitorService";
 import { VisitorTypeEnum } from "../../enums/enums.js";
 
-const VisitorSearch = ({ onSearchComplete, onClearSearch, type, selectedRow }) => {
-  const [searchType, setSearchType] = useState(type || VisitorTypeEnum.INDIVIDUAL);
+const VisitorSearch = ({
+  onSearchComplete,
+  onClearSearch,
+  type,
+  selectedRow,
+}) => {
+  const { user } = useAuth();
+  const [searchType, setSearchType] = useState(
+    type || VisitorTypeEnum.INDIVIDUAL
+  );
   const [options, setOptions] = useState([]);
   const [selectedVisitor, setSelectedVisitor] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -25,7 +34,7 @@ const VisitorSearch = ({ onSearchComplete, onClearSearch, type, selectedRow }) =
   const loadVisitorOptions = async () => {
     setLoading(true);
     try {
-      const data = await getVisitorNames(searchType);
+      const data = await getVisitorNames(searchType, user.userId);
       setOptions(data || []);
     } catch (error) {
       console.error("Failed to fetch visitor options:", error);

@@ -1,6 +1,7 @@
 import React from "react";
 import moment from "moment";
 import { Card, Row, Col } from "react-bootstrap";
+import { ValidityEnum } from "../../enums/enums.js";
 
 const QRDetails = ({ responseMessage }) => {
   const { hostName, visitor, visitDetail } = responseMessage.data;
@@ -52,6 +53,16 @@ const QRDetails = ({ responseMessage }) => {
             <h6 className="text-muted">Classification</h6>
             <p className="border rounded px-3 py-2 bg-light mb-0">
               {visitDetail.classification}
+            </p>
+          </Col>
+        </Row>
+        <Row>
+          <Col md={6}>
+            <h6 className="text-muted">Department</h6>
+            <p className="border rounded px-3 py-2 bg-light mb-0">
+              {visitDetail.expiryStatus
+                ? ValidityEnum.VALID_TODAY
+                : ValidityEnum.NO_EXPIRATION}
             </p>
           </Col>
         </Row>

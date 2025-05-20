@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import http from "http";
@@ -22,6 +23,13 @@ const PORT = process.env.PORT || 5000;
 // --- Directory Setup ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const uploadDir = path.join(__dirname, "uploads");
+
+// Create uploads folder if it doesn't exist
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
 
 // --- HTTP Server Setup ---
 const server = http.createServer(app);
@@ -51,7 +59,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Serve static files from "uploads" folder
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(uploadDir));
 
 // CORS headers to support cross-origin communication
 app.use((req, res, next) => {

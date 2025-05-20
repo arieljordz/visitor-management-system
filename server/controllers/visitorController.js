@@ -1,9 +1,11 @@
 import mongoose from "mongoose";
 import moment from "moment";
+import fs from "fs";
 import Visitor from "../models/Visitor.js";
 import QRCode from "../models/QRCode.js";
 import VisitDetail from "../models/VisitDetail.js";
 import { VisitorTypeEnum } from "../enums/enums.js";
+import cloudinary from "../utils/cloudinaryUtils.js";
 
 // GET all visitors
 export const getAllVisitors = async (req, res) => {
@@ -44,7 +46,9 @@ export const getVisitorDetailById = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching visitor by visitDetailId:", error);
-    res.status(500).json({ message: "Server error while fetching visitor details." });
+    res
+      .status(500)
+      .json({ message: "Server error while fetching visitor details." });
   }
 };
 
@@ -59,7 +63,9 @@ export const deleteVisitDetail = async (req, res) => {
     }
 
     // Find and delete the specific VisitDetail
-    const deletedVisitDetail = await VisitDetail.findByIdAndDelete(visitDetailId);
+    const deletedVisitDetail = await VisitDetail.findByIdAndDelete(
+      visitDetailId
+    );
     if (!deletedVisitDetail) {
       return res.status(404).json({ message: "Visit detail not found." });
     }
@@ -70,14 +76,16 @@ export const deleteVisitDetail = async (req, res) => {
     });
   } catch (error) {
     console.error("Error deleting visit detail:", error);
-    res.status(500).json({ message: "Server error while deleting visit detail." });
+    res
+      .status(500)
+      .json({ message: "Server error while deleting visit detail." });
   }
 };
 
 // UPDATE visitor by ID
 export const updateVisitor = async (req, res) => {
   try {
-    const { id: visitDetailId } = req.params; 
+    const { id: visitDetailId } = req.params;
     const {
       visitorType,
       firstName,
@@ -105,14 +113,17 @@ export const updateVisitor = async (req, res) => {
     // Get the related visitor ID from visit detail
     const visitorId = visitDetail.visitorId;
     if (!mongoose.Types.ObjectId.isValid(visitorId)) {
-      return res.status(400).json({ message: "Invalid associated visitor ID." });
+      return res
+        .status(400)
+        .json({ message: "Invalid associated visitor ID." });
     }
 
     // Validate visitorType-specific fields
     if (visitorType === VisitorTypeEnum.INDIVIDUAL) {
       if (!firstName || !lastName) {
         return res.status(400).json({
-          message: "First name and last name are required for individual visitors.",
+          message:
+            "First name and last name are required for individual visitors.",
         });
       }
     }
@@ -162,7 +173,9 @@ export const updateVisitor = async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating visitor and visit detail:", error);
-    res.status(500).json({ message: "Server error while updating visitor and visit detail." });
+    res.status(500).json({
+      message: "Server error while updating visitor and visit detail.",
+    });
   }
 };
 
@@ -198,7 +211,6 @@ export const searchVisitor = async (req, res) => {
 export const createVisitorDetail = async (req, res) => {
   try {
     const {
-      visitorId,
       userId,
       visitorType,
       firstName,
@@ -212,13 +224,18 @@ export const createVisitorDetail = async (req, res) => {
       expiryStatus,
     } = req.body;
 
-    // console.log("req.body:", req.body);
-    // Validate required fields
-    if (!userId || !visitorType || !visitDate || !purpose || !department || !classification || !noOfVisitors) {
+    if (
+      !userId ||
+      !visitorType ||
+      !visitDate ||
+      !purpose ||
+      !department ||
+      !classification ||
+      !noOfVisitors
+    ) {
       return res.status(400).json({ message: "Missing required fields." });
     }
 
-    // Check if visitDate is today or in the future
     const visitDateOnly = moment(visitDate).startOf("day");
     const today = moment().startOf("day");
 
@@ -228,14 +245,15 @@ export const createVisitorDetail = async (req, res) => {
         .json({ message: "Visit date cannot be earlier than today." });
     }
 
-    // Additional validation based on visitorType
     if (
       visitorType === VisitorTypeEnum.INDIVIDUAL &&
       (!firstName?.trim() || !lastName?.trim())
     ) {
-      return res.status(400).json({
-        message: "First name and last name are required for individual type.",
-      });
+      return res
+        .status(400)
+        .json({
+          message: "First name and last name are required for individual type.",
+        });
     }
 
     if (visitorType === VisitorTypeEnum.GROUP && !groupName?.trim()) {
@@ -244,7 +262,21 @@ export const createVisitorDetail = async (req, res) => {
         .json({ message: "Group name is required for group type." });
     }
 
-    // Step 1: Check for existing visitor by name or group
+    let visitorImageUrl = null;
+
+    // ✅ Upload image to Cloudinary if provided
+    console.log("req.file:", req.file);
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "visitors",
+      });
+      visitorImageUrl = result.secure_url;
+
+      // ✅ Delete temp file after successful upload
+      fs.unlinkSync(req.file.path);
+    }
+
+    // Check for existing visitor
     const existingVisitor = await Visitor.findOne({
       $or: [
         {
@@ -260,7 +292,6 @@ export const createVisitorDetail = async (req, res) => {
     });
 
     if (existingVisitor) {
-      // Step 2: Check if visit already exists for this visitor on that date
       const visitStart = visitDateOnly.toDate();
       const visitEnd = moment(visitDate).endOf("day").toDate();
 
@@ -270,12 +301,13 @@ export const createVisitorDetail = async (req, res) => {
       });
 
       if (sameDateVisit) {
-        return res.status(400).json({
-          message: "Visit already exists for this visitor on the given date.",
-        });
+        return res
+          .status(400)
+          .json({
+            message: "Visit already exists for this visitor on the given date.",
+          });
       }
 
-      // Step 3: Save visit detail
       const newVisit = new VisitDetail({
         visitorId: existingVisitor._id,
         userId,
@@ -283,7 +315,8 @@ export const createVisitorDetail = async (req, res) => {
         purpose,
         department,
         classification,
-        noOfVisitors: visitorType === VisitorTypeEnum.GROUP ? noOfVisitors : undefined,
+        noOfVisitors:
+          visitorType === VisitorTypeEnum.GROUP ? noOfVisitors : undefined,
         expiryStatus,
       });
 
@@ -296,13 +329,21 @@ export const createVisitorDetail = async (req, res) => {
       });
     }
 
-    // Step 4: Create new visitor and visit detail
+    // Create new visitor and attach Cloudinary image URL
     const newVisitor = new Visitor({
       userId,
       visitorType,
-      firstName: visitorType === VisitorTypeEnum.INDIVIDUAL ? firstName?.trim() : undefined,
-      lastName: visitorType === VisitorTypeEnum.INDIVIDUAL ? lastName?.trim() : undefined,
-      groupName: visitorType === VisitorTypeEnum.GROUP ? groupName?.trim() : undefined,
+      firstName:
+        visitorType === VisitorTypeEnum.INDIVIDUAL
+          ? firstName?.trim()
+          : undefined,
+      lastName:
+        visitorType === VisitorTypeEnum.INDIVIDUAL
+          ? lastName?.trim()
+          : undefined,
+      groupName:
+        visitorType === VisitorTypeEnum.GROUP ? groupName?.trim() : undefined,
+      visitorImage: visitorImageUrl, // ✅ Add image URL to Visitor
     });
 
     const savedVisitor = await newVisitor.save();
@@ -314,7 +355,8 @@ export const createVisitorDetail = async (req, res) => {
       purpose,
       department,
       classification,
-      noOfVisitors: visitorType === VisitorTypeEnum.GROUP ? noOfVisitors : undefined,
+      noOfVisitors:
+        visitorType === VisitorTypeEnum.GROUP ? noOfVisitors : undefined,
       expiryStatus,
     });
 
@@ -327,31 +369,27 @@ export const createVisitorDetail = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating visitor detail:", error);
-
-    if (error.name === "ValidationError") {
-      const messages = Object.values(error.errors).map((e) => e.message);
-      return res
-        .status(400)
-        .json({ message: "Validation failed.", errors: messages });
-    }
-
     res.status(500).json({ message: "Server error." });
   }
 };
 
 export const getVisitorNames = async (req, res) => {
+  const { id } = req.params;
   const { type } = req.query;
 
+  // console.log("userId:", id);
   try {
     if (type === VisitorTypeEnum.INDIVIDUAL) {
-      const visitors = await Visitor.find({ visitorType: VisitorTypeEnum.INDIVIDUAL }).select(
-        "firstName lastName"
-      );
+      const visitors = await Visitor.find({
+        userId: id,
+        visitorType: VisitorTypeEnum.INDIVIDUAL,
+      }).select("firstName lastName");
       return res.json(visitors);
     } else if (type === VisitorTypeEnum.GROUP) {
-      const groups = await Visitor.find({ visitorType: VisitorTypeEnum.GROUP }).select(
-        "groupName"
-      );
+      const groups = await Visitor.find({
+        userId: id,
+        visitorType: VisitorTypeEnum.GROUP,
+      }).select("groupName");
       return res.json(groups);
     } else {
       return res.status(400).json({ message: "Invalid type" });
@@ -416,7 +454,9 @@ export const getVisitorByUserId = async (req, res) => {
           classification: visit.classification,
           expiryStatus: visit.expiryStatus,
           noOfVisitors:
-            visitor.visitorType === VisitorTypeEnum.GROUP ? visit.noOfVisitors : null,
+            visitor.visitorType === VisitorTypeEnum.GROUP
+              ? visit.noOfVisitors
+              : null,
           activeQRCode: qrCodeMap.get(visit._id.toString()) || null,
         };
       });
@@ -425,9 +465,18 @@ export const getVisitorByUserId = async (req, res) => {
         _id: visitor._id,
         userId: visitor.userId,
         visitorType: visitor.visitorType,
-        firstName: visitor.visitorType === VisitorTypeEnum.INDIVIDUAL ? visitor.firstName : null,
-        lastName: visitor.visitorType === VisitorTypeEnum.INDIVIDUAL ? visitor.lastName : null,
-        groupName: visitor.visitorType === VisitorTypeEnum.GROUP ? visitor.groupName : null,
+        firstName:
+          visitor.visitorType === VisitorTypeEnum.INDIVIDUAL
+            ? visitor.firstName
+            : null,
+        lastName:
+          visitor.visitorType === VisitorTypeEnum.INDIVIDUAL
+            ? visitor.lastName
+            : null,
+        groupName:
+          visitor.visitorType === VisitorTypeEnum.GROUP
+            ? visitor.groupName
+            : null,
         visitDetails: enrichedVisitDetails,
       };
     });
@@ -439,4 +488,3 @@ export const getVisitorByUserId = async (req, res) => {
     res.status(500).json({ message: "Server error while fetching visitors." });
   }
 };
-

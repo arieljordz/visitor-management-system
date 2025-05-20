@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../context/AuthContext";
+import { useSpinner } from "../../../context/SpinnerContext.jsx";
 import { useDashboard } from "../../../context/DashboardContext.jsx";
 import {
   createVisitorDetail,
@@ -10,7 +11,6 @@ import {
 import { getClassifications } from "../../../services/classificationService";
 import { getDepartments } from "../../../services/departmentService";
 import VisitorSearch from "../VisitorSearch";
-import VisitorDetailsForm from "../VisitorDetailsForm";
 import VisitorForm from "../VisitorForm";
 import { VisitorTypeEnum } from "../../../enums/enums.js";
 
@@ -28,25 +28,32 @@ const INITIAL_FORM_STATE = {
 
 const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
   const { user } = useAuth();
+  const { setLoading } = useSpinner();
   const { refreshDashboard } = useDashboard();
   const [classifications, setClassifications] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [selectedVisitor, setSelectedVisitor] = useState(null);
   const [visitorType, setVisitorType] = useState(VisitorTypeEnum.INDIVIDUAL);
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
     if (show) {
       fetchClassifications();
       fetchDepartments();
       resetForm();
+      setImageFile(null);
+      setImagePreview(null);
     }
   }, [show]);
 
-  // console.log("selectedRow modal:", selectedRow);
+  console.log("selectedRow modal:", selectedRow);
   useEffect(() => {
     if (selectedRow) {
       setVisitorType(selectedRow.visitor?.visitorType);
+      setImageFile(null); // clear File object
+      setImagePreview(selectedRow.visitor?.visitorImage);
       setFormData({
         firstName: selectedRow.visitor?.firstName || "",
         lastName: selectedRow.visitor?.lastName || "",
@@ -103,7 +110,8 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
         firstName: type === VisitorTypeEnum.INDIVIDUAL ? visitor.firstName : "",
         lastName: type === VisitorTypeEnum.INDIVIDUAL ? visitor.lastName : "",
         groupName: type === VisitorTypeEnum.GROUP ? visitor.groupName : "",
-        noOfVisitors: type === VisitorTypeEnum.GROUP ? visitor.noOfVisitors : "",
+        noOfVisitors:
+          type === VisitorTypeEnum.GROUP ? visitor.noOfVisitors : "",
       }));
     } else {
       setSelectedVisitor(null);
@@ -117,7 +125,7 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    console.log("checked:", checked);
+    // console.log("checked:", checked);
     if (type === "checkbox" && name === "expiryStatus") {
       setFormData((prev) => ({
         ...prev,
@@ -128,42 +136,66 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
     }
   };
 
+  const handleImageChange = (file) => {
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const isUpdate = Boolean(selectedRow?.visitDetail?._id);
-    const payload = {
-      userId: user.userId,
-      visitorType,
-      firstName:
-        visitorType === VisitorTypeEnum.INDIVIDUAL
-          ? selectedVisitor?.firstName || formData.firstName
-          : undefined,
-      lastName:
-        visitorType === VisitorTypeEnum.INDIVIDUAL
-          ? selectedVisitor?.lastName || formData.lastName
-          : undefined,
-      groupName:
-        visitorType === VisitorTypeEnum.GROUP
-          ? selectedVisitor?.groupName || formData.groupName
-          : undefined,
-      visitDate: formData.visitDate,
-      purpose: formData.purpose,
-      department: formData.department,
-      classification: formData.classification,
-      noOfVisitors:
-        visitorType === VisitorTypeEnum.GROUP
-          ? selectedVisitor?.noOfVisitors || formData.noOfVisitors
-          : 1,
-      expiryStatus: formData.expiryStatus,
-    };
 
-    // console.log("payload:", payload);
+    const isUpdate = Boolean(selectedRow?.visitDetail?._id);
+
+    const formPayload = new FormData();
+
+    formPayload.append("userId", user.userId);
+    formPayload.append("visitorType", visitorType);
+    formPayload.append("visitDate", formData.visitDate);
+    formPayload.append("purpose", formData.purpose);
+    formPayload.append("department", formData.department);
+    formPayload.append("classification", formData.classification);
+    formPayload.append(
+      "noOfVisitors",
+      visitorType === VisitorTypeEnum.GROUP
+        ? selectedVisitor?.noOfVisitors || formData.noOfVisitors
+        : 1
+    );
+    formPayload.append("expiryStatus", formData.expiryStatus);
+
+    if (visitorType === VisitorTypeEnum.INDIVIDUAL) {
+      formPayload.append(
+        "firstName",
+        selectedVisitor?.firstName || formData.firstName
+      );
+      formPayload.append(
+        "lastName",
+        selectedVisitor?.lastName || formData.lastName
+      );
+    } else {
+      formPayload.append(
+        "groupName",
+        selectedVisitor?.groupName || formData.groupName
+      );
+    }
+
+    console.log("imageFile:", imageFile);
+    if (imageFile) {
+      formPayload.append(
+        "visitorImage",
+        imageFile || selectedVisitor?.visitorImage
+      );
+    } else {
+      toast.warning("Visitor image is required.");
+      return;
+    }
+
+    setLoading(true);
     try {
       if (isUpdate) {
-        await updateVisitor(selectedRow?.visitDetail?._id, payload);
+        await updateVisitor(selectedRow?.visitDetail?._id, formPayload);
         toast.success("Visitor updated successfully.");
       } else {
-        await createVisitorDetail(payload);
+        await createVisitorDetail(formPayload);
         toast.success("Visitor created successfully.");
       }
       refreshList();
@@ -173,6 +205,8 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
     } catch (err) {
       toast.error(err?.response?.data?.message || "An error occurred.");
       console.error("Error:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -203,18 +237,17 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
         <hr />
 
         <VisitorForm
+          onChange={handleChange}
           visitor={selectedVisitor}
           type={visitorType}
-          onChange={handleChange}
           formData={formData}
-        />
-
-        <VisitorDetailsForm
-          type={visitorType}
-          formData={formData}
-          onChange={handleChange}
+          onImageChange={handleImageChange}
           classifications={classifications}
           departments={departments}
+          imageFile={imageFile}
+          imagePreview={imagePreview}
+          setImageFile={setImageFile}
+          setImagePreview={setImagePreview}
         />
       </Modal.Body>
 

@@ -25,6 +25,7 @@ const AccountsTable = ({
             <th className="text-center">Full Name</th>
             <th className="text-center">Subscriber</th>
             <th className="text-center">Address</th>
+            <th className="text-center">Department</th>
             <th className="text-center">Role</th>
             <th className="text-center">Date Created</th>
             <th className="text-center">Status</th>
@@ -44,6 +45,9 @@ const AccountsTable = ({
                     : "—"}
                 </td>
                 <td className="text-center">{user.address?.toUpperCase()}</td>
+                <td className="text-center">
+                  {user.department?.toUpperCase() || "—"}
+                </td>
                 <td className="text-center">{user.role?.toUpperCase()}</td>
                 <td className="text-center">{formatDate(user.createdAt)}</td>
                 <td className="text-center">

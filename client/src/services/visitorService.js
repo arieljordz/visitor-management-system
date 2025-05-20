@@ -17,9 +17,9 @@ export const createVisitor = async (formData) => {
   return response.data.data || [];
 };
 
-export const getVisitorNames = async (visitorType) => {
+export const getVisitorNames = async (visitorType, userId) => {
   try {
-    const response = await api.get(`/api/visitors-names?type=${visitorType}`);
+    const response = await api.get(`/api/visitors-names/${userId}?type=${visitorType}`);
     const data = response.data;
 
     if (visitorType === VisitorTypeEnum.INDIVIDUAL) {

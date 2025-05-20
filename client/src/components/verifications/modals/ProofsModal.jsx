@@ -4,21 +4,17 @@ import { toast } from "react-toastify";
 
 const API_URL = import.meta.env.VITE_BASE_API_URL;
 
-const ProofsModal = ({ show, setShowModal, imageProof, txnId }) => {
+const ProofsModal = ({ show, setShowModal, imageUrl, txnId }) => {
   const [isLoading, setIsLoading] = useState(true);
 
-  // Normalize the file path and create full image URL
-  const normalizedPath = imageProof?.replace(/\\/g, "/");
-  const imageUrl = normalizedPath ? `${API_URL}/${normalizedPath}` : "";
+  console.log("imageUrl:", imageUrl);
 
-  // console.log("imageUrl:", imageUrl);
-
-  // Reset loading when modal opens or imageProof changes
+  // Reset loading when modal opens or imageUrl changes
   useEffect(() => {
-    if (show && imageProof) {
+    if (show && imageUrl) {
       setIsLoading(true);
     }
-  }, [show, imageProof]);
+  }, [show, imageUrl]);
 
   // Handle image download
   const handleDownload = async () => {

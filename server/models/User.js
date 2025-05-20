@@ -13,6 +13,7 @@ const UserSchema = new mongoose.Schema(
       default: UserRoleEnum.SUBSCRIBER,
     },
     address: { type: String, required: true },
+    department: { type: String, required: false },
     categoryType: { type: String, required: false },
     verified: { type: Boolean, required: true, default: false },
     status: {
