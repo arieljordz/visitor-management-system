@@ -1,8 +1,8 @@
 import api from "../api/api.js";
 
-export const checkActiveQRCodeForVisit = async (user, visitorId, visitdetailsId) => {
+export const checkActiveQRCodeForVisit = async (user, visitorId, visitDetailsId) => {
   try {
-    await api.get(`/api/check-active-qr/${user.userId}/${visitorId}/${visitdetailsId}`);
+    await api.get(`/api/check-active-qr/${user.userId}/${visitorId}/${visitDetailsId}`);
     return null; 
   } catch (error) {
     if (error.response && error.response.status === 409) {
@@ -14,20 +14,20 @@ export const checkActiveQRCodeForVisit = async (user, visitorId, visitdetailsId)
   }
 };
 
-export const generateQRCodeWithPayment = async ({ userId, visitorId, visitdetailsId }) => {
+export const generateQRCodeWithPayment = async ({ userId, visitorId, visitDetailsId }) => {
   const response = await api.post("/api/generate-qr", {
     userId,
     visitorId,
-    visitdetailsId,
+    visitDetailsId,
   });
   return response.data.data || [];
 };
 
-export const generateQRCodeSubscription = async ({ userId, visitorId, visitdetailsId }) => {
+export const generateQRCodeSubscription = async ({ userId, visitorId, visitDetailsId }) => {
   const response = await api.post("/api/generate-qr-subscription", {
     userId,
     visitorId,
-    visitdetailsId,
+    visitDetailsId,
   });
   return response.data.data || [];
 };

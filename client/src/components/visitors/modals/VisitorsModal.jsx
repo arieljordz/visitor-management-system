@@ -23,7 +23,7 @@ const INITIAL_FORM_STATE = {
   department: "",
   classification: "",
   noOfVisitors: "",
-  expiryStatus: false,
+  validity: "",
 };
 
 const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
@@ -48,7 +48,7 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
     }
   }, [show]);
 
-  console.log("selectedRow modal:", selectedRow);
+  // console.log("selectedRow modal:", selectedRow);
   useEffect(() => {
     if (selectedRow) {
       setVisitorType(selectedRow.visitor?.visitorType);
@@ -67,7 +67,7 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
         department: selectedRow.visitDetail?.department || "",
         classification: selectedRow.visitDetail?.classification || "",
         noOfVisitors: selectedRow.visitDetail?.noOfVisitors || "",
-        expiryStatus: selectedRow.visitDetail?.expiryStatus || false,
+        validity: selectedRow.visitDetail?.validity || "",
       });
     } else {
       setFormData(INITIAL_FORM_STATE);
@@ -126,10 +126,9 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     // console.log("checked:", checked);
-    if (type === "checkbox" && name === "expiryStatus") {
+    if (type === "checkbox") {
       setFormData((prev) => ({
         ...prev,
-        expiryStatus: checked ? true : false,
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -160,7 +159,7 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
         ? selectedVisitor?.noOfVisitors || formData.noOfVisitors
         : 1
     );
-    formPayload.append("expiryStatus", formData.expiryStatus);
+    formPayload.append("validity", formData.validity);
 
     if (visitorType === VisitorTypeEnum.INDIVIDUAL) {
       formPayload.append(
@@ -178,8 +177,11 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
       );
     }
 
-    console.log("imageFile:", imageFile);
-    if (imageFile) {
+    // console.log("imageFile:", imageFile);
+    // console.log("imagePreview:", imagePreview);
+    // console.log("visitorType:", visitorType);
+    
+    if (imagePreview) {
       formPayload.append(
         "visitorImage",
         imageFile || selectedVisitor?.visitorImage

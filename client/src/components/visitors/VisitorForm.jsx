@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Col, Form, Row, Image } from "react-bootstrap";
-import { VisitorTypeEnum } from "../../enums/enums";
+import { VisitorTypeEnum, ValidityEnum } from "../../enums/enums";
 
 const FormInput = ({
   label,
@@ -159,24 +159,28 @@ const VisitorForm = ({
             </Form.Group>
           </Col>
 
-          <Col md={12}>
-            <div className="form-group">
-              <div className="custom-control custom-switch">
-                <input
-                  type="checkbox"
-                  className="custom-control-input"
-                  id="status-switch"
-                  name="expiryStatus"
-                  checked={formData.expiryStatus === true}
-                  onChange={onChange}
-                />
-                <label className="custom-control-label" htmlFor="status-switch">
-                  {formData.expiryStatus === true
-                    ? "No Expiration"
-                    : "Valid Today"}
-                </label>
-              </div>
-            </div>
+          <Col md={6} className="mb-3">
+            <Form.Group>
+              <Form.Label>Validity</Form.Label>
+              <Form.Select
+                name="validity"
+                value={formData.validity}
+                onChange={onChange}
+                className="form-control"
+                required
+              >
+                <option value="">-- Select Validity --</option>
+                <option value={ValidityEnum.VALID_TODAY}>
+                  {ValidityEnum.VALID_TODAY.toUpperCase()}
+                </option>
+                <option value={ValidityEnum.PERMANENT}>
+                  {ValidityEnum.PERMANENT.toUpperCase()}
+                </option>
+                <option value={ValidityEnum.EXPIRED}>
+                  {ValidityEnum.EXPIRED.toUpperCase()}
+                </option>
+              </Form.Select>
+            </Form.Group>
           </Col>
         </Row>
       </Col>

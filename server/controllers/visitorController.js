@@ -1,10 +1,16 @@
 import mongoose from "mongoose";
 import moment from "moment";
 import fs from "fs";
+import User from "../models/User.js";
 import Visitor from "../models/Visitor.js";
 import QRCode from "../models/QRCode.js";
 import VisitDetail from "../models/VisitDetail.js";
-import { VisitorTypeEnum } from "../enums/enums.js";
+import {
+  VisitorTypeEnum,
+  PlanLimitEnum,
+  PlanTypeEnum,
+  UserRoleEnum,
+} from "../enums/enums.js";
 import cloudinary from "../utils/cloudinaryUtils.js";
 
 // GET all visitors
@@ -85,6 +91,7 @@ export const deleteVisitDetail = async (req, res) => {
 // UPDATE visitor by ID
 export const updateVisitor = async (req, res) => {
   try {
+    // console.log("Request body:", req.body);
     const { id: visitDetailId } = req.params;
     const {
       visitorType,
@@ -96,7 +103,7 @@ export const updateVisitor = async (req, res) => {
       department,
       categoryType,
       noOfVisitors,
-      expiryStatus,
+      validity,
     } = req.body;
 
     // Validate visitDetailId
@@ -161,7 +168,7 @@ export const updateVisitor = async (req, res) => {
         department,
         categoryType,
         noOfVisitors: noOfVisitors || 1,
-        expiryStatus,
+        validity,
       },
       { new: true, runValidators: true }
     );
@@ -221,7 +228,7 @@ export const createVisitorDetail = async (req, res) => {
       department,
       classification,
       noOfVisitors,
-      expiryStatus,
+      validity,
     } = req.body;
 
     if (
@@ -249,11 +256,9 @@ export const createVisitorDetail = async (req, res) => {
       visitorType === VisitorTypeEnum.INDIVIDUAL &&
       (!firstName?.trim() || !lastName?.trim())
     ) {
-      return res
-        .status(400)
-        .json({
-          message: "First name and last name are required for individual type.",
-        });
+      return res.status(400).json({
+        message: "First name and last name are required for individual type.",
+      });
     }
 
     if (visitorType === VisitorTypeEnum.GROUP && !groupName?.trim()) {
@@ -262,21 +267,47 @@ export const createVisitorDetail = async (req, res) => {
         .json({ message: "Group name is required for group type." });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid userId." });
+    }
+    // ✅ Fetch user to enforce plan limit
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // ✅ Only enforce limit for subscribers
+    if (user.role === UserRoleEnum.SUBSCRIBER) {
+      const planType = user.planType;
+
+      // console.log("user:", user);
+      // Lookup plan limit using the ENUM mapping
+      const planLimit =
+        PlanLimitEnum[
+          Object.keys(PlanTypeEnum).find(
+            (key) => PlanTypeEnum[key] === planType
+          )
+        ] ?? 0;
+
+      const currentVisitorCount = await Visitor.countDocuments({ userId });
+
+      if (currentVisitorCount >= planLimit) {
+        return res.status(403).json({
+          message: `You have reached the limit of ${planLimit} visitors for your "${planType}" plan.`,
+        });
+      }
+    }
+
     let visitorImageUrl = null;
 
-    // ✅ Upload image to Cloudinary if provided
-    console.log("req.file:", req.file);
     if (req.file) {
       const result = await cloudinary.uploader.upload(req.file.path, {
         folder: "visitors",
       });
       visitorImageUrl = result.secure_url;
-
-      // ✅ Delete temp file after successful upload
       fs.unlinkSync(req.file.path);
     }
 
-    // Check for existing visitor
     const existingVisitor = await Visitor.findOne({
       $or: [
         {
@@ -301,11 +332,9 @@ export const createVisitorDetail = async (req, res) => {
       });
 
       if (sameDateVisit) {
-        return res
-          .status(400)
-          .json({
-            message: "Visit already exists for this visitor on the given date.",
-          });
+        return res.status(400).json({
+          message: "Visit already exists for this visitor on the given date.",
+        });
       }
 
       const newVisit = new VisitDetail({
@@ -317,7 +346,7 @@ export const createVisitorDetail = async (req, res) => {
         classification,
         noOfVisitors:
           visitorType === VisitorTypeEnum.GROUP ? noOfVisitors : undefined,
-        expiryStatus,
+        validity,
       });
 
       const savedVisit = await newVisit.save();
@@ -329,7 +358,6 @@ export const createVisitorDetail = async (req, res) => {
       });
     }
 
-    // Create new visitor and attach Cloudinary image URL
     const newVisitor = new Visitor({
       userId,
       visitorType,
@@ -343,7 +371,7 @@ export const createVisitorDetail = async (req, res) => {
           : undefined,
       groupName:
         visitorType === VisitorTypeEnum.GROUP ? groupName?.trim() : undefined,
-      visitorImage: visitorImageUrl, // ✅ Add image URL to Visitor
+      visitorImage: visitorImageUrl,
     });
 
     const savedVisitor = await newVisitor.save();
@@ -357,7 +385,7 @@ export const createVisitorDetail = async (req, res) => {
       classification,
       noOfVisitors:
         visitorType === VisitorTypeEnum.GROUP ? noOfVisitors : undefined,
-      expiryStatus,
+      validity,
     });
 
     const savedVisit = await newVisit.save();
@@ -432,11 +460,11 @@ export const getVisitorByUserId = async (req, res) => {
 
     // Step 3: Fetch all QR codes associated with these visit details
     const qrCodes = await QRCode.find({
-      visitdetailsId: { $in: visitDetailIds },
+      visitDetailsId: { $in: visitDetailIds },
     }).lean();
 
     const qrCodeMap = new Map(
-      qrCodes.map((qr) => [qr.visitdetailsId.toString(), qr])
+      qrCodes.map((qr) => [qr.visitDetailsId.toString(), qr])
     );
 
     // Step 4: Map visit details with corresponding visitor and QR code
@@ -452,7 +480,7 @@ export const getVisitorByUserId = async (req, res) => {
           purpose: visit.purpose,
           department: visit.department,
           classification: visit.classification,
-          expiryStatus: visit.expiryStatus,
+          validity: visit.validity,
           noOfVisitors:
             visitor.visitorType === VisitorTypeEnum.GROUP
               ? visit.noOfVisitors

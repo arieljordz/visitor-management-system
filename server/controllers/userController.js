@@ -14,7 +14,7 @@ import {
 } from "../utils/authUtils.js";
 import { sendEmail } from "../utils/mailer.js";
 import { evaluateUserStatus } from "../utils/statusUtils.js";
-import { StatusEnum, UserRoleEnum, PasswordEnum } from "../enums/enums.js";
+import { StatusEnum, UserRoleEnum, PasswordEnum, PlanTypeEnum } from "../enums/enums.js";
 import { sendVerificationEmail } from "../services/sendEmailService.js";
 
 // User handler
@@ -640,6 +640,7 @@ export const activateFreeTrial = async (req, res) => {
       now.getTime() + trialDays * 24 * 60 * 60 * 1000
     );
 
+    user.planType = PlanTypeEnum.FREE_TRIAL;
     user.isOnTrial = true;
     user.trialStartedAt = now;
     user.trialEndsAt = trialEndsAt;

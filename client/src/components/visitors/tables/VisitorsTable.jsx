@@ -1,7 +1,7 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { VisitorTypeEnum } from "../../../enums/enums.js";
+import { VisitorTypeEnum, ValidityEnum } from "../../../enums/enums.js";
 import { formatDate } from "../../../utils/globalUtils";
 
 const VisitorsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
@@ -24,7 +24,7 @@ const VisitorsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
             <th className="text-center">Department</th>
             <th className="text-center">Classification</th>
             <th className="text-center">Visit Date</th>
-            <th className="text-center">Expiry Status</th>
+            <th className="text-center">Validity</th>
             <th className="text-center">Action</th>
           </tr>
         </thead>
@@ -63,10 +63,13 @@ const VisitorsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
                       {formatDate(visitDetail.visitDate)}
                     </td>
                     <td className="text-center">
-                      {visitDetail.expiryStatus ? (
-                        <span className="badge bg-primary">No Expiration</span>
+                      {visitDetail.validity === ValidityEnum.VALID_TODAY ? (
+                        <span className="badge bg-secondary">Valid Today</span>
+                      ) : visitDetail.validity ===
+                        ValidityEnum.PERMANENT ? (
+                        <span className="badge bg-success">Permanent</span>
                       ) : (
-                        <span className="badge bg-success">Valid Today</span>
+                        <span className="badge bg-danger">Expired</span>
                       )}
                     </td>
                     <td className="text-center">

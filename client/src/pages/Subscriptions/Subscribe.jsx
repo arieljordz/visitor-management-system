@@ -7,6 +7,7 @@ import { useSpinner } from "../../context/SpinnerContext";
 import ChoosePlanPage from "./ChoosePlanPage";
 import PaymentPage from "./PaymentPage";
 import { activateFreeTrial } from "../../services/userService.js";
+import { PlanTypeEnum } from "../../enums/enums.js";
 
 const steps = {
   CHOOSE_PLAN: 1,

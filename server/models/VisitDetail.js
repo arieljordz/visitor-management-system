@@ -16,7 +16,7 @@ const VisitDetailSchema = new mongoose.Schema(
       required: true,
       default: 1,
     },
-    expiryStatus: { type: Boolean, required: true, default: false },
+    validity: { type: String, required: true },
   },
   { timestamps: true }
 );

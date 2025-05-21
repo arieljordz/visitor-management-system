@@ -26,6 +26,7 @@ const UserSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    planType: { type: String, required: false },
     subscription: { type: Boolean, required: true, default: false },
     expiryDate: { type: Date, default: null },
     isOnTrial: { type: Boolean, default: false }, 

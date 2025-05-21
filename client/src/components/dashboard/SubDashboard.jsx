@@ -72,14 +72,14 @@ const SubDashboard = () => {
     }
   };
 
-  const handleGenerateQR = async (visitorId, visitdetailsId) => {
+  const handleGenerateQR = async (visitorId, visitDetailsId) => {
     try {
       if (!(await canGenerateQRCode())) return;
 
       const conflict = await checkActiveQRCodeForVisit(
         user,
         visitorId,
-        visitdetailsId
+        visitDetailsId
       );
       if (conflict) {
         toast.warning(conflict.message);
@@ -95,7 +95,7 @@ const SubDashboard = () => {
         ? generateQRCodeSubscription
         : generateQRCodeWithPayment;
 
-      await generateFn({ userId: user.userId, visitorId, visitdetailsId });
+      await generateFn({ userId: user.userId, visitorId, visitDetailsId });
 
       toast.success("Successfully generated QR code for the visitor.");
       refreshDashboard();

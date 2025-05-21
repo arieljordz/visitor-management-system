@@ -147,7 +147,7 @@ router.post("/generate-qr-subscription", authenticate, auditLogger("GENERATE_QR_
 router.get("/scan-qr/:qrData/:userId", authenticate, auditLogger("SCAN_QR_CODE"), scanQRCode);
 router.get("/get-generated-qr", authenticate, getGeneratedQRCodes);
 router.get("/get-generated-qr/:userId", authenticate, getGeneratedQRCodesById);
-router.get("/check-active-qr/:userId/:visitorId/:visitdetailsId", authenticate, checkActiveQRCodeForVisit);
+router.get("/check-active-qr/:userId/:visitorId/:visitDetailsId", authenticate, checkActiveQRCodeForVisit);
 
 // Balance Routes
 router.get("/check-balance/:userId", authenticate, getBalance);
@@ -197,7 +197,7 @@ router.get("/get-visitors", authenticate, getAllVisitors);
 router.get("/get-visitor/:id", authenticate, getVisitorDetailById);
 router.get("/get-visitor-by-user/:userId", authenticate, getVisitorByUserId);
 router.delete("/delete-visitor-detail/:id", authenticate, auditLogger("DELETE_VISIT_DETAIL"), deleteVisitDetail);
-router.put("/update-visitor/:id", authenticate, auditLogger("UPDATE_VISITOR_DETAIL"), updateVisitor);
+router.put("/update-visitor/:id", authenticate, auditLogger("UPDATE_VISITOR_DETAIL"), upload.single("visitorImage"), updateVisitor);
 
 router.get("/search-visitor", authenticate, searchVisitor);
 router.get("/visitors-names/:id", authenticate, getVisitorNames);

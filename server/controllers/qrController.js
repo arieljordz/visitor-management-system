@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
 import moment from "moment";
 import QRCode from "../models/QRCode.js";
+import User from "../models/User.js";
 import Visitor from "../models/Visitor.js";
 import VisitDetail from "../models/VisitDetail.js";
 import PaymentDetail from "../models/PaymentDetail.js";
 import Balance from "../models/Balance.js";
+import ScanLog from "../models/ScanLog.js";
 import { fetchFeeByCodeAndStatus } from "../utils/feeUtils.js";
 import {
   TransactionEnum,
@@ -13,6 +15,7 @@ import {
   PaymentStatusEnum,
   VerificationStatusEnum,
   VisitorTypeEnum,
+  ValidityEnum,
   PaymentMethodEnum,
 } from "../enums/enums.js";
 
@@ -21,7 +24,7 @@ export const generateQRCodeWithPayment = async (req, res) => {
   const {
     userId,
     visitorId,
-    visitdetailsId,
+    visitDetailsId,
     paymentMethod = PaymentMethodEnum.E_WALLET,
     proofOfPayment = null,
   } = req.body;
@@ -31,7 +34,7 @@ export const generateQRCodeWithPayment = async (req, res) => {
   if (
     !mongoose.Types.ObjectId.isValid(userId) ||
     !mongoose.Types.ObjectId.isValid(visitorId) ||
-    !mongoose.Types.ObjectId.isValid(visitdetailsId)
+    !mongoose.Types.ObjectId.isValid(visitDetailsId)
   ) {
     return res.status(400).json({ message: "Invalid ID(s)." });
   }
@@ -43,8 +46,8 @@ export const generateQRCodeWithPayment = async (req, res) => {
       return res.status(404).json({ message: "Visitor not found." });
     }
 
-    // Fetch visit date from visitdetailsId
-    const visitDetail = await VisitDetail.findById(visitdetailsId);
+    // Fetch visit date from visitDetailsId
+    const visitDetail = await VisitDetail.findById(visitDetailsId);
     if (!visitDetail || !visitDetail.visitDate) {
       return res
         .status(404)
@@ -66,12 +69,12 @@ export const generateQRCodeWithPayment = async (req, res) => {
       visitorId,
       userId,
       status: { $in: [QRStatusEnum.ACTIVE, QRStatusEnum.USED] },
-    }).populate("visitdetailsId");
+    }).populate("visitDetailsId");
 
     // Check if any QR already exists for the same visit date
     const duplicateQR = activeQRCodes.find((qr) => {
-      if (!qr.visitdetailsId?.visitDate) return false;
-      const qrVisitDate = moment(qr.visitdetailsId.visitDate).startOf("day");
+      if (!qr.visitDetailsId?.visitDate) return false;
+      const qrVisitDate = moment(qr.visitDetailsId.visitDate).startOf("day");
       return qrVisitDate.isSame(targetVisitDate);
     });
 
@@ -134,7 +137,7 @@ export const generateQRCodeWithPayment = async (req, res) => {
     const qrCodeDoc = new QRCode({
       userId,
       visitorId,
-      visitdetailsId,
+      visitDetailsId,
       qrData,
       qrImageUrl,
       status: QRStatusEnum.ACTIVE,
@@ -163,14 +166,14 @@ export const generateQRCodeWithPayment = async (req, res) => {
 
 // For Subscrition
 export const generateQRCodeSubscription = async (req, res) => {
-  const { userId, visitorId, visitdetailsId } = req.body;
+  const { userId, visitorId, visitDetailsId } = req.body;
 
   // console.log("Subscription:", req.body);
   // Validate ObjectIds
   if (
     !mongoose.Types.ObjectId.isValid(userId) ||
     !mongoose.Types.ObjectId.isValid(visitorId) ||
-    !mongoose.Types.ObjectId.isValid(visitdetailsId)
+    !mongoose.Types.ObjectId.isValid(visitDetailsId)
   ) {
     return res.status(400).json({ message: "Invalid ID(s)." });
   }
@@ -183,7 +186,7 @@ export const generateQRCodeSubscription = async (req, res) => {
     }
 
     // Fetch visit detail
-    const visitDetail = await VisitDetail.findById(visitdetailsId);
+    const visitDetail = await VisitDetail.findById(visitDetailsId);
     if (!visitDetail || !visitDetail.visitDate) {
       return res
         .status(404)
@@ -205,11 +208,11 @@ export const generateQRCodeSubscription = async (req, res) => {
       visitorId,
       userId,
       status: { $in: [QRStatusEnum.ACTIVE, QRStatusEnum.USED] },
-    }).populate("visitdetailsId");
+    }).populate("visitDetailsId");
 
     // Check for duplicate QR for same visit date
     const duplicateQR = activeQRCodes.find((qr) => {
-      const qrVisitDate = qr.visitdetailsId?.visitDate;
+      const qrVisitDate = qr.visitDetailsId?.visitDate;
       return (
         qrVisitDate &&
         moment(qrVisitDate).startOf("day").isSame(targetVisitDate)
@@ -231,7 +234,7 @@ export const generateQRCodeSubscription = async (req, res) => {
     const qrCodeDoc = new QRCode({
       userId,
       visitorId,
-      visitdetailsId,
+      visitDetailsId,
       qrData,
       qrImageUrl,
       status: QRStatusEnum.ACTIVE,
@@ -259,78 +262,102 @@ export const generateQRCodeSubscription = async (req, res) => {
 
 export const scanQRCode = async (req, res) => {
   try {
+    const staffId = req.user._id;
     const { qrData, userId } = req.params;
 
-    // ✅ Validate userId is a valid ObjectId
+    // Validate userId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid user ID." });
     }
 
+    // Validate QR data
     if (!qrData) {
       return res.status(400).json({ message: "QR data is required." });
     }
 
+    // Find staff user
+    const staffUser = await User.findById(staffId).select(
+      "department name email"
+    );
+    if (!staffUser) {
+      return res.status(404).json({ message: "Staff user not found." });
+    }
+
+    // Find QR code with populated references
     const qrCodeDoc = await QRCode.findOne({ qrData })
       .populate("visitorId")
-      .populate("userId", "name email") // the user who created/owns the QR
-      .populate("visitdetailsId");
+      .populate("userId", "name email") // host
+      .populate("visitDetailsId");
 
     if (!qrCodeDoc) {
       return res.status(404).json({ message: "QR code not found." });
     }
 
-    // ✅ Check if the staff scanning the QR is the one it was assigned to
-    if (qrCodeDoc.userId._id.toString() !== userId) {
-      return res.status(403).json({
-        message: "You are not authorized to scan this QR code.",
-      });
-    }
+    const visitDetail = qrCodeDoc.visitDetailsId;
+    const visitor = qrCodeDoc.visitorId;
 
-    // ✅ Check status
-    if ([QRStatusEnum.USED, QRStatusEnum.EXPIRED].includes(qrCodeDoc.status)) {
-      return res.status(400).json({
-        message: `QR code has already been ${qrCodeDoc.status}.`,
-      });
-    }
-
-    // ✅ Check visit details
-    const visitDetail = qrCodeDoc.visitdetailsId;
     if (!visitDetail) {
       return res
         .status(400)
         .json({ message: "Visit details missing for QR code." });
     }
 
-    // ✅ Check date
-    const visitDate = moment(visitDetail.visitDate).startOf("day");
-    const today = moment().startOf("day");
-
-    if (visitDate.isBefore(today)) {
-      qrCodeDoc.status = QRStatusEnum.EXPIRED;
-      await qrCodeDoc.save();
-
-      return res.status(400).json({
-        message: "QR code is expired. Visit date has passed.",
-      });
-    }
-
-    if (!visitDate.isSame(today)) {
-      return res.status(400).json({
-        message: "Visit date does not match today's date.",
-      });
-    }
-
-    // ✅ Mark QR as used
-    qrCodeDoc.status = QRStatusEnum.USED;
-    await qrCodeDoc.save();
-
-    const visitor = qrCodeDoc.visitorId;
     if (!visitor) {
       return res
         .status(400)
         .json({ message: "Visitor information is missing." });
     }
 
+    // Check department match
+    if (staffUser.department !== visitDetail.department) {
+      return res.status(403).json({
+        message:
+          "Department mismatch. You are not authorized to scan this QR code.",
+      });
+    }
+
+    const today = moment().startOf("day");
+    const visitDate = moment(visitDetail.visitDate).startOf("day");
+
+    // Validity handling
+    if (visitDetail.validity === ValidityEnum.VALID_TODAY) {
+      if (!visitDate.isSame(today)) {
+        qrCodeDoc.status = QRStatusEnum.EXPIRED;
+        await qrCodeDoc.save();
+
+        return res.status(400).json({
+          message: "QR code is expired. Visit date has passed.",
+        });
+      }
+
+      // Mark as used
+      qrCodeDoc.status = QRStatusEnum.USED;
+      await qrCodeDoc.save();
+    } else if (visitDetail.validity === ValidityEnum.PERMANENT) {
+      console.log("visitDetail.validity:", visitDetail.validity);
+      if (visitDate.isAfter(today)) {
+        return res.status(400).json({
+          message: "QR code is not yet valid. Visit date is in the future.",
+        });
+      }
+
+      // Permanent: Don't change status (remains ACTIVE)
+    } else {
+      return res.status(400).json({
+        message: "Unknown validity type for this QR code.",
+      });
+    }
+
+    // ✅ Log scan
+    await ScanLog.create({
+      qrCodeId: qrCodeDoc._id,
+      scannedBy: staffUser._id,
+      visitorId: visitor._id,
+      validityType: visitDetail.validity,
+      statusAtScan: qrCodeDoc.status,
+    });
+
+    // Build visitor name
     const visitorName =
       visitor.visitorType === VisitorTypeEnum.INDIVIDUAL
         ? `${visitor.firstName} ${visitor.lastName}`
@@ -347,6 +374,7 @@ export const scanQRCode = async (req, res) => {
           firstName: visitor.firstName || null,
           lastName: visitor.lastName || null,
           groupName: visitor.groupName || null,
+          visitorImage: visitor.visitorImage || null,
         },
         visitDetail: {
           visitDate: visitDetail.visitDate,
@@ -354,7 +382,7 @@ export const scanQRCode = async (req, res) => {
           department: visitDetail.department,
           classification: visitDetail.classification,
           noOfVisitors: visitDetail.noOfVisitors,
-          expiryStatus: visitDetail.expiryStatus,
+          validity: visitDetail.validity,
           createdAt: visitDetail.createdAt,
           updatedAt: visitDetail.updatedAt,
         },
@@ -371,7 +399,7 @@ export const getGeneratedQRCodes = async (req, res) => {
     const generatedQRCodes = await QRCode.find()
       .populate("userId", "name email")
       .populate("visitorId")
-      .populate("visitdetailsId")
+      .populate("visitDetailsId")
       .sort({ generatedAt: -1 })
       .lean();
 
@@ -404,7 +432,7 @@ export const getGeneratedQRCodesById = async (req, res) => {
     const generatedQRCodes = await QRCode.find({ userId })
       .populate("userId", "name email")
       .populate("visitorId")
-      .populate("visitdetailsId")
+      .populate("visitDetailsId")
       .sort({ generatedAt: -1 })
       .lean();
 
@@ -441,17 +469,17 @@ export const getGeneratedQRCodesById = async (req, res) => {
 
 export const checkActiveQRCodeForVisit = async (req, res) => {
   try {
-    const { visitorId, userId, visitdetailsId } = req.params;
+    const { visitorId, userId, visitDetailsId } = req.params;
 
     if (
       !mongoose.Types.ObjectId.isValid(visitorId) ||
       !mongoose.Types.ObjectId.isValid(userId) ||
-      !mongoose.Types.ObjectId.isValid(visitdetailsId)
+      !mongoose.Types.ObjectId.isValid(visitDetailsId)
     ) {
       return res.status(400).json({ message: "Invalid ID(s)." });
     }
 
-    const visitDetail = await VisitDetail.findById(visitdetailsId);
+    const visitDetail = await VisitDetail.findById(visitDetailsId);
     if (!visitDetail || !visitDetail.visitDate) {
       return res
         .status(404)
@@ -464,11 +492,11 @@ export const checkActiveQRCodeForVisit = async (req, res) => {
       visitorId,
       userId,
       status: { $in: [QRStatusEnum.ACTIVE, QRStatusEnum.USED] },
-    }).populate("visitdetailsId");
+    }).populate("visitDetailsId");
 
     const conflict = qrCodes.find((qr) => {
-      if (!qr.visitdetailsId?.visitDate) return false;
-      const qrVisitDate = moment(qr.visitdetailsId.visitDate).startOf("day");
+      if (!qr.visitDetailsId?.visitDate) return false;
+      const qrVisitDate = moment(qr.visitDetailsId.visitDate).startOf("day");
       return qrVisitDate.isSame(targetVisitDate);
     });
 

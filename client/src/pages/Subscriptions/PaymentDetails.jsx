@@ -1,17 +1,34 @@
 import React from "react";
 import { Form } from "react-bootstrap";
 
-function PaymentDetails({
+// Utility to format number as currency
+const formatCurrency = (value) => {
+  const number = parseFloat(value.replace(/,/g, ""));
+  if (isNaN(number)) return "";
+  return number.toLocaleString("en-PH", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+const PaymentDetails = ({
   paymentMethod,
   setPaymentMethod,
   topUpAmount,
   setTopUpAmount,
   paymentAccounts,
   renderPaymentInfo,
-}) {
+}) => {
+  // Handle money input formatting
+  const handleAmountChange = (e) => {
+    const raw = e.target.value.replace(/[^\d.]/g, "");
+    setTopUpAmount(raw);
+  };
+
   return (
     <>
       <h5 className="mb-3">Details</h5>
+
       <Form.Group className="mb-3">
         <Form.Label>Payment Method</Form.Label>
         <Form.Select
@@ -31,18 +48,17 @@ function PaymentDetails({
       <Form.Group className="mb-3">
         <Form.Label>Amount (₱)</Form.Label>
         <Form.Control
-          type="number"
-          step="0.01"
-          min="0"
+          type="text"
+          inputMode="decimal"
           placeholder="Enter amount"
-          value={topUpAmount}
-          onChange={(e) => setTopUpAmount(e.target.value)}
+          value={formatCurrency(topUpAmount)}
+          onChange={handleAmountChange}
         />
       </Form.Group>
 
       {renderPaymentInfo()}
     </>
   );
-}
+};
 
 export default PaymentDetails;

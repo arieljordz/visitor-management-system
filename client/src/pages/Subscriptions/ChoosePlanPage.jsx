@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Card, Button, Row, Col } from "react-bootstrap";
-import { useAuth } from "../../context/AuthContext";
 import Navpath from "../../components/common/Navpath";
 import { getFeeByCodeAndStatus } from "../../services/feeService.js";
-import { FeeCodeEnum } from "../../enums/enums.js";
+import { FeeCodeEnum, PlanTypeEnum, PlanLimitEnum } from "../../enums/enums.js";
+
+const currencyFormat = (amount) =>
+  new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+  }).format(amount);
 
 const PlanCard = ({ plan, onSelect }) => (
-  <Col md={6}>
-    <Card className="mb-4">
+  <Col md={6} lg={6}>
+    <Card className="mb-4 shadow-sm">
       <Card.Body>
-        <Card.Title>{plan.name}</Card.Title>
+        <h3>{plan.name}</h3>
         <Card.Subtitle className="mb-2 text-muted">{plan.price}</Card.Subtitle>
         <ul>
           {plan.features.map((feature, index) => (
@@ -17,7 +22,7 @@ const PlanCard = ({ plan, onSelect }) => (
           ))}
         </ul>
         <Button variant="primary" onClick={() => onSelect(plan.name)}>
-          {plan.name}
+          Choose {plan.name}
         </Button>
       </Card.Body>
     </Card>
@@ -25,20 +30,22 @@ const PlanCard = ({ plan, onSelect }) => (
 );
 
 const ChoosePlanPage = ({ onSelect }) => {
-  const [fee, setFee] = useState(null);
-  const [fee1, setFee1] = useState(null);
-  const [fee2, setFee2] = useState(null);
+  const [fees, setFees] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchFee = async () => {
+    const fetchFees = async () => {
       try {
-        const data = await getFeeByCodeAndStatus(FeeCodeEnum.PREM01);
-        const data1 = await getFeeByCodeAndStatus(FeeCodeEnum.PREM02);
-        const data2 = await getFeeByCodeAndStatus(FeeCodeEnum.PREM03);
-        setFee(data);
-        setFee1(data1);
-        setFee2(data2);
+        const [prem1, prem2, prem3] = await Promise.all([
+          getFeeByCodeAndStatus(FeeCodeEnum.PREM01),
+          getFeeByCodeAndStatus(FeeCodeEnum.PREM02),
+          getFeeByCodeAndStatus(FeeCodeEnum.PREM03),
+        ]);
+        setFees({
+          [PlanTypeEnum.PREMIUM_1]: prem1.fee,
+          [PlanTypeEnum.PREMIUM_2]: prem2.fee,
+          [PlanTypeEnum.PREMIUM_3]: prem3.fee,
+        });
       } catch (error) {
         console.error("Error fetching fee:", error);
       } finally {
@@ -46,35 +53,57 @@ const ChoosePlanPage = ({ onSelect }) => {
       }
     };
 
-    fetchFee();
+    fetchFees();
   }, []);
 
   const plans = [
     {
-      name: "Free Trial",
+      name: PlanTypeEnum.FREE_TRIAL,
       price: "₱0.00/month",
-      features: ["Valid for 3 Days", "Access dashboard", "Generate QR", "Limitted to 10 Visitors"],
+      features: [
+        "Valid for 3 Days",
+        "Access dashboard",
+        "Generate QR",
+        `Limited to ${PlanLimitEnum.FREE_TRIAL} Visitors`,
+      ],
     },
     {
-      name: "Premium 1",
-      price: fee ? `₱${fee.fee.toFixed(2)}/month` : "Loading...",
-      features: ["Valid for 1 Month", "All features", "Priority support", "Limitted to 200 Visitors"],
+      name: PlanTypeEnum.PREMIUM_1,
+      price: fees[PlanTypeEnum.PREMIUM_1]
+        ? `${currencyFormat(fees[PlanTypeEnum.PREMIUM_1])}/month`
+        : "Loading...",
+      features: [
+        "Valid for 1 Month",
+        "All features",
+        "Priority support",
+        `Limited to ${PlanLimitEnum.PREMIUM_1} Visitors`,
+      ],
     },
-        {
-      name: "Premium 2",
-      price: fee ? `₱${fee1.fee.toFixed(2)}/month` : "Loading...",
-      features: ["Valid for 1 Month", "All features", "Priority support", "Limitted to 500 Visitors"],
+    {
+      name: PlanTypeEnum.PREMIUM_2,
+      price: fees[PlanTypeEnum.PREMIUM_2]
+        ? `${currencyFormat(fees[PlanTypeEnum.PREMIUM_2])}/month`
+        : "Loading...",
+      features: [
+        "Valid for 1 Month",
+        "All features",
+        "Priority support",
+        `Limited to ${PlanLimitEnum.PREMIUM_2} Visitors`,
+      ],
     },
-        {
-      name: "Premium 3",
-      price: fee ? `₱${fee2.fee.toFixed(2)}/month` : "Loading...",
-      features: ["Valid for 1 Month", "All features", "Priority support", "Limitted to 2000 Visitors"],
+    {
+      name: PlanTypeEnum.PREMIUM_3,
+      price: fees[PlanTypeEnum.PREMIUM_3]
+        ? `${currencyFormat(fees[PlanTypeEnum.PREMIUM_3])}/month`
+        : "Loading...",
+      features: [
+        "Valid for 1 Month",
+        "All features",
+        "Priority support",
+        `Limited to ${PlanLimitEnum.PREMIUM_3} Visitors`,
+      ],
     },
   ];
-
-  if (loading) {
-    return <div>Loading plans...</div>;
-  }
 
   return (
     <div className="content-wrapper">
@@ -86,11 +115,15 @@ const ChoosePlanPage = ({ onSelect }) => {
               <Card>
                 <Card.Body className="main-card">
                   <h2 className="text-center mb-4">Choose Your Plan</h2>
-                  <Row>
-                    {plans.map((plan, idx) => (
-                      <PlanCard key={idx} plan={plan} onSelect={onSelect} />
-                    ))}
-                  </Row>
+                  {loading ? (
+                    <div className="text-center">Loading plans...</div>
+                  ) : (
+                    <Row>
+                      {plans.map((plan, idx) => (
+                        <PlanCard key={idx} plan={plan} onSelect={onSelect} />
+                      ))}
+                    </Row>
+                  )}
                 </Card.Body>
               </Card>
             </Col>

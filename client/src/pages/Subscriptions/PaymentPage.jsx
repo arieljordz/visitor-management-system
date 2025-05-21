@@ -10,7 +10,7 @@ import PaymentPreview from "./PaymentPreview";
 import { getActivePaymentAccounts } from "../../services/paymentAccountService";
 import { submitSubscription } from "../../services/balanceService";
 import { getFeeByCodeAndStatus } from "../../services/feeService.js";
-import { FeeCodeEnum } from "../../enums/enums.js";
+import { FeeCodeEnum, PlanTypeEnum } from "../../enums/enums.js";
 
 function PaymentPage({ setStep, selectedPlan, steps }) {
   const { user } = useAuth();
@@ -94,12 +94,21 @@ function PaymentPage({ setStep, selectedPlan, steps }) {
       return;
     }
 
-    const fee = await getFeeByCodeAndStatus(FeeCodeEnum.PREM01);
+    const feeCodeMap = {
+      [PlanTypeEnum.PREMIUM_1]: FeeCodeEnum.PREM01,
+      [PlanTypeEnum.PREMIUM_2]: FeeCodeEnum.PREM02,
+      [PlanTypeEnum.PREMIUM_3]: FeeCodeEnum.PREM03,
+    };
 
-    console.log("fee:", fee.fee);
-    if (amount < fee.fee) {
-      toast.warning(`Amount must be at least ₱${fee.fee.toFixed(2)}.`);
-      return;
+    const selectedFeeCode = feeCodeMap[selectedPlan];
+
+    if (selectedFeeCode) {
+      const fee = await getFeeByCodeAndStatus(selectedFeeCode);
+
+      if (amount < fee.fee) {
+        toast.warning(`Amount must be at least ₱${fee.fee.toFixed(2)}.`);
+        return;
+      }
     }
 
     const formData = new FormData();
@@ -107,6 +116,7 @@ function PaymentPage({ setStep, selectedPlan, steps }) {
     formData.append("paymentMethod", paymentMethod);
     formData.append("proof", proof);
     formData.append("referenceNumber", referenceNumber);
+    formData.append("planType", selectedPlan);
 
     setLoading(true);
     try {

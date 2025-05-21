@@ -113,7 +113,7 @@ export const topUp = async (req, res) => {
 
 export const submitSubscription = async (req, res) => {
   const { userId } = req.params;
-  const { topUpAmount, paymentMethod, referenceNumber } = req.body;
+  const { topUpAmount, paymentMethod, referenceNumber, planType } = req.body;
 
   const parsedAmount = parseFloat(topUpAmount);
   if (isNaN(parsedAmount) || parsedAmount <= 0) {
@@ -153,7 +153,13 @@ export const submitSubscription = async (req, res) => {
     await transaction.save();
 
     // 🔍 Get user's name for admin notification
-    const user = await User.findById(userObjectId).lean();
+    const user = await User.findById(userObjectId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    user.planType = planType;
+    await user.save();
+
     const userName = user ? `${user.name.split(" ")[0]}` : "A user";
 
     const clientMessage = `You have requested a subscription of ₱${parsedAmount} via ${transaction.paymentMethod}. Awaiting verification.`;

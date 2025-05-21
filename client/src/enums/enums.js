@@ -83,9 +83,24 @@ export const FeeCodeEnum = Object.freeze({
   PREM03: "PREM03",
 });
 
+export const PlanTypeEnum = Object.freeze({
+  FREE_TRIAL: "Free Trial",
+  PREMIUM_1: "Premium 1",
+  PREMIUM_2: "Premium 2",
+  PREMIUM_3: "Premium 3",
+});
+
+export const PlanLimitEnum = Object.freeze({
+  FREE_TRIAL: 10,
+  PREMIUM_1: 100,
+  PREMIUM_2: 300,
+  PREMIUM_3: 500,
+});
+
 export const ValidityEnum = Object.freeze({
-  NO_EXPIRATION: "No Expiration",
   VALID_TODAY: "Valid Today",
+  PERMANENT: "Permanent",
+  EXPIRED: "Expired",
 });
 
 export const PasswordEnum = Object.freeze({

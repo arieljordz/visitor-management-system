@@ -10,11 +10,11 @@ export const startStatusJob = () => {
 
     try {
       // --- QR Code Expiration ---
-      const activeQRCodes = await QRCode.find({ status: "active" }).populate("visitdetailsId");
+      const activeQRCodes = await QRCode.find({ status: "active" }).populate("visitDetailsId");
 
       const expiredQRIds = activeQRCodes
         .filter((qr) => {
-          const visitDate = qr.visitdetailsId?.visitDate;
+          const visitDate = qr.visitDetailsId?.visitDate;
           return (
             visitDate &&
             moment(visitDate).tz("Asia/Manila").isBefore(moment(now).tz("Asia/Manila"), "day")

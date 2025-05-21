@@ -13,7 +13,7 @@ const qrCodeSchema = new mongoose.Schema(
       ref: "Visitor",
       required: true,
     },
-    visitdetailsId: {
+    visitDetailsId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "VisitDetail",
       required: true,
