@@ -48,7 +48,7 @@ const PaymentDetails = ({
       <Form.Group className="mb-3">
         <Form.Label>Amount (₱)</Form.Label>
         <Form.Control
-          type="text"
+          type="number"
           inputMode="decimal"
           placeholder="Enter amount"
           value={formatCurrency(topUpAmount)}
