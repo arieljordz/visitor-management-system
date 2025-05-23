@@ -35,7 +35,7 @@ const ReportActions = ({ reportData, columns }) => {
   };
 
   const exportToExcel = () => {
-    const headers = columns.map((col) => col.header.toUpperCase());
+    const headers = columns.map((col) => col.header);
     const dataRows = reportData.rows.map((row) =>
       columns.map((col) => row[col.key])
     );
@@ -64,7 +64,7 @@ const ReportActions = ({ reportData, columns }) => {
     if (totalRow) bodyRows.push(totalRow); // Append total row if it exists
 
     autoTable(doc, {
-      head: [columns.map((col) => col.header.toUpperCase())],
+      head: [columns.map((col) => col.header)],
       body: bodyRows,
       startY: 20,
     });

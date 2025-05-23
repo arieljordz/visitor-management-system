@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { updateFee, createFee } from "../../../services/feeService.js";
+import { StatusEnum, UserRoleEnum } from "../../../enums/enums.js";
 
 const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
   const [formData, setFormData] = useState({
@@ -140,7 +141,7 @@ const FeeModal = ({ show, onHide, selectedRow, refreshList }) => {
                     className="custom-control-label"
                     htmlFor="status-switch"
                   >
-                    {formData.status === "active" ? "Active" : "Inactive"}
+                    {formData.status === StatusEnum.ACTIVE ? StatusEnum.ACTIVE : StatusEnum.INACTIVE}
                   </label>
                 </div>
               </div>

@@ -2,9 +2,10 @@ import React from "react";
 import moment from "moment";
 import { Card, Row, Col, Image } from "react-bootstrap";
 import { ValidityEnum } from "../../enums/enums.js";
+import { formatShortDateTime, formatDateTime } from "../../utils/globalUtils";
 
 const QRDetails = ({ responseMessage }) => {
-  const { hostName, visitor, visitDetail } = responseMessage.data;
+  const { hostName, scanTime, visitor, visitDetail } = responseMessage.data;
 
   console.log("responseMessage:", responseMessage);
 
@@ -36,7 +37,7 @@ const QRDetails = ({ responseMessage }) => {
               <Col sm={6}>
                 <h6 className="text-muted">Visit Date</h6>
                 <p className="border rounded px-3 py-2 bg-light mb-0">
-                  {moment(visitDetail.visitDate).format("MMMM DD, YYYY")}
+                  {formatShortDateTime(visitDetail.visitDate)}
                 </p>
               </Col>
               <Col sm={6}>
@@ -63,10 +64,16 @@ const QRDetails = ({ responseMessage }) => {
             </Row>
 
             <Row className="mb-3">
-              <Col sm={12}>
+              <Col sm={6}>
                 <h6 className="text-muted">Validity</h6>
                 <p className="border rounded px-3 py-2 bg-light mb-0">
                   {visitDetail.validity}
+                </p>
+              </Col>
+              <Col sm={6}>
+                <h6 className="text-muted">Scan Date/Time</h6>
+                <p className="border rounded px-3 py-2 bg-light mb-0">
+                  {formatShortDateTime(scanTime)}
                 </p>
               </Col>
             </Row>

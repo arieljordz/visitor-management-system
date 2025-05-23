@@ -10,11 +10,11 @@ import Paginations from "../../components/common/Paginations";
 import ClassificationTable from "../../components/fileMaintenance/tables/ClassificationTable";
 import ClassificationModal from "../../components/fileMaintenance/modals/ClassificationModal";
 import {
-  getClassifications,
+  getClassificationsByUserId,
   getClassificationById,
   deleteClassification,
 } from "../../services/classificationService.js";
-import { StatusEnum } from "../../enums/enums.js";
+import { StatusEnum, UserRoleEnum } from "../../enums/enums.js";
 import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
 
 function FMClassification() {
@@ -28,6 +28,7 @@ function FMClassification() {
   // Modal
   const [showModal, setShowModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+  const subscriberId = user.role === UserRoleEnum.SUBSCRIBER ? user.userId: user.subscriberId;
 
   useEffect(() => {
     if (user?.userId) {
@@ -38,7 +39,7 @@ function FMClassification() {
   const fetchClassifications = async () => {
     setLoading(true);
     try {
-      const data = await getClassifications();
+      const data = await getClassificationsByUserId(subscriberId);
       setClassifications(data);
     } catch (err) {
       console.error("Fetch error:", err);

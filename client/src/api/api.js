@@ -54,7 +54,9 @@ api.interceptors.response.use(
           {},
           { withCredentials: true }
         );
-
+        
+        console.log("Refresh Token:", res);
+        
         const { accessToken: newToken, user: updatedUser } = res.data;
 
         localStorage.setItem("accessToken", newToken);

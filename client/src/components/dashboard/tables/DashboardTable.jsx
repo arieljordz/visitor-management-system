@@ -48,7 +48,7 @@ const DashboardTable = ({
                   <tr key={visitDetail._id}>
                     <td className="text-center">{counter++}</td>
                     <td className="text-center">
-                      {visitor._id.slice(-6).toUpperCase()}
+                      {visitDetail._id.slice(-6).toUpperCase()}
                     </td>
                     <td className="text-center">
                       {visitor.visitorType?.toUpperCase()}

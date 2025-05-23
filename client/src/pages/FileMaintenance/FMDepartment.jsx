@@ -10,11 +10,11 @@ import Paginations from "../../components/common/Paginations.jsx";
 import DepartmentTable from "../../components/fileMaintenance/tables/DepartmentTable.jsx";
 import DepartmentModal from "../../components/fileMaintenance/modals/DepartmentModal.jsx";
 import {
-  getDepartments,
+  getDepartmentsByUserId,
   getDepartmentById,
   deleteDepartment,
 } from "../../services/departmentService.js";
-import { StatusEnum } from "../../enums/enums.js";
+import { StatusEnum, UserRoleEnum } from "../../enums/enums.js";
 import AccessControlWrapper from "../../components/common/AccessControlWrapper.jsx";
 
 function FMDepartment() {
@@ -28,6 +28,7 @@ function FMDepartment() {
   // Modal
   const [showModal, setShowModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+  const subscriberId = user.role === UserRoleEnum.SUBSCRIBER ? user.userId: user.subscriberId;
 
   useEffect(() => {
     if (user?.userId) {
@@ -38,7 +39,7 @@ function FMDepartment() {
   const fetchDepartments = async () => {
     setLoading(true);
     try {
-      const data = await getDepartments();
+      const data = await getDepartmentsByUserId(subscriberId);
       setDepartments(data);
     } catch (err) {
       console.error("Fetch error:", err);

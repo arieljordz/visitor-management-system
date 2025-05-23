@@ -8,11 +8,11 @@ import {
   createVisitorDetail,
   updateVisitor,
 } from "../../../services/visitorService";
-import { getClassifications } from "../../../services/classificationService";
-import { getDepartments } from "../../../services/departmentService";
+import { getClassificationsByUserId } from "../../../services/classificationService";
+import { getDepartmentsByUserId } from "../../../services/departmentService";
 import VisitorSearch from "../VisitorSearch";
 import VisitorForm from "../VisitorForm";
-import { VisitorTypeEnum } from "../../../enums/enums.js";
+import { VisitorTypeEnum, UserRoleEnum } from "../../../enums/enums.js";
 
 const INITIAL_FORM_STATE = {
   firstName: "",
@@ -37,6 +37,7 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const subscriberId = user.role === UserRoleEnum.SUBSCRIBER ? user.userId: user.subscriberId;
 
   useEffect(() => {
     if (show) {
@@ -76,7 +77,7 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
 
   const fetchClassifications = async () => {
     try {
-      const data = await getClassifications();
+      const data = await getClassificationsByUserId(subscriberId);
       setClassifications(data || []);
     } catch (err) {
       console.error("Error fetching classifications:", err);
@@ -85,7 +86,7 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
 
   const fetchDepartments = async () => {
     try {
-      const data = await getDepartments();
+      const data = await getDepartmentsByUserId(subscriberId);
       setDepartments(data || []);
     } catch (err) {
       console.error("Error fetching departments:", err);
@@ -180,16 +181,17 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
     // console.log("imageFile:", imageFile);
     // console.log("imagePreview:", imagePreview);
     // console.log("visitorType:", visitorType);
-    
-    if (imagePreview) {
-      formPayload.append(
-        "visitorImage",
-        imageFile || selectedVisitor?.visitorImage
-      );
+
+    if (imageFile) {
+      formPayload.append("visitorImage", imageFile);
+    } else if (selectedVisitor?.visitorImage) {
+      formPayload.append("visitorImage", selectedVisitor.visitorImage);
     } else {
       toast.warning("Visitor image is required.");
       return;
     }
+
+    // console.log("formPayload:", formPayload);
 
     setLoading(true);
     try {

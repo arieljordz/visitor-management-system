@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { QRStatusEnum } from "../enums/enums.js"
+import { QRStatusEnum } from "../enums/enums.js";
 
 const qrCodeSchema = new mongoose.Schema(
   {

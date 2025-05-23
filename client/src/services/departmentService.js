@@ -1,15 +1,12 @@
 import api from "../api/api.js";
 
-export const getDepartments = async () => {
-  const response = await api.get("/api/get-departments");
+export const getDepartmentsByUserId = async (userId) => {
+  const response = await api.get(`/api/get-departments/${userId}`);
   return response.data.data || [];
 };
 
-export const updateDepartment = async (userId, formData) => {
-  const response = await api.put(
-    `/api/update-department/${userId}`,
-    formData
-  );
+export const updateDepartmentByUserId = async (userId, formData) => {
+  const response = await api.put(`/api/update-department/${userId}`, formData);
 
   return response;
 };

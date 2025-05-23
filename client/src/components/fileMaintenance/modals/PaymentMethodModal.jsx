@@ -5,6 +5,7 @@ import {
   updatePaymentMethod,
   createPaymentMethod,
 } from "../../../services/paymentMethodService.js";
+import { StatusEnum, UserRoleEnum } from "../../../enums/enums.js";
 
 const PaymentMethodModal = ({ show, onHide, selectedRow, refreshList }) => {
   const [formData, setFormData] = useState({
@@ -110,7 +111,7 @@ const PaymentMethodModal = ({ show, onHide, selectedRow, refreshList }) => {
                     className="custom-control-label"
                     htmlFor="payment-status-switch"
                   >
-                    {formData.status === "active" ? "Active" : "Inactive"}
+                    {formData.status === StatusEnum.ACTIVE ? StatusEnum.ACTIVE : StatusEnum.INACTIVE}
                   </label>
                 </div>
               </div>

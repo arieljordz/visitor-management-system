@@ -1,8 +1,8 @@
 import api from "../api/api.js";
 
-export const getVisitorsByDateRange = async ({ dateFrom, dateTo }) => {
+export const getVisitorsByDateRange = async ({ dateFrom, dateTo, department }) => {
   const response = await api.get("/api/get-visitors-report", {
-    params: { dateFrom, dateTo },
+    params: { dateFrom, dateTo, department },
   });
   return response.data || [];
 };

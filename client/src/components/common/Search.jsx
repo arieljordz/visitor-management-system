@@ -19,6 +19,7 @@ const Search = ({
     setCurrentPage(1);
   };
 
+  // console.log("searchTerm:", searchTerm);
   return (
     <Row className="mb-3 align-items-center">
       <Col xs={12} sm={4}>

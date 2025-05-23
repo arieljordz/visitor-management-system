@@ -31,7 +31,7 @@ const QRScanner = () => {
 
       setResponseMessage({
         type: "success",
-        text: "Visitor verified successfully.",
+        text: "VERIFIED!",
         data,
       });
     } catch (error) {

@@ -101,7 +101,7 @@ export const updateVisitor = async (req, res) => {
       visitDate,
       purpose,
       department,
-      categoryType,
+      classification,
       noOfVisitors,
       validity,
     } = req.body;
@@ -143,6 +143,17 @@ export const updateVisitor = async (req, res) => {
       }
     }
 
+        // Upload image if a file was provided
+    let visitorImageUrl = null;
+
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "visitors",
+      });
+      visitorImageUrl = result.secure_url;
+      fs.unlinkSync(req.file.path);
+    }
+
     // Update Visitor
     const updatedVisitor = await Visitor.findByIdAndUpdate(
       visitorId,
@@ -151,10 +162,11 @@ export const updateVisitor = async (req, res) => {
         firstName,
         lastName,
         groupName,
+        ...(visitorImageUrl && { visitorImage: visitorImageUrl }),
       },
       { new: true, runValidators: true }
     );
-
+    
     if (!updatedVisitor) {
       return res.status(404).json({ message: "Visitor not found." });
     }
@@ -166,7 +178,7 @@ export const updateVisitor = async (req, res) => {
         visitDate,
         purpose,
         department,
-        categoryType,
+        classification,
         noOfVisitors: noOfVisitors || 1,
         validity,
       },

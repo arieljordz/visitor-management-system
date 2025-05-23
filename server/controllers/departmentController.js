@@ -25,9 +25,7 @@ export const createDepartment = async (req, res) => {
     });
 
     if (existing) {
-      return res
-        .status(409)
-        .json({ message: "Department already exists." });
+      return res.status(409).json({ message: "Department already exists." });
     }
 
     const newDepartment = new Department({
@@ -52,15 +50,16 @@ export const createDepartment = async (req, res) => {
 };
 
 // Get all Departments
-export const getDepartments = async (req, res) => {
+export const getDepartmentsByUserId = async (req, res) => {
   try {
-    const userId = req.user?._id;
+    const { userId } = req.params;
 
-    if (!userId) {
-      return res.status(403).json({ message: "User not authenticated." });
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(401).json({ message: "Unauthorized or invalid user." });
     }
-
-    const departments = await Department.find({ userId }).sort({ createdAt: -1 });
+    const departments = await Department.find({ userId }).sort({
+      createdAt: -1,
+    });
 
     res.status(200).json({ data: departments });
   } catch (error) {
@@ -100,7 +99,7 @@ export const deleteDepartment = async (req, res) => {
 };
 
 // Update Department by ID
-export const updateDepartment = async (req, res) => {
+export const updateDepartmentByUserId = async (req, res) => {
   try {
     const { id } = req.params;
     const { description, status } = req.body;

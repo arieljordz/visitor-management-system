@@ -349,7 +349,7 @@ export const scanQRCode = async (req, res) => {
     }
 
     // ✅ Log scan
-    await ScanLog.create({
+    const scanLog = await ScanLog.create({
       qrCodeId: qrCodeDoc._id,
       scannedBy: staffUser._id,
       visitorId: visitor._id,
@@ -364,9 +364,10 @@ export const scanQRCode = async (req, res) => {
         : visitor.groupName;
 
     return res.status(200).json({
-      message: "QR code scanned successfully.",
+      message: "VERIFIED!",
       data: {
         hostName: qrCodeDoc.userId?.name || null,
+        scanTime: scanLog.scannedAt,
         visitor: {
           id: visitor._id,
           visitorType: visitor.visitorType,

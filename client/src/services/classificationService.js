@@ -1,11 +1,11 @@
 import api from "../api/api.js";
 
-export const getClassifications = async () => {
-  const response = await api.get("/api/get-classifications");
+export const getClassificationsByUserId = async (userId) => {
+  const response = await api.get(`/api/get-classifications/${userId}`);
   return response.data.data || [];
 };
 
-export const updateClassification = async (userId, formData) => {
+export const updateClassificationByUserId = async (userId, formData) => {
   const response = await api.put(
     `/api/update-classification/${userId}`,
     formData

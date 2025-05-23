@@ -3,7 +3,7 @@ import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../context/AuthContext";
 import { updateUser, createUser } from "../../../services/userService.js";
-import { getDepartments } from "../../../services/departmentService.js";
+import { getDepartmentsByUserId } from "../../../services/departmentService.js";
 import { StatusEnum, UserRoleEnum } from "../../../enums/enums.js";
 
 const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
@@ -22,6 +22,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
 
   const [formData, setFormData] = useState(initialFormData);
   const [departments, setDepartments] = useState([]);
+  const subscriberId = user.role === UserRoleEnum.SUBSCRIBER ? user.userId: user.subscriberId;
 
   useEffect(() => {
     if (show) {
@@ -32,7 +33,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
 
   const fetchDepartments = async () => {
     try {
-      const data = await getDepartments();
+      const data = await getDepartmentsByUserId(subscriberId);
       setDepartments(data || []);
     } catch (err) {
       console.error("Error fetching departments:", err);
@@ -184,7 +185,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
                   value={formData.department}
                   onChange={handleChange}
                   className="form-control"
-                  required
+                  required={user.role !== UserRoleEnum.ADMIN} 
                 >
                   <option value="">-- Select Department --</option>
                   {departments.map((c, i) => (
@@ -275,7 +276,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
                     className="custom-control-label"
                     htmlFor="status-switch"
                   >
-                    {formData.status === "active" ? "Active" : "Inactive"}
+                    {formData.status === StatusEnum.ACTIVE ? StatusEnum.ACTIVE : StatusEnum.INACTIVE}
                   </label>
                 </div>
               </div>

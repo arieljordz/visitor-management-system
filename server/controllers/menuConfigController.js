@@ -44,7 +44,8 @@ export const getMenuByRole = async (req, res) => {
     if (role !== UserRoleEnum.ADMIN) {
       if (!subscription) {
         // Restrict these for non-subscribers
-        let restrictedTopLevel = [MenuEnum.PAYMENT_HISTORY, MenuEnum.REPORTS];
+        // let restrictedTopLevel = [MenuEnum.PAYMENT_HISTORY, MenuEnum.REPORTS];
+        let restrictedTopLevel = [MenuEnum.PAYMENT_HISTORY];
 
         // Allow Reports for STAFF role even without subscription
         if (role === UserRoleEnum.STAFF) {

@@ -11,7 +11,7 @@ const SubscriberModal = ({ show, onHide, selectedRow, refreshList }) => {
     address: "",
     role: UserRoleEnum.SUBSCRIBER,
     status: StatusEnum.ACTIVE,
-    classification: "",
+    categoryType: "",
     subscription: false,
     verified: true,
   };
@@ -26,7 +26,7 @@ const SubscriberModal = ({ show, onHide, selectedRow, refreshList }) => {
         address: selectedRow.address || "",
         role: selectedRow.role || UserRoleEnum.SUBSCRIBER,
         status: selectedRow.status || StatusEnum.ACTIVE,
-        classification: selectedRow.classification || "",
+        categoryType: selectedRow.categoryType || "",
         subscription: selectedRow.subscription || false,
         verified: selectedRow.verified || true,
       });
@@ -42,7 +42,7 @@ const SubscriberModal = ({ show, onHide, selectedRow, refreshList }) => {
       address: "",
       role: UserRoleEnum.SUBSCRIBER,
       status: StatusEnum.ACTIVE,
-      classification: "",
+      categoryType: "",
       subscription: false,
       verified: true,
     });
@@ -172,10 +172,10 @@ const SubscriberModal = ({ show, onHide, selectedRow, refreshList }) => {
                 <Form.Label>Classification</Form.Label>
                 <Form.Control
                   type="text"
-                  name="classification"
-                  value={formData.classification}
+                  name="categoryType"
+                  value={formData.categoryType}
                   onChange={handleChange}
-                  placeholder="Enter classification"
+                  placeholder="Enter category type"
                   required
                 />
               </Form.Group>
@@ -219,7 +219,9 @@ const SubscriberModal = ({ show, onHide, selectedRow, refreshList }) => {
                     className="custom-control-label"
                     htmlFor="status-switch"
                   >
-                    {formData.status === "active" ? "Active" : "Inactive"}
+                    {formData.status === StatusEnum.ACTIVE
+                      ? StatusEnum.ACTIVE
+                      : StatusEnum.INACTIVE}
                   </label>
                 </div>
               </div>

@@ -6,6 +6,7 @@ import {
   createPaymentAccount,
 } from "../../../services/paymentAccountService.js";
 import { getActivePaymentMethods } from "../../../services/paymentMethodService.js";
+import { StatusEnum, UserRoleEnum } from "../../../enums/enums.js";
 
 const PaymentAccountModal = ({ show, onHide, selectedRow, refreshList }) => {
   const initialFormData = {
@@ -184,7 +185,7 @@ const PaymentAccountModal = ({ show, onHide, selectedRow, refreshList }) => {
                     className="custom-control-label"
                     htmlFor="status-switch"
                   >
-                    {formData.status === "active" ? "Active" : "Inactive"}
+                    {formData.status === StatusEnum.ACTIVE ? StatusEnum.ACTIVE : StatusEnum.INACTIVE}
                   </label>
                 </div>
               </div>

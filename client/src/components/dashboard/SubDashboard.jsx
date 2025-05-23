@@ -27,7 +27,7 @@ const SubDashboard = () => {
   const { refreshDashboard } = useDashboard();
   const { setLoading } = useSpinner();
   const { flags } = useFeatureFlags();
-  const [proofs, setVisitors] = useState([]);
+  const [visitors, setVisitors] = useState([]);
   const [txnId, setTxnId] = useState("");
   const [qrViewImageUrl, setViewQrImageUrl] = useState("");
 
@@ -135,25 +135,30 @@ const SubDashboard = () => {
     return result.isConfirmed;
   };
 
-  const filteredData = proofs.filter((txn) => {
+  const filteredData = visitors.filter((obj) => {
+    const visitDetails = obj.visitDetails || [];
+
+    const visitDetailStrings = visitDetails.flatMap((visit) => [
+      visit._id,
+      visit.department,
+      visit.classification,
+      visit.purpose,
+      visit.validity,
+      new Date(visit.visitDate).toLocaleString(),
+    ]);
+
     const values = [
-      txn._id?.slice(-6),
-      txn.transaction,
-      txn.amount?.toString(),
-      txn.paymentMethod,
-      txn.proofOfPayment,
-      new Date(txn.paymentDate).toLocaleString(),
-      txn.status,
-      txn.visitorType,
-      txn.firstName,
-      txn.lastName,
-      txn.groupName,
-      txn.purpose,
-      txn.categoryType,
-      txn.visitDate,
+      obj.visitorType,
+      obj.firstName,
+      obj.lastName,
+      obj.groupName,
+      ...visitDetailStrings,
     ];
+
     return values.some((val) =>
-      val?.toLowerCase().includes(searchTerm.toLowerCase())
+      String(val || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
     );
   });
 

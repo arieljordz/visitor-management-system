@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import {
-  updateDepartment,
+  updateDepartmentByUserId,
   createDepartment,
 } from "../../../services/departmentService.js";
+import { StatusEnum, UserRoleEnum } from "../../../enums/enums.js";
 
 const DepartmentModal = ({ show, onHide, selectedRow, refreshList }) => {
   const initialFormData = {
@@ -50,7 +51,7 @@ const DepartmentModal = ({ show, onHide, selectedRow, refreshList }) => {
 
     try {
       if (isUpdate) {
-        await updateDepartment(selectedRow._id, formData);
+        await updateDepartmentByUserId(selectedRow._id, formData);
         toast.success("Department updated successfully.");
       } else {
         await createDepartment(formData);
@@ -116,7 +117,7 @@ const DepartmentModal = ({ show, onHide, selectedRow, refreshList }) => {
                     className="custom-control-label"
                     htmlFor="status-switch"
                   >
-                    {formData.status === "active" ? "Active" : "Inactive"}
+                    {formData.status === StatusEnum.ACTIVE ? StatusEnum.ACTIVE : StatusEnum.INACTIVE}
                   </label>
                 </div>
               </div>

@@ -7,7 +7,7 @@ const API_URL = import.meta.env.VITE_BASE_API_URL;
 const ProofsModal = ({ show, setShowModal, imageUrl, txnId }) => {
   const [isLoading, setIsLoading] = useState(true);
 
-  console.log("imageUrl:", imageUrl);
+  // console.log("imageUrl:", imageUrl);
 
   // Reset loading when modal opens or imageUrl changes
   useEffect(() => {

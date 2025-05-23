@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { createVisitorDetail } from "../../../services/visitorService";
-import { getClassifications } from "../../../services/classificationService";
+import { getClassificationsByUserId } from "../../../services/classificationService";
 import VisitorSearch from "../VisitorSearch";
 import VisitorDetailsForm from "../VisitorDetailsForm";
 import VisitorForm from "../VisitorForm";
-import { VisitorTypeEnum } from "../../../enums/enums.js";
+import { VisitorTypeEnum, UserRoleEnum } from "../../../enums/enums.js";
 
 const VisitorsModal = ({ user, show, onHide, refreshList }) => {
   const [classifications, setClassifications] = useState([]);
@@ -19,6 +19,8 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
     noOfVisitors: "",
   });
 
+  const subscriberId = user.role === UserRoleEnum.SUBSCRIBER ? user.userId: user.subscriberId;
+
   // Fetch classifications and reset form when modal opens
   useEffect(() => {
     if (show) {
@@ -29,7 +31,7 @@ const VisitorsModal = ({ user, show, onHide, refreshList }) => {
 
   const fetchClassifications = async () => {
     try {
-      const data = await getClassifications();
+      const data = await getClassificationsByUserId(subscriberId);
       setClassifications(data || []);
     } catch (err) {
       console.error("Error fetching classifications:", err);

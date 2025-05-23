@@ -25,15 +25,24 @@ const RegisterForm = ({ setIsRegistering }) => {
   });
 
   const register = async () => {
+    const passwordPattern =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
     if (formData.password !== formData.confirmPassword) {
       setMessage("Passwords do not match");
+      return;
+    }
+
+    if (!passwordPattern.test(formData.password)) {
+      setMessage(
+        "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character."
+      );
       return;
     }
 
     try {
       setLoading(true);
 
-      // Send registration request to backend
       const res = await axios.post(`${API_URL}/api/create-user`, {
         email: formData.email,
         name: formData.name,
@@ -64,7 +73,6 @@ const RegisterForm = ({ setIsRegistering }) => {
       setUser(userData);
       setMessage("Registration successful");
 
-      // Clear form after submission
       setFormData({
         email: "",
         name: "",
@@ -78,7 +86,7 @@ const RegisterForm = ({ setIsRegistering }) => {
       setLoading(false);
     } catch (error) {
       console.error("Registration error:", error.response);
-      setMessage(error?.response?.data?.message);
+      setMessage(error?.response?.data?.message || "Registration failed");
       setLoading(false);
     }
   };
@@ -132,6 +140,12 @@ const RegisterForm = ({ setIsRegistering }) => {
                 }
                 placeholder="Enter your password"
                 required
+                isInvalid={
+                  formData.password &&
+                  !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+                    formData.password
+                  )
+                }
               />
               <span
                 className="password-toggle-icon"
@@ -139,6 +153,23 @@ const RegisterForm = ({ setIsRegistering }) => {
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </span>
+
+              {/* Only show password requirements if password is invalid */}
+              {formData.password &&
+                !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+                  formData.password
+                ) && (
+                  <Form.Text className="text-muted">
+                    Password must contain at least:
+                    <ul className="mb-0 ps-3">
+                      <li>8 characters</li>
+                      <li>1 uppercase letter</li>
+                      <li>1 lowercase letter</li>
+                      <li>1 number</li>
+                      <li>1 special character (e.g. !@#$%)</li>
+                    </ul>
+                  </Form.Text>
+                )}
             </Form.Group>
           </Col>
           <Col md={6}>

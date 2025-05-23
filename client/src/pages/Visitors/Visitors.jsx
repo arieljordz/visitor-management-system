@@ -86,21 +86,29 @@ function Visitors() {
   };
 
   const filteredData = visitors.filter((obj) => {
+    const visitDetails = obj.visitDetails || [];
+
+    const visitDetailStrings = visitDetails.flatMap((visit) => [
+      visit._id,
+      visit.department,
+      visit.classification,
+      visit.purpose,
+      visit.validity,
+      new Date(visit.visitDate).toLocaleString(),
+    ]);
+
     const values = [
-      obj._id?.slice(-6),
-      obj.email,
-      obj.name,
-      obj.role,
-      obj.address,
-      obj.status,
-      obj.department,
-      obj.categoryType,
-      obj.subscription,
-      new Date(obj.createdAt).toLocaleString(),
+      obj.visitorType,
+      obj.firstName,
+      obj.lastName,
+      obj.groupName,
+      ...visitDetailStrings,
     ];
 
     return values.some((val) =>
-      String(val).toLowerCase().includes(searchTerm.toLowerCase())
+      String(val || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
     );
   });
 

@@ -52,9 +52,9 @@ export const createClassification = async (req, res) => {
 };
 
 // Get all classifications
-export const getClassifications = async (req, res) => {
+export const getClassificationsByUserId = async (req, res) => {
   try {
-    const userId = req.user?._id;
+      const { userId } = req.params;
 
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(401).json({ message: "Unauthorized or invalid user." });
@@ -102,7 +102,7 @@ export const deleteClassification = async (req, res) => {
 };
 
 // Update classification by ID
-export const updateClassification = async (req, res) => {
+export const updateClassificationByUserId = async (req, res) => {
   try {
     const { id } = req.params;
     const { description, status } = req.body;

@@ -54,17 +54,17 @@ import { createPaymentAccount,
 } from "../controllers/paymentAccountController.js";
 import {
   createDepartment,
-  getDepartments,
+  getDepartmentsByUserId,
   getDepartmentById,
   deleteDepartment,
-  updateDepartment,
+  updateDepartmentByUserId,
 } from "../controllers/departmentController.js";
 import {
   createClassification,
-  getClassifications,
+  getClassificationsByUserId,
   getClassificationById,
   deleteClassification,
-  updateClassification,
+  updateClassificationByUserId,
 } from "../controllers/classificationController.js";
 import {
   getAllVisitors,
@@ -180,17 +180,17 @@ router.put("/update-payment-account/:id", authenticate, auditLogger("UPDATE_PAYM
 
 // Department Routes
 router.post("/create-department", authenticate, auditLogger("CREATE_DEPARTMENT"), createDepartment);
-router.get("/get-departments", authenticate, getDepartments);
+router.get("/get-departments/:userId", authenticate, getDepartmentsByUserId);
 router.get("/get-department/:id", authenticate, getDepartmentById);
 router.delete("/delete-department/:id", authenticate, auditLogger("DELETE_DEPARTMENT"), deleteDepartment);
-router.put("/update-department/:id", authenticate, auditLogger("UPDATE_DEPARTMENT"), updateDepartment);
+router.put("/update-department/:id", authenticate, auditLogger("UPDATE_DEPARTMENT"), updateDepartmentByUserId);
 
 // Classification Routes
 router.post("/create-classification", authenticate, auditLogger("CREATE_CLASSIFICATION"), createClassification);
-router.get("/get-classifications", authenticate, getClassifications);
+router.get("/get-classifications/:userId", authenticate, getClassificationsByUserId);
 router.get("/get-classification/:id", authenticate, getClassificationById);
 router.delete("/delete-classification/:id", authenticate, auditLogger("DELETE_CLASSIFICATION"), deleteClassification);
-router.put("/update-classification/:id", authenticate, auditLogger("UPDATE_CLASSIFICATION"), updateClassification);
+router.put("/update-classification/:id", authenticate, auditLogger("UPDATE_CLASSIFICATION"), updateClassificationByUserId);
 
 // Visitor Routes
 router.get("/get-visitors", authenticate, getAllVisitors);

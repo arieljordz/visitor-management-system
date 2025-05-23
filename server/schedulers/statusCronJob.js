@@ -1,23 +1,25 @@
 import cron from "node-cron";
-import moment from "moment-timezone"; // use moment-timezone
+import moment from "moment-timezone";
 import User from "../models/User.js";
 import QRCode from "../models/QRCode.js";
+import { QRStatusEnum } from "../enums/enums.js";
 
 export const startStatusJob = () => {
   cron.schedule("0 * * * *", async () => {
-    // Set 'now' in PH time, and convert to native Date for MongoDB queries
     const now = moment().tz("Asia/Manila").startOf("day").toDate();
 
     try {
       // --- QR Code Expiration ---
-      const activeQRCodes = await QRCode.find({ status: "active" }).populate("visitDetailsId");
+      const qrCodesToCheck = await QRCode.find({
+        status: { $in: [QRStatusEnum.ACTIVE, QRStatusEnum.PENDING] },
+      }).populate("visitDetailsId");
 
-      const expiredQRIds = activeQRCodes
+      const expiredQRIds = qrCodesToCheck
         .filter((qr) => {
           const visitDate = qr.visitDetailsId?.visitDate;
           return (
             visitDate &&
-            moment(visitDate).tz("Asia/Manila").isBefore(moment(now).tz("Asia/Manila"), "day")
+            moment(visitDate).tz("Asia/Manila").isBefore(now, "day")
           );
         })
         .map((qr) => qr._id);
@@ -25,11 +27,11 @@ export const startStatusJob = () => {
       if (expiredQRIds.length > 0) {
         const result = await QRCode.updateMany(
           { _id: { $in: expiredQRIds } },
-          { $set: { status: "expired" } }
+          { $set: { status: QRStatusEnum.EXPIRED } }
         );
         console.log(`[CRON] QR codes marked as expired: ${result.modifiedCount}`);
       } else {
-        console.log("[CRON] No expired QR codes found.");
+        console.log("[CRON] No QR codes needed expiration update.");
       }
 
       // --- User Subscription & Trial Cleanup ---
