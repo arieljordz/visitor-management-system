@@ -1,9 +1,9 @@
 import React from "react";
 import { Form } from "react-bootstrap";
 
-// Utility to format number as currency
+// Format display value
 const formatCurrency = (value) => {
-  const number = parseFloat(value.replace(/,/g, ""));
+  const number = parseFloat(value);
   if (isNaN(number)) return "";
   return number.toLocaleString("en-PH", {
     minimumFractionDigits: 2,
@@ -19,10 +19,12 @@ const PaymentDetails = ({
   paymentAccounts,
   renderPaymentInfo,
 }) => {
-  // Handle money input formatting
   const handleAmountChange = (e) => {
-    const raw = e.target.value.replace(/[^\d.]/g, "");
-    setTopUpAmount(raw);
+    const raw = e.target.value;
+    // Allow only numbers and one optional decimal point
+    if (/^\d*\.?\d*$/.test(raw)) {
+      setTopUpAmount(raw);
+    }
   };
 
   return (
@@ -48,12 +50,15 @@ const PaymentDetails = ({
       <Form.Group className="mb-3">
         <Form.Label>Amount (₱)</Form.Label>
         <Form.Control
-          type="number"
+          type="text"
           inputMode="decimal"
           placeholder="Enter amount"
-          value={formatCurrency(topUpAmount)}
+          value={topUpAmount}
           onChange={handleAmountChange}
         />
+        {/* <small className="text-muted">
+          Formatted: {formatCurrency(topUpAmount)}
+        </small> */}
       </Form.Group>
 
       {renderPaymentInfo()}
