@@ -5,7 +5,7 @@ import Visitor from "../models/Visitor.js";
 import QRCode from "../models/QRCode.js";
 import ScanLog from "../models/ScanLog.js";
 import { TransactionEnum } from "../enums/enums.js";
-
+import { convertDateRangeToUTC } from "../utils/globalUtils.js";
 
 // export const getVisitorsByDateRange = async (req, res) => {
 //   const { dateFrom, dateTo } = req.query;
@@ -35,33 +35,35 @@ import { TransactionEnum } from "../enums/enums.js";
 //   }
 // };
 
-
 export const getVisitorsByDateRange = async (req, res) => {
-  const { dateFrom, dateTo, department } = req.query;
+  const { dateFrom, dateTo, department, subscriberId } = req.query;
 
-  if (!dateFrom || !dateTo) {
-    return res.status(400).json({ message: "Date range is required." });
+  if (!dateFrom || !dateTo || !subscriberId) {
+    return res
+      .status(400)
+      .json({ message: "Date range and subscriberId are required." });
   }
 
   try {
-    // Convert date range to Date objects and include full end day
-    const startDate = new Date(dateFrom);
-    const endDate = new Date(dateTo);
-    endDate.setHours(23, 59, 59, 999); // Include entire end day
+    // Convert Manila date range to UTC
+    const { startDate, endDate } = convertDateRangeToUTC(dateFrom, dateTo, "Asia/Manila");
 
-    // Build query object
+    // Step 1: Fetch visitors created by the subscriber
+    const visitorIds = await Visitor.find({ userId: subscriberId }).distinct(
+      "_id"
+    );
+
+    // Step 2: Build VisitDetail query
     const query = {
-      visitDate: {
-        $gte: startDate,
-        $lte: endDate,
-      },
+      visitDate: { $gte: startDate, $lte: endDate },
+      visitorId: { $in: visitorIds },
     };
 
-    // Add department filter if specified and not "All"
     if (department && department !== "All") {
       query.department = department;
     }
 
+    // Step 3: Fetch VisitDetails
     const visitDetails = await VisitDetail.find(query)
       .populate({
         path: "visitorId",
@@ -72,12 +74,15 @@ export const getVisitorsByDateRange = async (req, res) => {
       })
       .lean();
 
-    // Enrich with QRCode and ScanLog data
+    // Step 4: Enrich with QRCode and ScanLog data
     const enrichedData = await Promise.all(
       visitDetails.map(async (visit) => {
         const qrCode = await QRCode.findOne({ visitDetailsId: visit._id })
           .populate("userId", "name email")
-          .populate("visitorId", "visitorType firstName lastName groupName visitorImage")
+          .populate(
+            "visitorId",
+            "visitorType firstName lastName groupName visitorImage"
+          )
           .lean();
 
         const scanLogs = qrCode
@@ -102,6 +107,7 @@ export const getVisitorsByDateRange = async (req, res) => {
 };
 
 
+
 export const getPaymentDetailsByDateRange = async (req, res) => {
   const { dateFrom, dateTo } = req.query;
 
@@ -110,12 +116,9 @@ export const getPaymentDetailsByDateRange = async (req, res) => {
   }
 
   try {
-    // Convert to Date and include full end of the final day
-    const startDate = new Date(dateFrom);
-    const endDate = new Date(dateTo);
-    endDate.setHours(23, 59, 59, 999);
+    // Convert Manila date range to UTC
+    const { startDate, endDate } = convertDateRangeToUTC(dateFrom, dateTo, "Asia/Manila");
 
-    // Query for credit transactions within the date range
     const payments = await PaymentDetail.find({
       transaction: TransactionEnum.CREDIT,
       paymentDate: {
@@ -123,12 +126,9 @@ export const getPaymentDetailsByDateRange = async (req, res) => {
         $lte: endDate,
       },
     })
-      .populate({
-        path: "userId",
-        select: "-password",
-      })
+      .populate({ path: "userId", select: "-password" })
       .populate("visitorId")
-      .lean(); // Use lean for performance if no Mongoose methods are needed after
+      .lean();
 
     res.status(200).json(payments);
   } catch (error) {
@@ -145,9 +145,8 @@ export const getAuditLogsByDateRange = async (req, res) => {
   }
 
   try {
-    const startDate = new Date(dateFrom);
-    const endDate = new Date(dateTo);
-    endDate.setHours(23, 59, 59, 999); // include full day of dateTo
+    // Convert Manila date range to UTC
+    const { startDate, endDate } = convertDateRangeToUTC(dateFrom, dateTo, "Asia/Manila");
 
     const logs = await AuditLog.find({
       createdAt: {

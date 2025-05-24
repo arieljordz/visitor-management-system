@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert } from "react-bootstrap";
 import { GoogleLogin } from "@react-oauth/google";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; 
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 import { useSpinner } from "../../context/SpinnerContext";
 import { UserRoleEnum, PasswordEnum } from "../../enums/enums.js";
@@ -24,9 +24,12 @@ const LoginForm = ({ setIsRegistering }) => {
     setLoading(true);
 
     try {
-      const result = await login(email, password, navigate);
+      const result = await login(email, password);
+
       if (!result.success) {
         setMessage(result.message || "Login failed");
+      } else {
+        navigate(result.redirectPath);
       }
     } catch (err) {
       setMessage("An unexpected error occurred.");
@@ -54,9 +57,11 @@ const LoginForm = ({ setIsRegistering }) => {
         address: "N/A",
       };
 
-      const result = await googleLogin(userPayload, navigate);
+      const result = await googleLogin(userPayload);
       if (!result.success) {
         setMessage(result.message || "Google login failed");
+      } else {
+        navigate(result.redirectPath);
       }
     } catch (error) {
       console.error("Error decoding Google credential:", error);
@@ -125,7 +130,7 @@ const LoginForm = ({ setIsRegistering }) => {
       </Form>
 
       {message && (
-        <Alert variant="danger" className="mt-3 text-center">
+        <Alert variant="info" className="mt-3 text-center">
           {message}
         </Alert>
       )}

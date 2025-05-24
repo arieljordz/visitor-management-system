@@ -17,30 +17,19 @@ export const AuthProvider = ({ children }) => {
     setUser(data);
   };
 
-  const handleNavigation = (user, navigate, mode) => {
-    // console.log("userdata:", user);
-    if (mode === "google") {
-      if (!user.verified) {
-        return { success: false, message: "Account not yet verified." };
-      }
-    }
-
-    switch (user.role) {
+  const getRedirectPathByRole = (role) => {
+    switch (role) {
       case UserRoleEnum.ADMIN:
       case UserRoleEnum.SUBSCRIBER:
-        navigate("/dashboard");
-        break;
+        return "/dashboard";
       case UserRoleEnum.STAFF:
-        navigate("/scan-qr");
-        break;
+        return "/scan-qr";
       default:
-        navigate("/");
+        return "/";
     }
-
-    return { success: true, message: "Login successful" };
   };
 
-  const login = async (email, password, navigate) => {
+  const login = async (email, password) => {
     try {
       const { data } = await axios.post(
         `${API_URL}/api/auth/login`,
@@ -48,23 +37,40 @@ export const AuthProvider = ({ children }) => {
         { withCredentials: true }
       );
 
+      if (!data.verified) {
+        return { success: false, message: "Account not yet verified." };
+      }
+
       storeUserData(data);
-      return handleNavigation(data, navigate, "manual");
+      return {
+        success: true,
+        message: "Login successful",
+        redirectPath: getRedirectPathByRole(data.role),
+      };
     } catch (err) {
       return { success: false, message: "Login failed" };
     }
   };
 
-  const googleLogin = async (userPayload, navigate) => {
+  const googleLogin = async (userPayload) => {
     try {
       const { data } = await axios.post(
         `${API_URL}/api/auth/google-login`,
         userPayload,
         { withCredentials: true }
       );
+      console.log("data:", data);
+
+      if (!data.verified) {
+        return { success: false, message: "Account not yet verified. Please verify to your email." };
+      }
 
       storeUserData(data);
-      return handleNavigation(data, navigate, "google");
+      return {
+        success: true,
+        message: "Google login successful",
+        redirectPath: getRedirectPathByRole(data.role),
+      };
     } catch (err) {
       console.error("Google login error:", err);
       return { success: false, message: "Google login failed" };
@@ -78,7 +84,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, googleLogin, setUser, updateUser }}>
+    <AuthContext.Provider
+      value={{ user, login, googleLogin, setUser, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

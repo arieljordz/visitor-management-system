@@ -20,6 +20,7 @@ async function clearCollections() {
       'notifications',
       'paymentdetails',
       'qrcodes',
+      'scanlogs',
       'sessions',
       'users',
       'visitors',

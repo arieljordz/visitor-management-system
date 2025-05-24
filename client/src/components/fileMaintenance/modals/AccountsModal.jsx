@@ -22,11 +22,14 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
 
   const [formData, setFormData] = useState(initialFormData);
   const [departments, setDepartments] = useState([]);
-  const subscriberId = user.role === UserRoleEnum.SUBSCRIBER ? user.userId: user.subscriberId;
+  const subscriberId =
+    user.role === UserRoleEnum.SUBSCRIBER ? user.userId : user.subscriberId;
 
   useEffect(() => {
     if (show) {
-      fetchDepartments();
+      if (user.role !== UserRoleEnum.ADMIN) {
+        fetchDepartments();
+      }
       resetForm();
     }
   }, [show]);
@@ -74,7 +77,7 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     setFormData((prev) => {
       if (type === "checkbox") {
         if (name === "status") {
@@ -102,7 +105,6 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
       } else {
         const updatedFormData = { ...formData, userId };
         const data = await createUser(updatedFormData);
-        // const data = await createUser(formData);
         // console.log("data:" , data);
         toast.success(data?.data?.message);
       }
@@ -177,25 +179,27 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
               </Form.Group>
             </Col>
 
-            <Col md={12}>
-              <Form.Group>
-                <Form.Label>Department</Form.Label>
-                <Form.Select
-                  name="department"
-                  value={formData.department}
-                  onChange={handleChange}
-                  className="form-control"
-                  required={user.role !== UserRoleEnum.ADMIN} 
-                >
-                  <option value="">-- Select Department --</option>
-                  {departments.map((c, i) => (
-                    <option key={i} value={c.description}>
-                      {c.description}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-            </Col>
+            {user?.role !== UserRoleEnum.ADMIN && (
+              <Col md={12}>
+                <Form.Group>
+                  <Form.Label>Department</Form.Label>
+                  <Form.Select
+                    name="department"
+                    value={formData.department}
+                    onChange={handleChange}
+                    className="form-control"
+                    required
+                  >
+                    <option value="">-- Select Department --</option>
+                    {departments.map((c, i) => (
+                      <option key={i} value={c.description}>
+                        {c.description}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            )}
 
             <Col md={12}>
               <Form.Group className="mb-3">
@@ -276,7 +280,9 @@ const AccountsModal = ({ show, onHide, selectedRow, refreshList, userId }) => {
                     className="custom-control-label"
                     htmlFor="status-switch"
                   >
-                    {formData.status === StatusEnum.ACTIVE ? StatusEnum.ACTIVE : StatusEnum.INACTIVE}
+                    {formData.status === StatusEnum.ACTIVE
+                      ? StatusEnum.ACTIVE
+                      : StatusEnum.INACTIVE}
                   </label>
                 </div>
               </div>

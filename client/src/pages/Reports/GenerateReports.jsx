@@ -20,6 +20,7 @@ function GenerateReports() {
   const [department, setDepartment] = useState("");
 
   const [columns, setColumns] = useState([]);
+  const subscriberId = user.role === UserRoleEnum.SUBSCRIBER ? user.userId: user.subscriberId;
 
   useEffect(() => {
     setReportData(null);
@@ -36,7 +37,7 @@ function GenerateReports() {
         title,
         rows,
         columns: cols,
-      } = await generateReportData(reportType, dateFrom, dateTo, department);
+      } = await generateReportData(reportType, dateFrom, dateTo, department, subscriberId);
       setReportData({ title, rows });
       setColumns(cols);
     } catch (error) {

@@ -11,7 +11,8 @@ export const generateReportData = async (
   reportType,
   dateFrom,
   dateTo,
-  department = ""
+  department = "",
+  subscriberId
 ) => {
   let rows = [];
   let columns = [];
@@ -23,6 +24,7 @@ export const generateReportData = async (
         dateFrom,
         dateTo,
         department,
+        subscriberId,
       });
 
       columns = [
@@ -120,7 +122,7 @@ export const generateReportData = async (
             : toProperCase(item.userId?.name),
         email:
           item.userId === null ? item.details?.body?.email : item.userId?.email,
-        action: toProperCase(item.action),
+        action: item.action?.toUpperCase(),
         ipAddress: item.ipAddress?.toUpperCase(), // Keeping IP uppercase, usually better
         date: formatDateTime(item.createdAt),
       }));

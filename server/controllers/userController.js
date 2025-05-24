@@ -14,7 +14,12 @@ import {
 } from "../utils/authUtils.js";
 import { sendEmail } from "../utils/mailer.js";
 import { evaluateUserStatus } from "../utils/statusUtils.js";
-import { StatusEnum, UserRoleEnum, PasswordEnum, PlanTypeEnum } from "../enums/enums.js";
+import {
+  StatusEnum,
+  UserRoleEnum,
+  PasswordEnum,
+  PlanTypeEnum,
+} from "../enums/enums.js";
 import { sendVerificationEmail } from "../services/sendEmailService.js";
 
 // User handler
@@ -86,7 +91,7 @@ export const googleLogin = async (req, res) => {
     categoryType = "N/A",
     subscription = false,
     expiryDate = null,
-    verified = true,
+    verified = false,
     status = StatusEnum.ACTIVE,
   } = req.body;
 
@@ -100,7 +105,6 @@ export const googleLogin = async (req, res) => {
       const hashedPassword = password
         ? await bcrypt.hash(password, 10)
         : undefined;
-      // const expiryDate = addDays(new Date(), 30); // Trial period
 
       user = new User({
         email,
@@ -137,9 +141,9 @@ export const googleLogin = async (req, res) => {
     });
 
     // Optionally send verification email here if needed
-    // if (isNewUser || !user.verified) {
-    // await sendVerificationEmail({ name, email });
-    // }
+    if (isNewUser || !user.verified) {
+      await sendVerificationEmail({ name, email });
+    }
 
     // console.log("safeUser:", safeUser);
     res.status(200).json(buildResponse(safeUser, accessToken));
@@ -287,7 +291,9 @@ export const logout = async (req, res) => {
     // Validate Authorization header
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Authorization header missing or malformed" });
+      return res
+        .status(401)
+        .json({ message: "Authorization header missing or malformed" });
     }
 
     const token = authHeader.split(" ")[1];
@@ -309,7 +315,9 @@ export const logout = async (req, res) => {
     );
 
     if (sessionUpdate.matchedCount === 0) {
-      return res.status(404).json({ message: "Session not found or already logged out" });
+      return res
+        .status(404)
+        .json({ message: "Session not found or already logged out" });
     }
 
     // Optionally clear the refresh token cookie
@@ -322,7 +330,9 @@ export const logout = async (req, res) => {
     return res.json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Logout Error:", error);
-    return res.status(500).json({ message: "Logout failed", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Logout failed", error: error.message });
   }
 };
 
@@ -388,9 +398,12 @@ export const createUser = async (req, res) => {
     const { password: _, ...safeUser } = savedUser.toObject();
 
     // Optionally send verification email here if needed
-    // if (!savedUser.verified) {
-    // await sendVerificationEmail({ name: savedUser.name, email: savedUser.email });
-    // }
+    if (!savedUser.verified) {
+      await sendVerificationEmail({
+        name: savedUser.name,
+        email: savedUser.email,
+      });
+    }
 
     res.status(201).json({
       message: "User created successfully",
