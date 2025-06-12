@@ -83,7 +83,7 @@ const VisitorsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
                           <FaEdit />
                           <span>Edit</span>
                         </Button>
-                        <Button
+                        {/* <Button
                           size="sm"
                           variant="danger"
                           className="d-flex align-items-center ml-2"
@@ -91,7 +91,7 @@ const VisitorsTable = ({ loading, currentData, handleEdit, handleDelete }) => {
                         >
                           <FaTrash />
                           <span>Delete</span>
-                        </Button>
+                        </Button> */}
                       </div>
                     </td>
                   </tr>

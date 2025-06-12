@@ -10,7 +10,7 @@ import Navpath from "../../components/common/Navpath";
 import Search from "../../components/common/Search";
 import Paginations from "../../components/common/Paginations";
 import DashboardTable from "./tables/DashboardTable.jsx";
-import QRCodeModal from "../../components/dashboard/modals/QRCodeModal";
+import QRCodeModal from "../../components/transactions/modals/QRCodeModal";
 import DashboardStats from "./DashboardStats.jsx";
 import { getVisitorByUserId } from "../../services/visitorService.js";
 import {
@@ -29,7 +29,8 @@ const SubDashboard = () => {
   const { flags } = useFeatureFlags();
   const [visitors, setVisitors] = useState([]);
   const [txnId, setTxnId] = useState("");
-  const [qrViewImageUrl, setViewQrImageUrl] = useState("");
+  const [qrImageUrl, setQrImageUrl] = useState("");
+  const [visitorName, setVisitorName] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -172,12 +173,12 @@ const SubDashboard = () => {
       ? 1
       : Math.ceil(filteredData.length / itemsPerPageValue);
 
-  const handleViewQRCode = (imageUrl, txnId) => {
-    setViewQrImageUrl(imageUrl);
+  const handleViewQRCode = (imageUrl, visitorName, txnId) => {
+    setQrImageUrl(imageUrl);
+    setVisitorName(visitorName);
     setTxnId(txnId);
     setShowModal(true);
   };
-
   return (
     <div className="content-wrapper">
       {/* Content Header */}
@@ -225,8 +226,9 @@ const SubDashboard = () => {
                           <QRCodeModal
                             show={showModal}
                             setShowModal={setShowModal}
-                            qrImageUrl={qrViewImageUrl}
+                            qrImageUrl={qrImageUrl}
                             txnId={txnId}
+                            visitorName={visitorName}
                           />
                         </Card.Body>
                       </div>

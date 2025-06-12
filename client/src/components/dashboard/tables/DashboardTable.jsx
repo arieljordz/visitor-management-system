@@ -1,11 +1,10 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
 import {
-  VisitorTypeEnum,
   QRStatusEnum,
   ValidityEnum,
 } from "../../../enums/enums.js";
-import { formatDate } from "../../../utils/globalUtils";
+import { formatDate, formatVisitorName } from "../../../utils/globalUtils";
 
 const DashboardTable = ({
   loading,
@@ -25,7 +24,7 @@ const DashboardTable = ({
         <thead>
           <tr>
             <th className="text-center">#</th>
-            <th className="text-center">ID</th>
+            {/* <th className="text-center">ID</th> */}
             <th className="text-center">Type</th>
             <th className="text-center">Name/Group</th>
             <th className="text-center">No. of Visitors</th>
@@ -47,16 +46,14 @@ const DashboardTable = ({
                 visitor.visitDetails?.map((visitDetail) => (
                   <tr key={visitDetail._id}>
                     <td className="text-center">{counter++}</td>
-                    <td className="text-center">
+                    {/* <td className="text-center">
                       {visitDetail._id.slice(-6).toUpperCase()}
-                    </td>
+                    </td> */}
                     <td className="text-center">
                       {visitor.visitorType?.toUpperCase()}
                     </td>
                     <td className="text-center">
-                      {visitor.visitorType === VisitorTypeEnum.GROUP
-                        ? visitor.groupName?.toUpperCase()
-                        : `${visitor.firstName?.toUpperCase()} ${visitor.lastName?.toUpperCase()}`}
+                       {formatVisitorName(visitor)}
                     </td>
                     <td className="text-center">
                       {visitDetail.noOfVisitors || "1"}
@@ -102,6 +99,7 @@ const DashboardTable = ({
                           onClick={() =>
                             handleViewQRCode(
                               visitDetail.activeQRCode.qrImageUrl,
+                              formatVisitorName(visitor),
                               visitDetail.activeQRCode._id
                                 .slice(-6)
                                 .toUpperCase()

@@ -67,61 +67,93 @@ const VisitorForm = ({
           {type === VisitorTypeEnum.INDIVIDUAL ? (
             <>
               <FormInput
-                label="First Name"
+                label={
+                  <span>
+                    First Name <span className="text-danger">*</span>
+                  </span>
+                }
                 name="firstName"
                 value={isReadOnly ? visitor?.firstName : formData.firstName}
                 onChange={onChange}
                 readOnly={isReadOnly}
                 placeholder="Enter first name"
+                required
               />
               <FormInput
-                label="Last Name"
+                label={
+                  <span>
+                    Last Name <span className="text-danger">*</span>
+                  </span>
+                }
                 name="lastName"
                 value={isReadOnly ? visitor?.lastName : formData.lastName}
                 onChange={onChange}
                 readOnly={isReadOnly}
                 placeholder="Enter last name"
+                required
               />
             </>
           ) : (
             <>
               <FormInput
-                label="Group Name"
+                label={
+                  <span>
+                    Group Name <span className="text-danger">*</span>
+                  </span>
+                }
                 name="groupName"
                 value={isReadOnly ? visitor?.groupName : formData.groupName}
                 onChange={onChange}
                 readOnly={isReadOnly}
                 placeholder="Enter group name"
+                required
               />
               <FormInput
-                label="No. of Visitors"
+                label={
+                  <span>
+                    No. of Visitors <span className="text-danger">*</span>
+                  </span>
+                }
                 name="noOfVisitors"
                 value={formData.noOfVisitors}
                 onChange={onChange}
                 type="number"
                 placeholder="Enter number of visitors"
+                required
               />
             </>
           )}
 
           <FormInput
-            label="Visit Date"
+            label={
+              <span>
+                Visit Date <span className="text-danger">*</span>
+              </span>
+            }
             name="visitDate"
             value={formData.visitDate}
             onChange={onChange}
             type="date"
+            required
           />
           <FormInput
-            label="Purpose"
+            label={
+              <span>
+                Purpose <span className="text-danger">*</span>
+              </span>
+            }
             name="purpose"
             value={formData.purpose}
             onChange={onChange}
             placeholder="Enter purpose"
+            required
           />
 
           <Col md={6} className="mb-3">
             <Form.Group>
-              <Form.Label>Department</Form.Label>
+              <Form.Label>
+                Department <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Select
                 name="department"
                 value={formData.department}
@@ -141,7 +173,9 @@ const VisitorForm = ({
 
           <Col md={6} className="mb-3">
             <Form.Group>
-              <Form.Label>Classification</Form.Label>
+              <Form.Label>
+                Classification <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Select
                 name="classification"
                 value={formData.classification}
@@ -161,7 +195,9 @@ const VisitorForm = ({
 
           <Col md={6} className="mb-3">
             <Form.Group>
-              <Form.Label>Validity</Form.Label>
+              <Form.Label>
+                Validity <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Select
                 name="validity"
                 value={formData.validity}
@@ -209,7 +245,6 @@ const VisitorForm = ({
           )}
         </div>
         <Form.Group>
-          {/* <Form.Label>Upload Image</Form.Label> */}
           <Form.Control
             type="file"
             accept="image/*"

@@ -37,7 +37,8 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const subscriberId = user.role === UserRoleEnum.SUBSCRIBER ? user.userId: user.subscriberId;
+  const subscriberId =
+    user.role === UserRoleEnum.SUBSCRIBER ? user.userId : user.subscriberId;
 
   useEffect(() => {
     if (show) {
@@ -180,18 +181,19 @@ const VisitorsModal = ({ show, onHide, selectedRow, refreshList }) => {
 
     // console.log("imageFile:", imageFile);
     // console.log("imagePreview:", imagePreview);
+    // console.log("selectedVisitor:", selectedVisitor);
     // console.log("visitorType:", visitorType);
 
     if (imageFile) {
       formPayload.append("visitorImage", imageFile);
     } else if (selectedVisitor?.visitorImage) {
       formPayload.append("visitorImage", selectedVisitor.visitorImage);
+    } else if (imagePreview) {
+      console.log("formPayload:", formPayload);
     } else {
       toast.warning("Visitor image is required.");
       return;
     }
-
-    // console.log("formPayload:", formPayload);
 
     setLoading(true);
     try {

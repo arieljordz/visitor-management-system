@@ -3,7 +3,7 @@ import { Modal, Button, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { formatDate } from "../../../utils/globalUtils";
 
-const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
+const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId, visitorName }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Reset loading state when qrImageUrl changes or modal is shown
@@ -30,11 +30,12 @@ const QRCodeModal = ({ show, setShowModal, qrImageUrl, txnId }) => {
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
 
-      const formattedDate = formatDate();
+      const formattedDate = formatDate(Date.now());
 
+      // console.log(formattedDate);
       const link = document.createElement("a");
       link.href = blobUrl;
-      link.download = `${txnId}-${formattedDate}.png`;
+      link.download = `${visitorName}_${txnId}_${formattedDate}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

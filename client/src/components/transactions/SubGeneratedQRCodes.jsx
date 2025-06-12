@@ -22,6 +22,7 @@ function SubGeneratedQRCodes() {
   const [showModal, setShowModal] = useState(false);
   const [qrImageUrl, setQrImageUrl] = useState("");
   const [txnId, setTxnId] = useState("");
+  const [visitorName, setVisitorName] = useState("");
 
   useEffect(() => {
     if (user?.userId) {
@@ -102,8 +103,9 @@ function SubGeneratedQRCodes() {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   // Handle QR code modal view
-  const handleViewQRCode = (imageUrl, txnId) => {
+  const handleViewQRCode = (imageUrl, visitorName, txnId) => {
     setQrImageUrl(imageUrl);
+    setVisitorName(visitorName);
     setTxnId(txnId);
     setShowModal(true);
   };
@@ -159,6 +161,7 @@ function SubGeneratedQRCodes() {
                       setShowModal={setShowModal}
                       qrImageUrl={qrImageUrl}
                       txnId={txnId}
+                      visitorName={visitorName}
                     />
                   </Card.Body>
                 </Card>

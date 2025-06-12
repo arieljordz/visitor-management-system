@@ -30,10 +30,11 @@ export const generateReportData = async (
       columns = [
         { header: "#", key: "id", width: "10%" },
         { header: "Name", key: "name" },
-        { header: "Visitor Type", key: "visitorType" },
+        { header: "QR Code ID", key: "qrCodeId" },
+        // { header: "Visitor type", key: "visitorType" },
         { header: "Purpose", key: "purpose" },
         { header: "Department", key: "department" },
-        { header: "Classification", key: "classification" },
+        // { header: "Classification", key: "classification" },
         { header: "No. of Visitors", key: "noOfVisitors" },
         { header: "Visit Date", key: "visitDate" },
         { header: "Scan Date", key: "scanTime" },
@@ -47,8 +48,10 @@ export const generateReportData = async (
           visitor?.visitorType === VisitorTypeEnum.INDIVIDUAL
             ? `${toProperCase(visitor?.firstName)} ${toProperCase(
                 visitor?.lastName
-              )}`
-            : toProperCase(visitor?.groupName);
+              )}`.toUpperCase()
+            : toProperCase(visitor?.groupName).toUpperCase();
+
+        const qrCodeId = item.qrCode?._id.slice(-10).toUpperCase();
 
         const latestScan = item.scanLogs?.length
           ? item.scanLogs[item.scanLogs.length - 1]
@@ -57,13 +60,16 @@ export const generateReportData = async (
         return {
           id: index + 1,
           name,
-          visitorType: toProperCase(visitor?.visitorType),
-          purpose: toProperCase(visit.purpose),
-          department: toProperCase(visit.department),
-          classification: toProperCase(visit.classification),
+          qrCodeId,
+          // visitorType: toProperCase(visitor?.visitorType),
+          purpose: toProperCase(visit.purpose).toUpperCase(),
+          department: toProperCase(visit.department).toUpperCase(),
+          // classification: toProperCase(visit.classification),
           noOfVisitors: visit.noOfVisitors || 1,
-          visitDate: formatDateTime(visit.visitDate),
-          scanTime: latestScan ? formatDateTime(latestScan.scannedAt) : "N/A",
+          visitDate: formatDateTime(visit.visitDate).toUpperCase(),
+          scanTime: latestScan
+            ? formatDateTime(latestScan.scannedAt).toUpperCase()
+            : "N/A",
         };
       });
 

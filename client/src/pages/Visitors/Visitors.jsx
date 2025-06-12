@@ -27,6 +27,7 @@ function Visitors() {
   // Modal
   const [showModal, setShowModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [visitorCount, setVisitorCount] = useState(0);
 
   useEffect(() => {
     if (user?.userId) {
@@ -124,6 +125,10 @@ function Visitors() {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  useEffect(() => {
+    setVisitorCount(filteredData.length);
+  }, [filteredData]);
+
   return (
     <AccessControlWrapper>
       <div className="content-wrapper">
@@ -138,7 +143,7 @@ function Visitors() {
                 {/* Card with conditional dark mode styling */}
                 <Card>
                   <Card.Body className="main-card">
-                    <div className="mb-4 text-start">
+                    <div className="mb-4 d-flex justify-content-between align-items-center">
                       <Button
                         variant="success"
                         onClick={() => setShowModal(true)}
@@ -146,6 +151,9 @@ function Visitors() {
                         <FaPlus className="mr-1" />
                         Add Visitor
                       </Button>
+                      <div className="text-muted">
+                        Total Visitors: <strong>{visitorCount}</strong>
+                      </div>
                     </div>
 
                     <Search

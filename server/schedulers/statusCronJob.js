@@ -9,20 +9,34 @@ export const startStatusJob = () => {
     const now = moment().tz("Asia/Manila").startOf("day").toDate();
 
     try {
-      // --- QR Code Expiration ---
+      // --- QR Code Expiration Check ---
       const qrCodesToCheck = await QRCode.find({
-        status: { $in: [QRStatusEnum.ACTIVE, QRStatusEnum.PENDING] },
+        status: { $in: [QRStatusEnum.ACTIVE] },
       }).populate("visitDetailsId");
 
-      const expiredQRIds = qrCodesToCheck
-        .filter((qr) => {
-          const visitDate = qr.visitDetailsId?.visitDate;
-          return (
-            visitDate &&
-            moment(visitDate).tz("Asia/Manila").isBefore(now, "day")
-          );
-        })
-        .map((qr) => qr._id);
+      const expiredQRIds = [];
+      let validTodayCount = 0;
+
+      for (const qr of qrCodesToCheck) {
+        const visitDetails = qr.visitDetailsId;
+
+        if (!visitDetails) continue;
+
+        const isPermanent = visitDetails.validity?.toLowerCase() === "permanent";
+        const visitDate = moment(visitDetails.visitDate).tz("Asia/Manila").startOf("day");
+
+        if (isPermanent) {
+          // QR stays active for permanent validity
+          validTodayCount++;
+        } else {
+          // Check expiration based on date
+          if (visitDate.isBefore(now, "day")) {
+            expiredQRIds.push(qr._id);
+          } else {
+            validTodayCount++;
+          }
+        }
+      }
 
       if (expiredQRIds.length > 0) {
         const result = await QRCode.updateMany(
@@ -33,6 +47,8 @@ export const startStatusJob = () => {
       } else {
         console.log("[CRON] No QR codes needed expiration update.");
       }
+
+      console.log(`[CRON] QR codes valid today (including permanent): ${validTodayCount}`);
 
       // --- User Subscription & Trial Cleanup ---
       const subResult = await User.updateMany(

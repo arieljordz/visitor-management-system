@@ -1,7 +1,6 @@
 import React from "react";
 import { Table, Spinner, Button } from "react-bootstrap";
-import { formatDate } from "../../../utils/globalUtils";
-import { VisitorTypeEnum } from "../../../enums/enums.js";
+import { formatDate, formatVisitorName } from "../../../utils/globalUtils";
 
 const GeneratedQRCodeTable = ({
   loading,
@@ -44,11 +43,7 @@ const GeneratedQRCodeTable = ({
                 </td>
                 <td className="text-center">{txn.userId.name.toUpperCase()}</td>
                 <td className="text-center">
-                  {txn.visitorId?.visitorType === VisitorTypeEnum.INDIVIDUAL
-                    ? `${txn.visitorId?.firstName.toUpperCase() || ""} ${
-                        txn.visitorId?.lastName.toUpperCase() || ""
-                      }`
-                    : txn.visitorId?.groupName.toUpperCase()}
+                  {formatVisitorName(txn.visitorId)}
                 </td>
                 <td className="text-center">
                   {txn.visitDetailsId?.noOfVisitors
@@ -66,6 +61,7 @@ const GeneratedQRCodeTable = ({
                       onClick={() =>
                         handleViewQRCode(
                           txn.qrImageUrl,
+                          formatVisitorName(txn.visitorId),
                           txn._id.slice(-6).toUpperCase()
                         )
                       }

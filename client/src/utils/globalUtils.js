@@ -1,4 +1,5 @@
 import moment from "moment-timezone";
+import { VisitorTypeEnum } from "../enums/enums";
 
 export const formatDate = (dateStr) => {
   if (!dateStr) return "";
@@ -51,3 +52,14 @@ export const toProperCase = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
+export function formatVisitorName(visitor) {
+  if (!visitor) return "";
+
+  if (visitor.visitorType === VisitorTypeEnum.INDIVIDUAL) {
+    const firstName = (visitor.firstName || "").toUpperCase();
+    const lastName = (visitor.lastName || "").toUpperCase();
+    return `${firstName} ${lastName}`.trim();
+  }
+
+  return (visitor.groupName || "").toUpperCase();
+}

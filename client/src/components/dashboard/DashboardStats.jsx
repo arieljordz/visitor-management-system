@@ -38,7 +38,7 @@ const DashboardStats = () => {
     : [
         { count: stats.totalQRCodes || 0, label: "Generated QR Codes", icon: "fa-qrcode", bg: "bg-success" },
         { count: stats.activeQRCodes || 0, label: "Active QR Codes", icon: "fa-bolt", bg: "bg-primary" },
-        { count: stats.usedQRCodes || 0, label: "Used QR Codes", icon: "fa-check", bg: "bg-secondary" },
+        { count: stats.expiredQRCodes || 0, label: "Expired QR Codes", icon: "fa-clock", bg: "bg-secondary" },
         { count: stats.visitorCount || 0, label: "Your Visitors", icon: "fa-user-friends", bg: "bg-danger" },
       ];
 

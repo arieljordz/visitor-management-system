@@ -14,7 +14,7 @@ export const getDashboardStats = async (req, res) => {
     if (user.role === UserRoleEnum.ADMIN) {
       const [subscribers, qrCodes, pendingSubscriptions, visitors] = await Promise.all([
         User.find({ role: UserRoleEnum.SUBSCRIBER }),
-        QRCode.find({}), // All QR codes by all subscribers
+        QRCode.find({}),
         PaymentDetail.find({ verificationStatus: VerificationStatusEnum.PENDING }),
         Visitor.find({})
       ]);
@@ -28,17 +28,17 @@ export const getDashboardStats = async (req, res) => {
     }
 
     if (user.role === UserRoleEnum.SUBSCRIBER) {
-      const [allQRCodes, activeQRCodes, usedQRCodes, visitors] = await Promise.all([
+      const [allQRCodes, activeQRCodes, expiredQRCodes, visitors] = await Promise.all([
         QRCode.countDocuments({ userId: user._id }),
         QRCode.countDocuments({ userId: user._id, status: QRStatusEnum.ACTIVE }),
-        QRCode.countDocuments({ userId: user._id, status: QRStatusEnum.USED }),
+        QRCode.countDocuments({ userId: user._id, status: QRStatusEnum.EXPIRED }),
         Visitor.countDocuments({ userId: user._id })
       ]);
 
       stats = {
         totalQRCodes: allQRCodes,
         activeQRCodes,
-        usedQRCodes,
+        expiredQRCodes,
         visitorCount: visitors
       };
     }
